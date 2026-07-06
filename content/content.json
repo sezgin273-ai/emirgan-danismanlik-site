@@ -1,7 +1,33 @@
 {
   "site": {
     "title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-    "lang": "tr"
+    "lang": "tr",
+    "assets": {
+      "favicon": "/assets/img/favicon.png",
+      "apple_touch_icon": "/assets/img/apple-touch-icon.png",
+      "logo_light": "/assets/img/logo-light-bg.png",
+      "logo_dark": "/assets/img/logo-transparent-dark-hd.png",
+      "emblem_light": "/assets/img/logo-emblem-light.svg",
+      "emblem_dark": "/assets/img/logo-emblem-dark.svg"
+    }
+  },
+  "navigation": {
+    "items": [
+      { "id": "hero", "label": "Ana Sayfa", "href": "#hero" },
+      { "id": "services", "label": "Hizmetler", "href": "#services" },
+      { "id": "about", "label": "Hakkımızda", "href": "#about" },
+      { "id": "team", "label": "Ekibimiz", "href": "#team" },
+      { "id": "contact", "label": "İletişim", "href": "#contact" }
+    ],
+    "cta": { "label": "Bize Ulaşın", "href": "#contact" }
+  },
+  "ui": {
+    "skip_to_content": "İçeriğe geç",
+    "menu_open": "Menüyü aç",
+    "menu_close": "Menüyü kapat",
+    "hero_visual_label": "Kurumsal danışmanlık görsel kompozisyonu",
+    "email_label": "E-posta",
+    "back_home": "Ana Sayfa"
   },
   "hero": {
     "company": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
@@ -10,7 +36,14 @@
   },
   "intro": {
     "title": "Kısa Tanıtım",
-    "text": "Emirgan Danışmanlık Ticaret Anonim Şirketi, geniş faaliyet alanlarıyla müşterilerine bütüncül danışmanlık hizmeti sunan profesyonel bir firmadır. Enerji, gayrimenkul, ticaret, inşaat ve yatırım projelerinde uzman ekibimizle yanınızdayız."
+    "text": "Emirgan Danışmanlık Ticaret Anonim Şirketi, geniş faaliyet alanlarıyla müşterilerine bütüncül danışmanlık hizmeti sunan profesyonel bir firmadır. Enerji, gayrimenkul, ticaret, inşaat ve yatırım projelerinde uzman ekibimizle yanınızdayız.",
+    "badges": [
+      { "icon": "energy", "label": "Enerji" },
+      { "icon": "realestate", "label": "Gayrimenkul" },
+      { "icon": "trade", "label": "Ticaret" },
+      { "icon": "construction", "label": "İnşaat" },
+      { "icon": "investment", "label": "Yatırım" }
+    ]
   },
   "about": {
     "title": "Hakkımızda",
@@ -64,31 +97,38 @@
     "items": [
       {
         "title": "Stratejik Yönetim ve İş Geliştirme Danışmanlığı",
-        "description": "Şirketinizin stratejik hedeflerini belirliyor, büyüme stratejileri geliştiriyor ve iş süreçlerinizi optimize ediyoruz."
+        "description": "Şirketinizin stratejik hedeflerini belirliyor, büyüme stratejileri geliştiriyor ve iş süreçlerinizi optimize ediyoruz.",
+        "icon": "strategy"
       },
       {
         "title": "Hukuki ve Sözleşme Danışmanlığı",
-        "description": "Sözleşme hazırlığı, ticari uyuşmazlıklar, kurumsal yönetim ve yasal süreçlerde profesyonel hukuki destek sağlıyoruz."
+        "description": "Sözleşme hazırlığı, ticari uyuşmazlıklar, kurumsal yönetim ve yasal süreçlerde profesyonel hukuki destek sağlıyoruz.",
+        "icon": "legal"
       },
       {
         "title": "Finansal Planlama ve Vergi Danışmanlığı",
-        "description": "Bütçe yönetimi, vergi optimizasyonu, finansal raporlama ve nakit akışı planlaması konularında destek veriyoruz."
+        "description": "Bütçe yönetimi, vergi optimizasyonu, finansal raporlama ve nakit akışı planlaması konularında destek veriyoruz.",
+        "icon": "finance"
       },
       {
         "title": "Yatırım ve Fizibilite Raporları",
-        "description": "Potansiyel yatırımlarınız için ekonomik, teknik ve hukuki analiz içeren kapsamlı fizibilite raporları hazırlıyoruz."
+        "description": "Potansiyel yatırımlarınız için ekonomik, teknik ve hukuki analiz içeren kapsamlı fizibilite raporları hazırlıyoruz.",
+        "icon": "feasibility"
       },
       {
         "title": "Gayrimenkul ve Proje Geliştirme Danışmanlığı",
-        "description": "Gayrimenkul alım-satım, kiralama, proje geliştirme ve yatırım süreçlerinde danışmanlık hizmeti sunuyoruz."
+        "description": "Gayrimenkul alım-satım, kiralama, proje geliştirme ve yatırım süreçlerinde danışmanlık hizmeti sunuyoruz.",
+        "icon": "realestate"
       },
       {
         "title": "Ticaret ve İhracat Danışmanlığı",
-        "description": "İhracat süreçleri, pazar araştırması, distribütörlük ve uluslararası ticaret operasyonlarında yanınızdayız."
+        "description": "İhracat süreçleri, pazar araştırması, distribütörlük ve uluslararası ticaret operasyonlarında yanınızdayız.",
+        "icon": "trade"
       },
       {
         "title": "Kurumsal Yönetim ve Ortaklık Süreçleri",
-        "description": "Şirket birleşmeleri, ortaklık yapıları ve kurumsal yönetim danışmanlığı."
+        "description": "Şirket birleşmeleri, ortaklık yapıları ve kurumsal yönetim danışmanlığı.",
+        "icon": "governance"
       }
     ]
   },
@@ -105,7 +145,20 @@
         "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
       }
     ],
-    "email": "info@emirgandanismanlik.com"
+    "email": "info@emirgandanismanlik.com",
+    "form": {
+      "name": { "label": "Ad Soyad", "placeholder": "Adınız ve soyadınız" },
+      "email": { "label": "E-posta", "placeholder": "ornek@email.com" },
+      "phone": { "label": "Telefon", "placeholder": "+90 212 000 00 00" },
+      "subject": { "label": "Konu", "placeholder": "Mesaj konusu" },
+      "message": { "label": "Mesaj", "placeholder": "Mesajınızı yazın" },
+      "submit": "Mesaj Gönder",
+      "success": "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
+      "error": "Lütfen zorunlu alanları doldurun."
+    }
+  },
+  "footer": {
+    "quick_links_title": "Hızlı Bağlantılar"
   },
   "kvkk": {
     "title": "KVKK Aydınlatma Metni",

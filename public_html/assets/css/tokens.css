@@ -8,4 +8,38 @@
   --color-navy-dark: #081828;
   --color-gold-light: #D8C8A8;
   --color-text-muted: #707078;
+  --color-white: #FFFFFF;
+
+  /* Tipografi */
+  --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Boşluk */
+  --space-xs: 0.5rem;
+  --space-sm: 0.75rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+  --space-4xl: 6rem;
+
+  /* Layout */
+  --container-max: 72rem;
+  --header-height: 4.5rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-full: 9999px;
+
+  /* Gölge */
+  --shadow-sm: 0 1px 3px rgba(16, 24, 44, 0.06);
+  --shadow-md: 0 8px 24px rgba(16, 24, 44, 0.08);
+  --shadow-lg: 0 16px 48px rgba(16, 24, 44, 0.12);
+  --shadow-gold: 0 8px 32px rgba(184, 148, 80, 0.2);
+
+  /* Geçiş */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }

@@ -4,7 +4,10 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/bootstrap.php';
 
 $content = load_content();
-$site = $content['site'];
+$is_home = true;
+$page_title = $content['site']['title'];
+$page_description = $content['hero']['description'];
+
 $hero = $content['hero'];
 $intro = $content['intro'];
 $about = $content['about'];
@@ -13,104 +16,223 @@ $mission = $content['mission'];
 $team = $content['team'];
 $services = $content['services'];
 $contact = $content['contact'];
+$ui = $content['ui'];
+$assets = $content['site']['assets'];
 ?>
 <!DOCTYPE html>
-<html lang="<?= e($site['lang']) ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= e($site['title']) ?></title>
-    <link rel="stylesheet" href="/assets/css/tokens.css">
-</head>
-<body>
-    <header>
-        <h1><?= e($hero['company']) ?></h1>
-        <p><?= e($hero['tagline']) ?></p>
-    </header>
+<html lang="<?= e($content['site']['lang']) ?>">
+<?php require __DIR__ . '/includes/head.php'; ?>
+<body class="page-home">
+<?php require __DIR__ . '/includes/header.php'; ?>
 
-    <main>
-        <section id="hero" aria-labelledby="hero-heading">
-            <h2 id="hero-heading"><?= e($hero['company']) ?></h2>
-            <p><strong><?= e($hero['tagline']) ?></strong></p>
-            <p><?= e($hero['description']) ?></p>
-        </section>
+<main id="main-content">
+    <section class="hero section-dark" id="hero" aria-labelledby="hero-heading">
+        <div class="container hero-grid">
+            <div class="hero-content reveal">
+                <p class="hero-eyebrow"><?= e($hero['company']) ?></p>
+                <h1 id="hero-heading" class="hero-title">
+                    <span class="hero-title-accent"><?= e($hero['tagline']) ?></span>
+                </h1>
+                <p class="hero-description"><?= e($hero['description']) ?></p>
+                <div class="hero-actions">
+                    <a class="btn btn-gold" href="#contact"><?= e($contact['heading']) ?></a>
+                    <a class="btn btn-outline-light" href="#services"><?= e($services['title']) ?></a>
+                </div>
+            </div>
 
-        <section id="intro" aria-labelledby="intro-heading">
-            <h2 id="intro-heading"><?= e($intro['title']) ?></h2>
-            <p><?= e($intro['text']) ?></p>
-        </section>
+            <div class="hero-visual reveal" aria-label="<?= e($ui['hero_visual_label']) ?>">
+                <div class="hero-visual-card">
+                    <div class="hero-visual-lines" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                    </div>
+                    <div class="hero-emblem-wrap">
+                        <img src="<?= e($assets['emblem_dark']) ?>" alt="" width="160" height="160" class="hero-emblem">
+                    </div>
+                    <div class="hero-stats">
+                        <div class="hero-stat">
+                            <span class="hero-stat-value"><?= count($services['items']) ?></span>
+                            <span class="hero-stat-label"><?= e($services['title']) ?></span>
+                        </div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-value"><?= count($team['members']) ?></span>
+                            <span class="hero-stat-label"><?= e($team['title']) ?></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-        <section id="about" aria-labelledby="about-heading">
-            <h2 id="about-heading"><?= e($about['title']) ?></h2>
-            <h3><?= e($about['heading']) ?></h3>
-            <?php foreach ($about['paragraphs'] as $paragraph): ?>
-                <p><?= e($paragraph) ?></p>
-            <?php endforeach; ?>
-        </section>
-
-        <section id="vision" aria-labelledby="vision-heading">
-            <h2 id="vision-heading"><?= e($vision['title']) ?></h2>
-            <p><?= e($vision['text']) ?></p>
-        </section>
-
-        <section id="mission" aria-labelledby="mission-heading">
-            <h2 id="mission-heading"><?= e($mission['title']) ?></h2>
-            <p><?= e($mission['text']) ?></p>
-        </section>
-
-        <section id="team" aria-labelledby="team-heading">
-            <h2 id="team-heading"><?= e($team['title']) ?></h2>
-            <p><?= e($team['intro']) ?></p>
-            <ul>
-                <?php foreach ($team['members'] as $member): ?>
-                    <li>
-                        <article>
-                            <h3><?= e($member['name']) ?></h3>
-                            <p><strong><?= e($member['title']) ?></strong></p>
-                            <p><?= e($member['description']) ?></p>
-                        </article>
+    <section class="intro section-light" id="intro" aria-labelledby="intro-heading">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="intro-heading" class="section-title"><?= e($intro['title']) ?></h2>
+            </div>
+            <p class="intro-text reveal"><?= e($intro['text']) ?></p>
+            <ul class="badge-list reveal" aria-label="<?= e($intro['title']) ?>">
+                <?php foreach ($intro['badges'] as $badge): ?>
+                    <li class="badge-item">
+                        <span class="badge-icon"><?= badge_icon($badge['icon']) ?></span>
+                        <span><?= e($badge['label']) ?></span>
                     </li>
                 <?php endforeach; ?>
             </ul>
-        </section>
+        </div>
+    </section>
 
-        <section id="services" aria-labelledby="services-heading">
-            <h2 id="services-heading"><?= e($services['title']) ?></h2>
-            <ol>
-                <?php foreach ($services['items'] as $service): ?>
-                    <li>
-                        <article>
-                            <h3><?= e($service['title']) ?></h3>
-                            <p><?= e($service['description']) ?></p>
+    <section class="services section-cream" id="services" aria-labelledby="services-heading">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="services-heading" class="section-title"><?= e($services['title']) ?></h2>
+            </div>
+            <div class="services-grid">
+                <?php foreach ($services['items'] as $index => $service): ?>
+                    <article class="service-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
+                        <div class="service-icon"><?= service_icon($service['icon']) ?></div>
+                        <h3 class="service-title"><?= e($service['title']) ?></h3>
+                        <p class="service-description"><?= e($service['description']) ?></p>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="about section-light" id="about" aria-labelledby="about-heading">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="about-heading" class="section-title"><?= e($about['title']) ?></h2>
+            </div>
+            <div class="about-grid">
+                <div class="about-text reveal">
+                    <h3 class="about-heading"><?= e($about['heading']) ?></h3>
+                    <?php foreach ($about['paragraphs'] as $paragraph): ?>
+                        <p><?= e($paragraph) ?></p>
+                    <?php endforeach; ?>
+                </div>
+                <div class="about-cards reveal">
+                    <article class="vision-mission-card">
+                        <h3><?= e($vision['title']) ?></h3>
+                        <p><?= e($vision['text']) ?></p>
+                    </article>
+                    <article class="vision-mission-card">
+                        <h3><?= e($mission['title']) ?></h3>
+                        <p><?= e($mission['text']) ?></p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="team section-cream" id="team" aria-labelledby="team-heading">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="team-heading" class="section-title"><?= e($team['title']) ?></h2>
+                <p class="section-subtitle"><?= e($team['intro']) ?></p>
+            </div>
+            <div class="team-grid">
+                <?php foreach ($team['members'] as $index => $member): ?>
+                    <article class="team-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
+                        <div class="team-avatar" aria-hidden="true">
+                            <img src="<?= e($assets['emblem_light']) ?>" alt="" class="team-avatar-emblem" width="24" height="24">
+                            <span class="team-monogram"><?= e(initials($member['name'])) ?></span>
+                        </div>
+                        <h3 class="team-name"><?= e($member['name']) ?></h3>
+                        <p class="team-title"><?= e($member['title']) ?></p>
+                        <p class="team-description"><?= e($member['description']) ?></p>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact section-light" id="contact" aria-labelledby="contact-heading">
+        <div class="container">
+            <div class="section-header reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="contact-heading" class="section-title"><?= e($contact['title']) ?></h2>
+                <p class="section-subtitle"><?= e($contact['heading']) ?></p>
+            </div>
+            <div class="contact-grid">
+                <form class="contact-form reveal" id="contact-form" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
+                    <div class="form-row">
+                        <label for="contact-name"><?= e($contact['form']['name']['label']) ?></label>
+                        <input
+                            type="text"
+                            id="contact-name"
+                            name="name"
+                            required
+                            autocomplete="name"
+                            placeholder="<?= e($contact['form']['name']['placeholder']) ?>"
+                        >
+                    </div>
+                    <div class="form-row">
+                        <label for="contact-email"><?= e($contact['form']['email']['label']) ?></label>
+                        <input
+                            type="email"
+                            id="contact-email"
+                            name="email"
+                            required
+                            autocomplete="email"
+                            placeholder="<?= e($contact['form']['email']['placeholder']) ?>"
+                        >
+                    </div>
+                    <div class="form-row">
+                        <label for="contact-phone"><?= e($contact['form']['phone']['label']) ?></label>
+                        <input
+                            type="tel"
+                            id="contact-phone"
+                            name="phone"
+                            autocomplete="tel"
+                            placeholder="<?= e($contact['form']['phone']['placeholder']) ?>"
+                        >
+                    </div>
+                    <div class="form-row">
+                        <label for="contact-subject"><?= e($contact['form']['subject']['label']) ?></label>
+                        <input
+                            type="text"
+                            id="contact-subject"
+                            name="subject"
+                            required
+                            placeholder="<?= e($contact['form']['subject']['placeholder']) ?>"
+                        >
+                    </div>
+                    <div class="form-row">
+                        <label for="contact-message"><?= e($contact['form']['message']['label']) ?></label>
+                        <textarea
+                            id="contact-message"
+                            name="message"
+                            rows="5"
+                            required
+                            placeholder="<?= e($contact['form']['message']['placeholder']) ?>"
+                        ></textarea>
+                    </div>
+                    <p class="form-feedback" id="form-feedback" role="status" aria-live="polite" hidden></p>
+                    <button type="submit" class="btn btn-navy"><?= e($contact['form']['submit']) ?></button>
+                </form>
+
+                <div class="contact-info reveal">
+                    <?php foreach ($contact['addresses'] as $address): ?>
+                        <article class="address-card">
+                            <h3><?= e($address['label']) ?></h3>
+                            <address><?= e($address['text']) ?></address>
                         </article>
-                    </li>
-                <?php endforeach; ?>
-            </ol>
-        </section>
+                    <?php endforeach; ?>
+                    <article class="address-card">
+                        <h3><?= e($ui['email_label']) ?></h3>
+                        <p>
+                            <a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a>
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
 
-        <section id="contact" aria-labelledby="contact-heading">
-            <h2 id="contact-heading"><?= e($contact['title']) ?></h2>
-            <h3><?= e($contact['heading']) ?></h3>
-            <address>
-                <?php foreach ($contact['addresses'] as $address): ?>
-                    <p>
-                        <strong><?= e($address['label']) ?>:</strong>
-                        <?= e($address['text']) ?>
-                    </p>
-                <?php endforeach; ?>
-                <p>
-                    <strong>E-posta:</strong>
-                    <a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a>
-                </p>
-            </address>
-        </section>
-    </main>
-
-    <footer>
-        <p>
-            <a href="/kvkk.php">KVKK Aydınlatma Metni</a>
-        </p>
-        <p>&copy; <?= date('Y') ?> <?= e($site['title']) ?></p>
-    </footer>
+<?php require __DIR__ . '/includes/footer.php'; ?>
 </body>
 </html>
