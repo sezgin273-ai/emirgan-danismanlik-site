@@ -6,7 +6,7 @@ declare(strict_types=1);
  */
 function load_content(): array
 {
-    $path = dirname(__DIR__) . '/content/content.json';
+    $path = dirname(__DIR__, 2) . '/content/content.json';
 
     if (!is_readable($path)) {
         http_response_code(500);

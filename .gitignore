@@ -17,3 +17,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# Yerel araçlar (portable PHP vb.)
+.tools/
