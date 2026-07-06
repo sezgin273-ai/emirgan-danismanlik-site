@@ -7,6 +7,26 @@
     "docs/screenshots/team-card-with-photo.png"
   ],
   "acceptance": {
+    "admin_slash_redirect_status": {
+      "measured": 302,
+      "limit": "302 to login",
+      "passed": true
+    },
+    "admin_slash_login_password_field": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "admin_no_slash_reaches_login": {
+      "measured": 1,
+      "limit": "password field",
+      "passed": true
+    },
+    "admin_no_slash_redirect_hops": {
+      "measured": 3,
+      "limit": "<= 3",
+      "passed": true
+    },
     "unauth_admin_redirect": {
       "measured": 302,
       "limit": "302 to login",
@@ -18,7 +38,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.45,
+      "measured": 1.81,
       "limit": ">= 1",
       "passed": true
     },
@@ -102,6 +122,36 @@
       "limit": "present",
       "passed": true
     },
+    "content_json_byte_restored": {
+      "measured": 1,
+      "limit": "identical",
+      "passed": true
+    },
+    "content_json_git_clean": {
+      "measured": 1,
+      "limit": "same as pre-test git status",
+      "passed": true
+    },
+    "content_json_no_marker": {
+      "measured": 1,
+      "limit": "no MARKER",
+      "passed": true
+    },
+    "hero_tagline_matches_543df4a": {
+      "measured": 1,
+      "limit": "Güvenilir Çözüm Ortağınız",
+      "passed": true
+    },
+    "homepage_no_marker": {
+      "measured": 1,
+      "limit": "no MARKER",
+      "passed": true
+    },
+    "homepage_tagline_original": {
+      "measured": 1,
+      "limit": "Güvenilir Çözüm Ortağınız",
+      "passed": true
+    },
     "scope_unchanged_logo-full.png": {
       "measured": 1,
       "limit": "unchanged",
@@ -132,11 +182,26 @@
       "limit": "unchanged",
       "passed": true
     },
+    "scope_unchanged_css_main.css": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_css_tokens.css": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
     "frontend_verify_screenshots": {
       "measured": 0,
       "limit": "0",
       "passed": true
     }
+  },
+  "expected_tagline_543df4a": "Güvenilir Çözüm Ortağınız",
+  "content_restore": {
+    "byte_identical": true,
+    "git_status_clean": true
   },
   "all_passed": true
 }

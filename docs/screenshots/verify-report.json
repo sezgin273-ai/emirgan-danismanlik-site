@@ -202,9 +202,9 @@
   },
   "hero_desktop-1440": {
     "top": 323.140625,
-    "left": 1239.953125,
+    "left": 996.046875,
     "bottom": 507.453125,
-    "right": 1424.265625,
+    "right": 1180.359375,
     "width": 184.3125,
     "height": 184.3125,
     "clipped": false,
@@ -268,10 +268,10 @@
     "visible": 24
   },
   "hero_mobile-390": {
-    "top": 497,
-    "left": 207.96875,
-    "bottom": 681.3125,
-    "right": 392.28125,
+    "top": 544.828125,
+    "left": 102.84375,
+    "bottom": 729.140625,
+    "right": 287.15625,
     "width": 184.3125,
     "height": 184.3125,
     "clipped": false,

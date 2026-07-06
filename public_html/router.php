@@ -15,12 +15,35 @@ if (preg_match('#^/assets/img/uploads/.+\.php$#i', $uri)) {
     return true;
 }
 
-$path = __DIR__ . $uri;
-if ($uri !== '/' && is_file($path)) {
+if ($uri === '/admin') {
+    header('Location: /admin/', true, 301);
+    return true;
+}
+
+$fsPath = __DIR__ . $uri;
+
+if ($uri !== '/') {
+    $dirPath = is_dir($fsPath) ? $fsPath : null;
+    if ($dirPath === null && str_ends_with($uri, '/')) {
+        $trimmed = rtrim($fsPath, '/\\');
+        if (is_dir($trimmed)) {
+            $dirPath = $trimmed;
+        }
+    }
+    if ($dirPath !== null) {
+        $index = $dirPath . DIRECTORY_SEPARATOR . 'index.php';
+        if (is_file($index)) {
+            require $index;
+            return true;
+        }
+    }
+}
+
+if ($uri !== '/' && is_file($fsPath)) {
     return false;
 }
 
-if (is_file(__DIR__ . '/index.php')) {
+if ($uri === '/' && is_file(__DIR__ . '/index.php')) {
     require __DIR__ . '/index.php';
     return true;
 }

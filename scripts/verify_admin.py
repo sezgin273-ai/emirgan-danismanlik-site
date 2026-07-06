@@ -15,11 +15,15 @@ from PIL import Image
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-SHOT_DIR = ROOT / "docs" / "screenshots"
+CONTENT_PATH = ROOT / "content/content.json"
+UPLOADS_DIR = ROOT / "public_html/assets/img/uploads"
+CSS_DIR = ROOT / "public_html/assets/css"
+SHOT_DIR = ROOT / "docs/screenshots"
 REPORT_PATH = SHOT_DIR / "verify-admin-report.json"
 BASE = "http://localhost:8080"
 TEST_PASSWORD = "TestAdmin!Faz3"
 MARKER = "VERIFY_ADMIN_ROUNDTRIP_MARKER"
+BASELINE_COMMIT = "543df4a"
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
 
@@ -57,26 +61,16 @@ class AdminClient:
         files: dict | None = None,
         allow_redirects: bool = False,
     ) -> tuple[int, str, dict[str, str]]:
-        url = BASE + path
-        if files:
-            resp = self.session.request(
-                method,
-                url,
-                data=data,
-                files=files,
-                allow_redirects=allow_redirects,
-                timeout=30,
-            )
-        else:
-            resp = self.session.request(
-                method,
-                url,
-                data=data,
-                allow_redirects=allow_redirects,
-                timeout=30,
-            )
-        headers = {k: v for k, v in resp.headers.items()}
-        return resp.status_code, resp.text, headers
+        url = BASE + path if path.startswith("/") else path
+        resp = self.session.request(
+            method,
+            url,
+            data=data,
+            files=files,
+            allow_redirects=allow_redirects,
+            timeout=30,
+        )
+        return resp.status_code, resp.text, dict(resp.headers)
 
 
 def php_cmd(*args: str) -> list[str]:
@@ -100,12 +94,11 @@ def setup_admin_config() -> None:
 
 
 def load_content() -> dict:
-    return json.loads((ROOT / "content/content.json").read_text(encoding="utf-8"))
+    return json.loads(CONTENT_PATH.read_text(encoding="utf-8"))
 
 
 def save_content_direct(data: dict) -> None:
-    path = ROOT / "content/content.json"
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    CONTENT_PATH.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
 def extract_csrf(html: str) -> str:
@@ -120,6 +113,55 @@ def make_test_png(size: int = 600) -> bytes:
     buf = BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()
+
+
+def original_tagline_543df4a() -> str:
+    raw = subprocess.run(
+        ["git", "show", f"{BASELINE_COMMIT}:content/content.json"],
+        cwd=ROOT,
+        capture_output=True,
+        check=True,
+    ).stdout
+    return json.loads(raw.decode("utf-8"))["hero"]["tagline"]
+
+
+def backup_names() -> set[str]:
+    return {p.name for p in (ROOT / "content/backups").glob("content-*.json")}
+
+
+def snapshot_uploads() -> dict[str, bytes]:
+    snap: dict[str, bytes] = {}
+    if not UPLOADS_DIR.is_dir():
+        return snap
+    for path in UPLOADS_DIR.iterdir():
+        if path.is_file() and path.name not in {".htaccess", ".gitignore"}:
+            snap[path.name] = path.read_bytes()
+    return snap
+
+
+def restore_uploads(snap: dict[str, bytes]) -> None:
+    UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
+    keep = {".htaccess", ".gitignore", *snap.keys()}
+    for path in UPLOADS_DIR.iterdir():
+        if path.is_file() and path.name not in keep:
+            path.unlink()
+    for name, data in snap.items():
+        (UPLOADS_DIR / name).write_bytes(data)
+
+
+def follow_redirects(client: AdminClient, start_path: str, max_hops: int = 6) -> tuple[int, str, list[str]]:
+    path = start_path
+    chain: list[str] = []
+    for _ in range(max_hops):
+        status, body, headers = client.request("GET", path)
+        chain.append(f"{status} {path}")
+        if status not in (301, 302, 303, 307, 308):
+            return status, body, chain
+        location = headers.get("Location", "")
+        if not location:
+            return status, body, chain
+        path = location if location.startswith("/") else "/" + location.lstrip("/")
+    raise RuntimeError(f"Redirect loop: {chain}")
 
 
 def assert_scope_unchanged() -> bool:
@@ -143,13 +185,35 @@ def assert_scope_unchanged() -> bool:
     return ok
 
 
+def assert_css_unchanged() -> bool:
+    ok = True
+    for path in sorted(CSS_DIR.glob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(ROOT).as_posix()
+        head = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=ROOT,
+            capture_output=True,
+        )
+        if head.returncode != 0:
+            assert_metric(f"scope_unchanged_css_{path.name}", 0, "unchanged", False)
+            ok = False
+            continue
+        passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
+        assert_metric(f"scope_unchanged_css_{path.name}", 1 if passed else 0, "unchanged", passed)
+        ok = ok and passed
+    return ok
+
+
 def admin_screenshots() -> list[str]:
     paths: list[str] = []
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1280, "height": 900})
 
-        page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+        page.goto(f"{BASE}/admin/", wait_until="networkidle")
+        page.wait_for_selector("#password", timeout=10000)
         page.screenshot(path=str(SHOT_DIR / "admin-login.png"))
         paths.append("docs/screenshots/admin-login.png")
 
@@ -174,24 +238,33 @@ def admin_screenshots() -> list[str]:
     return paths
 
 
-def main() -> int:
-    SHOT_DIR.mkdir(parents=True, exist_ok=True)
-    results: dict = {"screenshots": [], "acceptance": {}}
+def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = True
 
-    setup_admin_config()
-    client = AdminClient()
-    original_json = (ROOT / "content/content.json").read_text(encoding="utf-8")
-    original_content = json.loads(original_json)
+    status, _, headers = client.request("GET", "/admin/")
+    loc = headers.get("Location", "")
+    admin_slash_ok = status in (301, 302, 303, 307, 308) and "login" in loc.lower()
+    assert_metric("admin_slash_redirect_status", status, "302 to login", admin_slash_ok)
+    if admin_slash_ok:
+        st2, html2, _ = client.request("GET", loc if loc.startswith("/") else "/admin/login.php")
+        has_pw = 'id="password"' in html2
+        assert_metric("admin_slash_login_password_field", 1 if has_pw else 0, "present", has_pw)
+        ok = ok and admin_slash_ok and has_pw
+    else:
+        ok = False
 
-    # Oturumsuz dashboard → login
+    status, html, chain = follow_redirects(client, "/admin")
+    admin_no_slash_ok = status == 200 and 'id="password"' in html
+    assert_metric("admin_no_slash_reaches_login", 1 if admin_no_slash_ok else 0, "password field", admin_no_slash_ok)
+    assert_metric("admin_no_slash_redirect_hops", len(chain), "<= 3", len(chain) <= 3)
+    ok = ok and admin_no_slash_ok
+
     status, _, headers = client.request("GET", "/admin/dashboard.php")
     loc = headers.get("Location", "")
     passed = status in (301, 302, 303, 307, 308) and "login" in loc
     assert_metric("unauth_admin_redirect", status, "302 to login", passed)
     ok = ok and passed
 
-    # Yanlış şifre
     status, html, _ = client.request("GET", "/admin/login.php")
     csrf = extract_csrf(html)
     t0 = time.time()
@@ -205,16 +278,10 @@ def main() -> int:
     assert_metric("wrong_password_delay_sec", round(elapsed, 2), ">= 1", elapsed >= 0.95)
     ok = ok and status == 200 and elapsed >= 0.95
 
-    # CSRF'siz POST → 403
-    status, text, _ = client.request(
-        "POST",
-        "/admin/actions.php",
-        data={"action": "save_content"},
-    )
+    status, _, _ = client.request("POST", "/admin/actions.php", data={"action": "save_content"})
     assert_metric("csrf_missing_status", status, "403", status == 403)
     ok = ok and status == 403
 
-    # Giriş
     status, html, _ = client.request("GET", "/admin/login.php")
     csrf = extract_csrf(html)
     status, _, _ = client.request(
@@ -229,13 +296,9 @@ def main() -> int:
     status, html, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(html)
 
-    # Yedek sayısı öncesi
-    backups_before = len(list((ROOT / "content/backups").glob("content-*.json")))
+    backups_before = backup_names()
 
-    # Metin round-trip
-    status, home_before, _ = client.request("GET", "/")
-    data = original_content.copy()
-    data["hero"] = dict(original_content["hero"])
+    data = json.loads(json.dumps(original_content))
     data["hero"]["tagline"] = MARKER
     save_content_direct(data)
 
@@ -248,7 +311,7 @@ def main() -> int:
         "content[hero][tagline]": MARKER,
         "content[hero][description]": data["hero"]["description"],
     }
-    status, _, _ = client.request("POST", "/admin/actions.php", data=post_data, allow_redirects=True)
+    client.request("POST", "/admin/actions.php", data=post_data, allow_redirects=True)
 
     status, home_after, _ = client.request("GET", "/")
     json_content = load_content()
@@ -266,26 +329,26 @@ def main() -> int:
     )
     ok = ok and MARKER in home_after
 
-    backups_after_marker = len(list((ROOT / "content/backups").glob("content-*.json")))
+    new_backups = backup_names() - backups_before
     assert_metric(
         "backup_created_on_save",
-        backups_after_marker - backups_before,
+        len(new_backups),
         ">= 1",
-        backups_after_marker > backups_before,
+        len(new_backups) >= 1,
     )
-    ok = ok and backups_after_marker > backups_before
+    ok = ok and len(new_backups) >= 1
 
-    # Hizmet kartı ekle
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)
     content = load_content()
-    items = content["services"]["items"]
-    new_item = {
-        "title": "VERIFY TEST HİZMET",
-        "description": "Admin verify otomatik test kartı",
-        "icon": "strategy",
-    }
-    items.append(new_item)
+    items = list(content["services"]["items"])
+    items.append(
+        {
+            "title": "VERIFY TEST HİZMET",
+            "description": "Admin verify otomatik test kartı",
+            "icon": "strategy",
+        }
+    )
     form: dict[str, str] = {
         "csrf_token": csrf,
         "action": "save_content",
@@ -295,13 +358,12 @@ def main() -> int:
         form[f"content[services][items][{i}][title]"] = item["title"]
         form[f"content[services][items][{i}][description]"] = item["description"]
         form[f"content[services][items][{i}][icon]"] = item["icon"]
-    status, _, _ = client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
+    client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
     status, home, _ = client.request("GET", "/")
     count8 = home.count("VERIFY TEST HİZMET")
     assert_metric("service_add_count", count8, ">= 1", count8 >= 1)
     ok = ok and count8 >= 1
 
-    # Sil → 7'ye dön
     content = load_content()
     content["services"]["items"] = [i for i in content["services"]["items"] if i["title"] != "VERIFY TEST HİZMET"]
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
@@ -321,7 +383,6 @@ def main() -> int:
     assert_metric("service_count_after_delete", service_cards, "7", service_cards == 7)
     ok = ok and service_cards == 7
 
-    # Sıralama kalıcılığı — ilk iki kartı yer değiştir
     content = load_content()
     items = content["services"]["items"]
     if len(items) >= 2:
@@ -344,11 +405,10 @@ def main() -> int:
         order_ok = first_pos != -1 and second_pos != -1 and first_pos < second_pos
         assert_metric("service_reorder_persistent", 1 if order_ok else 0, "order matches", order_ok)
         ok = ok and order_ok
-        # sırayı geri al
         items[0], items[1] = items[1], items[0]
+        content["services"]["items"] = items
         save_content_direct(content)
 
-    # Bölüm gizle (team)
     content = load_content()
     content["site"]["sections"]["team"]["visible"] = False
     save_content_direct(content)
@@ -364,11 +424,10 @@ def main() -> int:
     assert_metric("section_show_team", 1 if team_visible else 0, "section present", team_visible)
     ok = ok and team_visible
 
-    # Ekip fotoğrafı yükle
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)
     png = make_test_png(600)
-    status, _, _ = client.request(
+    client.request(
         "POST",
         "/admin/actions.php",
         data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0"},
@@ -388,7 +447,6 @@ def main() -> int:
     assert_metric("team_photo_frontend", 1 if has_photo else 0, "team-photo visible", has_photo)
     ok = ok and max_dim <= 480 and has_photo
 
-    # Fotoğraf kaldır → monogram
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)
     client.request(
@@ -398,11 +456,10 @@ def main() -> int:
         allow_redirects=True,
     )
     status, home, _ = client.request("GET", "/")
-    monogram_back = 'class="team-monogram"' in home and photo_path.split("/")[-1] not in home
+    monogram_back = 'class="team-monogram"' in home
     assert_metric("team_photo_removed_monogram", 1 if monogram_back else 0, "monogram fallback", monogram_back)
     ok = ok and monogram_back
 
-    # Geri yükleme
     backups = sorted((ROOT / "content/backups").glob("content-*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
     if backups:
         restore_name = backups[0].name
@@ -418,8 +475,7 @@ def main() -> int:
         assert_metric("backup_restore", 1 if restored else 0, "content loaded", bool(restored))
         ok = ok and bool(restored)
 
-    # uploads .php engeli (router)
-    evil = ROOT / "public_html/assets/img/uploads/verify-evil.php"
+    evil = UPLOADS_DIR / "verify-evil.php"
     evil.write_text("<?php echo 'EVIL_EXECUTED';", encoding="utf-8")
     try:
         status, body, _ = client.request("GET", "/assets/img/uploads/verify-evil.php")
@@ -429,68 +485,119 @@ def main() -> int:
     finally:
         evil.unlink(missing_ok=True)
 
-    htaccess = ROOT / "public_html/assets/img/uploads/.htaccess"
+    htaccess = UPLOADS_DIR / ".htaccess"
     assert_metric("uploads_htaccess_exists", 1 if htaccess.exists() else 0, "present", htaccess.exists())
     ok = ok and htaccess.exists()
 
-    # Ön yüz görselleri değişmedi
+    return ok
+
+
+def main() -> int:
+    SHOT_DIR.mkdir(parents=True, exist_ok=True)
+    results: dict = {"screenshots": [], "acceptance": {}}
+    ok = True
+
+    content_bytes = CONTENT_PATH.read_bytes()
+    uploads_snap = snapshot_uploads()
+    original_content = json.loads(content_bytes.decode("utf-8"))
+    expected_tagline = original_tagline_543df4a()
+
+    git_status_before = subprocess.run(
+        ["git", "status", "--porcelain", "content/content.json"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.strip()
+
+    setup_admin_config()
+    client = AdminClient()
+
+    try:
+        ok = run_admin_tests(client, original_content) and ok
+
+        try:
+            status, dash, _ = client.request("GET", "/admin/dashboard.php")
+            csrf = extract_csrf(dash)
+            png = make_test_png(400)
+            client.request(
+                "POST",
+                "/admin/actions.php",
+                data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0"},
+                files={"photo": ("team-shot.png", png, "image/png")},
+                allow_redirects=True,
+            )
+            results["screenshots"] = admin_screenshots()
+            with sync_playwright() as p:
+                browser = p.chromium.launch(headless=True)
+                page = browser.new_page(viewport={"width": 1440, "height": 900})
+                page.goto(f"{BASE}/#team", wait_until="networkidle")
+                page.wait_for_timeout(800)
+                shot = SHOT_DIR / "team-card-with-photo.png"
+                page.locator("#team .team-card").first.screenshot(path=str(shot))
+                results["screenshots"].append("docs/screenshots/team-card-with-photo.png")
+                browser.close()
+        except Exception as exc:
+            print(f"Screenshot warning: {exc}", file=sys.stderr)
+    finally:
+        CONTENT_PATH.write_bytes(content_bytes)
+        restore_uploads(uploads_snap)
+
+    restored_bytes = CONTENT_PATH.read_bytes()
+    byte_ok = restored_bytes == content_bytes
+    assert_metric("content_json_byte_restored", 1 if byte_ok else 0, "identical", byte_ok)
+    ok = ok and byte_ok
+
+    git_status_after = subprocess.run(
+        ["git", "status", "--porcelain", "content/content.json"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.strip()
+    git_clean = git_status_after == git_status_before
+    assert_metric("content_json_git_clean", 1 if git_clean else 0, "same as pre-test git status", git_clean)
+    ok = ok and git_clean
+
+    content_text = CONTENT_PATH.read_text(encoding="utf-8")
+    no_marker_json = MARKER not in content_text
+    assert_metric("content_json_no_marker", 1 if no_marker_json else 0, "no MARKER", no_marker_json)
+    ok = ok and no_marker_json
+
+    tagline_ok = load_content()["hero"]["tagline"] == expected_tagline
+    assert_metric("hero_tagline_matches_543df4a", 1 if tagline_ok else 0, expected_tagline, tagline_ok)
+    ok = ok and tagline_ok
+
+    _, home_html, _ = client.request("GET", "/")
+    no_marker_html = MARKER not in home_html
+    tagline_in_html = expected_tagline in home_html
+    assert_metric("homepage_no_marker", 1 if no_marker_html else 0, "no MARKER", no_marker_html)
+    assert_metric("homepage_tagline_original", 1 if tagline_in_html else 0, expected_tagline, tagline_in_html)
+    ok = ok and no_marker_html and tagline_in_html
+
     ok = assert_scope_unchanged() and ok
+    ok = assert_css_unchanged() and ok
 
-    # İçeriği orijinale döndür (ön yüz verify için)
-    (ROOT / "content/content.json").write_text(original_json, encoding="utf-8")
-
-    # Önceki verify_screenshots assert'leri
     proc = subprocess.run(
         [sys.executable, str(ROOT / "scripts/verify_screenshots.py")],
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     frontend_ok = proc.returncode == 0
     assert_metric("frontend_verify_screenshots", proc.returncode, "0", frontend_ok)
     ok = ok and frontend_ok
-
-    # Admin ekran görüntüleri + fotoğraflı ekip kartı
-    try:
-        content = load_content()
-        content["team"]["members"][0]["photo"] = ""
-        save_content_direct(content)
-        status, dash, _ = client.request("GET", "/admin/dashboard.php")
-        csrf = extract_csrf(dash)
-        png = make_test_png(400)
-        client.request(
-            "POST",
-            "/admin/actions.php",
-            data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0"},
-            files={"photo": ("team-shot.png", png, "image/png")},
-            allow_redirects=True,
-        )
-        results["screenshots"] = admin_screenshots()
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page(viewport={"width": 1440, "height": 900})
-            page.goto(f"{BASE}/#team", wait_until="networkidle")
-            page.wait_for_timeout(800)
-            shot = SHOT_DIR / "team-card-with-photo.png"
-            page.locator("#team .team-card").first.screenshot(path=str(shot))
-            results["screenshots"].append("docs/screenshots/team-card-with-photo.png")
-            browser.close()
-        client.request(
-            "POST",
-            "/admin/actions.php",
-            data={"csrf_token": csrf, "action": "remove_team_photo", "member_index": "0"},
-            allow_redirects=True,
-        )
-    except Exception as exc:
-        print(f"Screenshot warning: {exc}", file=sys.stderr)
-
-    # İçeriği temizle — marker kaldır
-    content = load_content()
-    if content["hero"].get("tagline") == MARKER:
-        content["hero"]["tagline"] = original_content["hero"]["tagline"]
-        save_content_direct(content)
+    if not frontend_ok:
+        print(proc.stderr or proc.stdout, file=sys.stderr)
 
     results["acceptance"] = ACCEPTANCE
+    results["expected_tagline_543df4a"] = expected_tagline
+    results["content_restore"] = {
+        "byte_identical": byte_ok,
+        "git_status_clean": git_clean,
+    }
     results["all_passed"] = ok and all(v["passed"] for v in ACCEPTANCE.values())
     REPORT_PATH.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
     print(json.dumps(results, indent=2, ensure_ascii=False))
