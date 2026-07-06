@@ -1,0 +1,11 @@
+:root {
+  /* Emirgan Danışmanlık kurumsal renk paleti (kartvizit PDF'ten) */
+  --color-navy: #10182C;
+  --color-gold: #B89450;
+  --color-cream: #F8F4F0;
+
+  /* Türev tonlar */
+  --color-navy-dark: #081828;
+  --color-gold-light: #D8C8A8;
+  --color-text-muted: #707078;
+}

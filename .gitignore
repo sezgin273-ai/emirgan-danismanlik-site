@@ -1,0 +1,19 @@
+# Yapılandırma (üretim ortamı)
+public_html/config.php
+
+# Yedekler
+*.bak
+*.backup
+backups/
+yedekler/
+
+# Geçici dosyalar
+docs_extract.txt
+*.tmp
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
