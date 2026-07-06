@@ -21,6 +21,7 @@ $assets = $site['assets'];
             <h2 class="footer-heading"><?= e($content['footer']['quick_links_title']) ?></h2>
             <ul>
                 <?php foreach ($nav['items'] as $item): ?>
+                    <?php if (!section_visible($content, $item['id'])) continue; ?>
                     <li>
                         <a href="<?= $is_home ? e($item['href']) : '/' . e($item['href']) ?>">
                             <?= e($item['label']) ?>

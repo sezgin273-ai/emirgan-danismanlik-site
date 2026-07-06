@@ -6,7 +6,7 @@ require_once __DIR__ . '/includes/bootstrap.php';
 $content = load_content();
 $is_home = true;
 $page_title = $content['site']['title'];
-$page_description = $content['hero']['description'];
+$page_description = $content['site']['meta']['description'] ?? $content['hero']['description'];
 
 $hero = $content['hero'];
 $intro = $content['intro'];
@@ -26,6 +26,7 @@ $assets = $content['site']['assets'];
 <?php require __DIR__ . '/includes/header.php'; ?>
 
 <main id="main-content">
+    <?php if (section_visible($content, 'hero')): ?>
     <section class="hero section-dark" id="hero" aria-labelledby="hero-heading">
         <div class="container hero-grid">
             <div class="hero-content reveal">
@@ -61,7 +62,9 @@ $assets = $content['site']['assets'];
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if (section_visible($content, 'intro')): ?>
     <section class="intro section-light" id="intro" aria-labelledby="intro-heading">
         <div class="container">
             <div class="section-header reveal">
@@ -79,7 +82,9 @@ $assets = $content['site']['assets'];
             </ul>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if (section_visible($content, 'services')): ?>
     <section class="services section-cream" id="services" aria-labelledby="services-heading">
         <div class="container">
             <div class="section-header reveal">
@@ -97,7 +102,9 @@ $assets = $content['site']['assets'];
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if (section_visible($content, 'about')): ?>
     <section class="about section-light" id="about" aria-labelledby="about-heading">
         <div class="container">
             <div class="about-grid">
@@ -122,7 +129,9 @@ $assets = $content['site']['assets'];
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if (section_visible($content, 'team')): ?>
     <section class="team section-cream" id="team" aria-labelledby="team-heading">
         <div class="container">
             <div class="section-header reveal">
@@ -134,7 +143,11 @@ $assets = $content['site']['assets'];
                 <?php foreach ($team['members'] as $index => $member): ?>
                     <article class="team-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
                         <div class="team-avatar" aria-hidden="true">
-                            <span class="team-monogram"><?= e(initials($member['name'])) ?></span>
+                            <?php if (!empty($member['photo'])): ?>
+                                <img src="<?= e($member['photo']) ?>" alt="" class="team-photo">
+                            <?php else: ?>
+                                <span class="team-monogram"><?= e(initials($member['name'])) ?></span>
+                            <?php endif; ?>
                         </div>
                         <h3 class="team-name"><?= e($member['name']) ?></h3>
                         <p class="team-title"><?= e($member['title']) ?></p>
@@ -144,7 +157,9 @@ $assets = $content['site']['assets'];
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
+    <?php if (section_visible($content, 'contact')): ?>
     <section class="contact section-light" id="contact" aria-labelledby="contact-heading">
         <div class="container">
             <div class="contact-intro reveal">
@@ -227,6 +242,7 @@ $assets = $content['site']['assets'];
             </div>
         </div>
     </section>
+    <?php endif; ?>
 </main>
 
 <?php require __DIR__ . '/includes/footer.php'; ?>

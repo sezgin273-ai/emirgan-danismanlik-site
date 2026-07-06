@@ -1174,3 +1174,15 @@ section {
 .kvkk-back {
   margin-top: var(--space-2xl);
 }
+
+/* Ekip avatarı — fotoğraf desteği (Faz 3) */
+.team-avatar:has(.team-photo) {
+  overflow: hidden;
+}
+
+.team-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

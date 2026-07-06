@@ -33,6 +33,7 @@ $home_href = $is_home ? '#hero' : '/#hero';
         <nav class="site-nav" id="site-nav" aria-label="<?= e($site['title']) ?>">
             <ul class="nav-list">
                 <?php foreach ($nav['items'] as $item): ?>
+                    <?php if (!section_visible($content, $item['id'])) continue; ?>
                     <li>
                         <a
                             class="nav-link"

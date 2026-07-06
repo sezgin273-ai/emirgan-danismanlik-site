@@ -2,6 +2,31 @@
   "site": {
     "title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
     "lang": "tr",
+    "meta": {
+      "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
+      "og_title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+      "og_description": "Güvenilir çözüm ortağınız — stratejik yönetim, hukuki ve finansal danışmanlık."
+    },
+    "sections": {
+      "hero": {
+        "visible": true
+      },
+      "intro": {
+        "visible": true
+      },
+      "services": {
+        "visible": true
+      },
+      "about": {
+        "visible": true
+      },
+      "team": {
+        "visible": true
+      },
+      "contact": {
+        "visible": true
+      }
+    },
     "assets": {
       "favicon": "/assets/img/favicon.png",
       "apple_touch_icon": "/assets/img/apple-touch-icon.png",
@@ -12,13 +37,36 @@
   },
   "navigation": {
     "items": [
-      { "id": "hero", "label": "Ana Sayfa", "href": "#hero" },
-      { "id": "services", "label": "Hizmetler", "href": "#services" },
-      { "id": "about", "label": "Hakkımızda", "href": "#about" },
-      { "id": "team", "label": "Ekibimiz", "href": "#team" },
-      { "id": "contact", "label": "İletişim", "href": "#contact" }
+      {
+        "id": "hero",
+        "label": "Ana Sayfa",
+        "href": "#hero"
+      },
+      {
+        "id": "services",
+        "label": "Hizmetler",
+        "href": "#services"
+      },
+      {
+        "id": "about",
+        "label": "Hakkımızda",
+        "href": "#about"
+      },
+      {
+        "id": "team",
+        "label": "Ekibimiz",
+        "href": "#team"
+      },
+      {
+        "id": "contact",
+        "label": "İletişim",
+        "href": "#contact"
+      }
     ],
-    "cta": { "label": "Bize Ulaşın", "href": "#contact" }
+    "cta": {
+      "label": "Bize Ulaşın",
+      "href": "#contact"
+    }
   },
   "ui": {
     "skip_to_content": "İçeriğe geç",
@@ -30,18 +78,33 @@
   },
   "hero": {
     "company": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-    "tagline": "Güvenilir Çözüm Ortağınız",
+    "tagline": "VERIFY_ADMIN_ROUNDTRIP_MARKER",
     "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz."
   },
   "intro": {
     "title": "Kısa Tanıtım",
     "text": "Emirgan Danışmanlık Ticaret Anonim Şirketi, geniş faaliyet alanlarıyla müşterilerine bütüncül danışmanlık hizmeti sunan profesyonel bir firmadır. Enerji, gayrimenkul, ticaret, inşaat ve yatırım projelerinde uzman ekibimizle yanınızdayız.",
     "badges": [
-      { "icon": "energy", "label": "Enerji" },
-      { "icon": "realestate", "label": "Gayrimenkul" },
-      { "icon": "trade", "label": "Ticaret" },
-      { "icon": "construction", "label": "İnşaat" },
-      { "icon": "investment", "label": "Yatırım" }
+      {
+        "icon": "energy",
+        "label": "Enerji"
+      },
+      {
+        "icon": "realestate",
+        "label": "Gayrimenkul"
+      },
+      {
+        "icon": "trade",
+        "label": "Ticaret"
+      },
+      {
+        "icon": "construction",
+        "label": "İnşaat"
+      },
+      {
+        "icon": "investment",
+        "label": "Yatırım"
+      }
     ]
   },
   "about": {
@@ -67,27 +130,32 @@
       {
         "name": "Kim Can Yıldız",
         "title": "Ortak – Yönetim Kurulu Başkanı",
-        "description": "Deneyimli iş insanı ve yönetici. Şirketin stratejik yöneliminden sorumlu olup, iş geliştirme ve kurumsal yönetim konularında uzun yıllara dayanan tecrübeye sahiptir."
+        "description": "Deneyimli iş insanı ve yönetici. Şirketin stratejik yöneliminden sorumlu olup, iş geliştirme ve kurumsal yönetim konularında uzun yıllara dayanan tecrübeye sahiptir.",
+        "photo": ""
       },
       {
         "name": "Turan Öner",
         "title": "Ortak – Hukukçu, Arabulucu ve Avukat",
-        "description": "Ticari hukuk, arabuluculuk ve sözleşme yönetimi alanlarında uzmanlaşmış olup, uyuşmazlık çözümü ve hukuki danışmanlık süreçlerinde müşterilerimize destek vermektedir."
+        "description": "Ticari hukuk, arabuluculuk ve sözleşme yönetimi alanlarında uzmanlaşmış olup, uyuşmazlık çözümü ve hukuki danışmanlık süreçlerinde müşterilerimize destek vermektedir.",
+        "photo": ""
       },
       {
         "name": "Fatih Karaca",
         "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Şirketler hukuku, ticari anlaşmazlıklar ve kurumsal danışmanlık konularında uzman avukat. Müşterilerimizin yasal süreçlerinde güvenilir çözüm ortağıdır."
+        "description": "Şirketler hukuku, ticari anlaşmazlıklar ve kurumsal danışmanlık konularında uzman avukat. Müşterilerimizin yasal süreçlerinde güvenilir çözüm ortağıdır.",
+        "photo": ""
       },
       {
         "name": "Acar Baran Eyüpoğlu",
         "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Hukuk alanında uzmanlaşmış, özellikle ticari sözleşmeler, şirket işlemleri ve yatırım projelerinde deneyimli danışman."
+        "description": "Hukuk alanında uzmanlaşmış, özellikle ticari sözleşmeler, şirket işlemleri ve yatırım projelerinde deneyimli danışman.",
+        "photo": ""
       },
       {
         "name": "Ozan Öndeş",
         "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Ticari hukuk ve kurumsal danışmanlık alanlarında uzman. Müşterilerimize pratik ve çözüm odaklı hukuki destek sunmaktadır."
+        "description": "Ticari hukuk ve kurumsal danışmanlık alanlarında uzman. Müşterilerimize pratik ve çözüm odaklı hukuki destek sunmaktadır.",
+        "photo": ""
       }
     ]
   },
@@ -146,11 +214,26 @@
     ],
     "email": "info@emirgandanismanlik.com",
     "form": {
-      "name": { "label": "Ad Soyad", "placeholder": "Adınız ve soyadınız" },
-      "email": { "label": "E-posta", "placeholder": "ornek@email.com" },
-      "phone": { "label": "Telefon", "placeholder": "+90 212 000 00 00" },
-      "subject": { "label": "Konu", "placeholder": "Mesaj konusu" },
-      "message": { "label": "Mesaj", "placeholder": "Mesajınızı yazın" },
+      "name": {
+        "label": "Ad Soyad",
+        "placeholder": "Adınız ve soyadınız"
+      },
+      "email": {
+        "label": "E-posta",
+        "placeholder": "ornek@email.com"
+      },
+      "phone": {
+        "label": "Telefon",
+        "placeholder": "+90 212 000 00 00"
+      },
+      "subject": {
+        "label": "Konu",
+        "placeholder": "Mesaj konusu"
+      },
+      "message": {
+        "label": "Mesaj",
+        "placeholder": "Mesajınızı yazın"
+      },
       "submit": "Mesaj Gönder",
       "success": "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
       "error": "Lütfen zorunlu alanları doldurun."

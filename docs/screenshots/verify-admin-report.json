@@ -1,0 +1,142 @@
+{
+  "screenshots": [
+    "docs/screenshots/admin-login.png",
+    "docs/screenshots/admin-dashboard.png",
+    "docs/screenshots/admin-media-upload.png",
+    "docs/screenshots/admin-content-editor.png",
+    "docs/screenshots/team-card-with-photo.png"
+  ],
+  "acceptance": {
+    "unauth_admin_redirect": {
+      "measured": 302,
+      "limit": "302 to login",
+      "passed": true
+    },
+    "wrong_password_status": {
+      "measured": 200,
+      "limit": "200 (rejected)",
+      "passed": true
+    },
+    "wrong_password_delay_sec": {
+      "measured": 1.45,
+      "limit": ">= 1",
+      "passed": true
+    },
+    "csrf_missing_status": {
+      "measured": 403,
+      "limit": "403",
+      "passed": true
+    },
+    "login_success": {
+      "measured": 200,
+      "limit": "200 dashboard",
+      "passed": true
+    },
+    "text_roundtrip_json": {
+      "measured": 1,
+      "limit": "VERIFY_ADMIN_ROUNDTRIP_MARKER",
+      "passed": true
+    },
+    "text_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible on homepage",
+      "passed": true
+    },
+    "backup_created_on_save": {
+      "measured": 1,
+      "limit": ">= 1",
+      "passed": true
+    },
+    "service_add_count": {
+      "measured": 1,
+      "limit": ">= 1",
+      "passed": true
+    },
+    "service_count_after_delete": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "service_reorder_persistent": {
+      "measured": 1,
+      "limit": "order matches",
+      "passed": true
+    },
+    "section_hide_team": {
+      "measured": 1,
+      "limit": "no section/nav",
+      "passed": true
+    },
+    "section_show_team": {
+      "measured": 1,
+      "limit": "section present",
+      "passed": true
+    },
+    "team_photo_max_dimension": {
+      "measured": 480,
+      "limit": "<= 480",
+      "passed": true
+    },
+    "team_photo_frontend": {
+      "measured": 1,
+      "limit": "team-photo visible",
+      "passed": true
+    },
+    "team_photo_removed_monogram": {
+      "measured": 1,
+      "limit": "monogram fallback",
+      "passed": true
+    },
+    "backup_restore": {
+      "measured": 1,
+      "limit": "content loaded",
+      "passed": true
+    },
+    "uploads_php_blocked": {
+      "measured": 403,
+      "limit": "403 or not executed",
+      "passed": true
+    },
+    "uploads_htaccess_exists": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "scope_unchanged_logo-full.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_logo-full-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_favicon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_apple-touch-icon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_emblem.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_emblem-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "frontend_verify_screenshots": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    }
+  },
+  "all_passed": true
+}

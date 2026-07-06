@@ -22,11 +22,11 @@ Emirgan Danışmanlık Ticaret Anonim Şirketi için sıfırdan geliştirilen ku
 
 ## Yerel Geliştirme Sunucusu
 
-Proje kök dizininden:
-
 ```bash
-php -S localhost:8080 -t public_html
+php -S localhost:8080 -t public_html public_html/router.php
 ```
+
+`router.php`, `uploads/` altında PHP çalıştırmayı yerel sunucuda da engeller.
 
 Tarayıcıda [http://localhost:8080](http://localhost:8080) adresini açın.
 
@@ -37,6 +37,18 @@ winget install PHP.PHP.8.3
 ```
 
 Kurulumdan sonra terminali yeniden açın ve `php --version` ile doğrulayın.
+
+## Admin Paneli (Faz 3)
+
+İlk kurulumda admin şifresini belirleyin (şifre repoya girmez):
+
+```bash
+php scripts/create_admin_config.php
+```
+
+Panel: [http://localhost:8080/admin/](http://localhost:8080/admin/)
+
+Doğrulama: `python scripts/verify_admin.py`
 
 ## Proje Yapısı
 

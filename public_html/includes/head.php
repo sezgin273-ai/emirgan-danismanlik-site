@@ -7,7 +7,9 @@ declare(strict_types=1);
 
 $site = $content['site'];
 $assets = $site['assets'];
-$meta_description = $page_description ?? $content['hero']['description'];
+$meta_description = $page_description ?? $content['site']['meta']['description'] ?? $content['hero']['description'];
+$og_title = $content['site']['meta']['og_title'] ?? $page_title;
+$og_description = $content['site']['meta']['og_description'] ?? $meta_description;
 ?>
 <head>
     <meta charset="UTF-8">
@@ -15,12 +17,12 @@ $meta_description = $page_description ?? $content['hero']['description'];
     <title><?= e($page_title) ?></title>
     <meta name="description" content="<?= e($meta_description) ?>">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="<?= e($page_title) ?>">
-    <meta property="og:description" content="<?= e($meta_description) ?>">
+    <meta property="og:title" content="<?= e($og_title) ?>">
+    <meta property="og:description" content="<?= e($og_description) ?>">
     <meta property="og:locale" content="tr_TR">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="<?= e($page_title) ?>">
-    <meta name="twitter:description" content="<?= e($meta_description) ?>">
+    <meta name="twitter:title" content="<?= e($og_title) ?>">
+    <meta name="twitter:description" content="<?= e($og_description) ?>">
     <link rel="icon" href="<?= e($assets['favicon']) ?>" type="image/png">
     <link rel="apple-touch-icon" href="<?= e($assets['apple_touch_icon']) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">

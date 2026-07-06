@@ -1,0 +1,4 @@
+# uploads klasörü — yüklenen görseller (git'te yalnızca güvenlik dosyaları)
+*
+!.gitignore
+!.htaccess

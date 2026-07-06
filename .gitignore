@@ -1,5 +1,6 @@
 # Yapılandırma (üretim ortamı)
 public_html/config.php
+content/.admin_lockout.json
 
 # Yedekler
 *.bak

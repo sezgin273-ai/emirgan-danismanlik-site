@@ -1,0 +1,5 @@
+# uploads/ altında PHP çalıştırmayı engelle (Natro / Apache)
+<FilesMatch "\.php$">
+    Require all denied
+</FilesMatch>
+php_flag engine off

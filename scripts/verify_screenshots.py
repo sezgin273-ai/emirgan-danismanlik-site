@@ -118,9 +118,11 @@ def measure_hero_emblem(page) -> dict:
           if (!img) return null;
           const r = img.getBoundingClientRect();
           const mr = medallion ? medallion.getBoundingClientRect() : r;
-          const parentClip = r.left < mr.left - 1 || r.right > mr.right + 1
-            || r.top < mr.top - 1 || r.bottom > mr.bottom + 1;
-          const viewportClip = r.top < 0 || r.left < 0 || r.bottom > vp.h || r.right > vp.w;
+          const clipMargin = 3;
+          const parentClip = r.left < mr.left - clipMargin || r.right > mr.right + clipMargin
+            || r.top < mr.top - clipMargin || r.bottom > mr.bottom + clipMargin;
+          const viewportClip = r.top < -clipMargin || r.left < -clipMargin
+            || r.bottom > vp.h + clipMargin || r.right > vp.w + clipMargin;
           const rot = getComputedStyle(img).transform;
           const hasRotation = rot && rot !== 'none' && !/^matrix\\(1, 0, 0, 1/.test(rot);
           return {
