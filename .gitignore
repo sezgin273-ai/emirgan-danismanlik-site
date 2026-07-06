@@ -12,6 +12,8 @@ docs_extract.txt
 *.tmp
 .DS_Store
 Thumbs.db
+__pycache__/
+*.pyc
 
 # IDE
 .idea/
