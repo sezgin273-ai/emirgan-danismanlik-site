@@ -1,20 +1,24 @@
 """Kabul kriterli site doğrulama ve ekran görüntüsü üretici."""
 from __future__ import annotations
 
+import hashlib
 import json
+import subprocess
 import sys
 from pathlib import Path
 
+import numpy as np
 from playwright.sync_api import sync_playwright
 
-# process_logo metrikleri
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from process_logo import (  # noqa: E402
+from process_emblem import (  # noqa: E402
     SRC,
+    clean_transparency,
+    cleaning_metrics,
     content_bbox_alpha,
-    crop_emblem_deterministic,
+    crop_to_square_emblem,
+    dark_navy_band_count,
     emblem_metrics,
-    make_transparent,
     to_rgba_array,
 )
 from PIL import Image  # noqa: E402
@@ -23,6 +27,12 @@ ROOT = Path(__file__).resolve().parents[1]
 SHOT_DIR = ROOT / "docs" / "screenshots"
 BRAND_SHEET = ROOT / "docs" / "brand" / "contact-sheet.html"
 BASE = "http://localhost:8080"
+PROTECTED_ASSETS = [
+    ROOT / "public_html/assets/img/logo-full.png",
+    ROOT / "public_html/assets/img/logo-full-dark.png",
+    ROOT / "public_html/assets/img/favicon.png",
+    ROOT / "public_html/assets/img/apple-touch-icon.png",
+]
 
 ACCEPTANCE: dict[str, dict] = {}
 
@@ -35,6 +45,66 @@ def assert_metric(name: str, measured: float, limit: str, passed: bool) -> None:
     record(name, measured, limit, passed)
     if not passed:
         print(f"FAIL {name}: measured={measured}, limit={limit}", file=sys.stderr)
+
+
+def assert_scope_unchanged() -> bool:
+    ok = True
+    for path in PROTECTED_ASSETS:
+        rel = path.relative_to(ROOT).as_posix()
+        head = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=ROOT,
+            capture_output=True,
+        )
+        if head.returncode != 0:
+            assert_metric(f"scope_unchanged_{path.name}", 0, "unchanged", False)
+            ok = False
+            continue
+        head_hash = hashlib.sha256(head.stdout).hexdigest()
+        current_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+        passed = head_hash == current_hash
+        assert_metric(f"scope_unchanged_{path.name}", 1 if passed else 0, "unchanged", passed)
+        ok = ok and passed
+    return ok
+
+
+def emblem_pipeline_metrics() -> dict:
+    raw = to_rgba_array(Image.open(SRC))
+    cleaned = clean_transparency(raw)
+    clean_m = cleaning_metrics(cleaned)
+    x0, y0, x1, y1 = content_bbox_alpha(cleaned)
+    content_height = y1 - y0
+    emblem = crop_to_square_emblem(cleaned)
+    emblem_m = emblem_metrics(emblem, content_height)
+    emblem_dark = np.array(Image.open(ROOT / "public_html/assets/img/emblem-dark.png").convert("RGBA"))
+    navy_remaining = dark_navy_band_count(emblem_dark)
+    return {
+        "cleaning": clean_m,
+        "emblem": emblem_m,
+        "emblem_dark_navy_band_pixels": navy_remaining,
+    }
+
+
+def emblem_pipeline_assertions(metrics: dict) -> bool:
+    ok = True
+    clean = metrics["cleaning"]
+    corners_ok = all(a == 0 for a in clean["corner_alphas"])
+    assert_metric("emblem_corner_alphas_zero", 1 if corners_ok else 0, "all 0", corners_ok)
+    oo = clean["opaque_outside_bbox"]
+    assert_metric("emblem_opaque_outside_bbox", oo, "= 0", oo == 0)
+    ok = ok and corners_ok and oo == 0
+
+    em = metrics["emblem"]
+    ar = em["aspect_ratio"]
+    assert_metric("emblem_aspect_ratio", ar, "0.95–1.05", 0.95 <= ar <= 1.05)
+    lr = em["left_right_fill_ratio"]
+    assert_metric("emblem_left_right_fill_ratio", lr, "0.85–1.15", 0.85 <= lr <= 1.15)
+    ok = ok and 0.95 <= ar <= 1.05 and 0.85 <= lr <= 1.15
+
+    navy = metrics["emblem_dark_navy_band_pixels"]
+    assert_metric("emblem_dark_navy_band_pixels", navy, "= 0", navy == 0)
+    ok = ok and navy == 0
+    return ok
 
 
 def measure_hero_emblem(page) -> dict:
@@ -295,18 +365,14 @@ def run_viewport(page, width: int, name: str, results: dict) -> bool:
     return ok
 
 
-def emblem_source_metrics() -> dict:
-    raw = to_rgba_array(Image.open(SRC))
-    transparent = make_transparent(raw)
-    x0, y0, x1, y1 = content_bbox_alpha(transparent)
-    logo_full = transparent[y0:y1, x0:x1]
-    emblem = crop_emblem_deterministic(logo_full)
-    return emblem_metrics(emblem, logo_full.shape[0])
-
-
 def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
     results: dict = {"screenshots": [], "acceptance": {}}
+
+    ok = assert_scope_unchanged()
+    pipeline = emblem_pipeline_metrics()
+    results["emblem_pipeline"] = pipeline
+    ok = emblem_pipeline_assertions(pipeline) and ok
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -332,7 +398,6 @@ def main() -> int:
         browser.close()
 
     results["acceptance"] = ACCEPTANCE
-    results["emblem_source_metrics"] = emblem_source_metrics()
     results["all_passed"] = ok and all(v["passed"] for v in ACCEPTANCE.values())
 
     out = SHOT_DIR / "verify-report.json"

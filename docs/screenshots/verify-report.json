@@ -15,6 +15,51 @@
     "docs/screenshots/section-contact-mobile-390.png"
   ],
   "acceptance": {
+    "scope_unchanged_logo-full.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_logo-full-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_favicon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_apple-touch-icon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "emblem_corner_alphas_zero": {
+      "measured": 1,
+      "limit": "all 0",
+      "passed": true
+    },
+    "emblem_opaque_outside_bbox": {
+      "measured": 0,
+      "limit": "= 0",
+      "passed": true
+    },
+    "emblem_aspect_ratio": {
+      "measured": 1.0013477088948788,
+      "limit": "0.95–1.05",
+      "passed": true
+    },
+    "emblem_left_right_fill_ratio": {
+      "measured": 1.0067711883662804,
+      "limit": "0.85–1.15",
+      "passed": true
+    },
+    "emblem_dark_navy_band_pixels": {
+      "measured": 0,
+      "limit": "= 0",
+      "passed": true
+    },
     "hero_emblem_in_viewport_desktop-1440": {
       "measured": 1,
       "limit": "not clipped",
@@ -136,6 +181,25 @@
       "passed": true
     }
   },
+  "emblem_pipeline": {
+    "cleaning": {
+      "corner_alphas": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "opaque_outside_bbox": 0
+    },
+    "emblem": {
+      "aspect_ratio": 1.0013477088948788,
+      "left_right_fill_ratio": 1.0067711883662804,
+      "height_vs_content": 0.9893333333333333,
+      "bbox_width": 743,
+      "bbox_height": 742
+    },
+    "emblem_dark_navy_band_pixels": 0
+  },
   "hero_desktop-1440": {
     "top": 323.140625,
     "left": 996.046875,
@@ -222,13 +286,6 @@
     "total": 24,
     "visible": 24,
     "hasJsClass": false
-  },
-  "emblem_source_metrics": {
-    "aspect_ratio": 0.9806138933764136,
-    "left_right_fill_ratio": 1.0164495017982431,
-    "height_vs_content": 0.9872408293460925,
-    "bbox_width": 607,
-    "bbox_height": 619
   },
   "all_passed": true
 }
