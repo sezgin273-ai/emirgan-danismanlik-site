@@ -102,6 +102,72 @@ def measure_contact(page) -> dict | None:
     )
 
 
+def measure_team(page) -> dict | None:
+    return page.evaluate(
+        """() => {
+          const header = document.querySelector('#team .section-header');
+          const grid = document.querySelector('#team .team-grid');
+          const subtitle = document.querySelector('#team .section-subtitle');
+          const intro = document.querySelector('.intro-text');
+          const cards = [...document.querySelectorAll('#team .team-card')];
+          if (!header || !grid || !subtitle || !intro || cards.length < 5) return null;
+          const hr = header.getBoundingClientRect();
+          const gr = grid.getBoundingClientRect();
+          const subFs = getComputedStyle(subtitle).fontSize;
+          const introFs = getComputedStyle(intro).fontSize;
+          return {
+            header_grid_right_delta_px: Math.abs(hr.right - gr.right),
+            subtitle_font_size: subFs,
+            intro_font_size: introFs,
+            font_size_match: subFs === introFs,
+            cards: cards.map((c, i) => {
+              const r = c.getBoundingClientRect();
+              return { index: i + 1, left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+            }),
+          };
+        }"""
+    )
+
+
+def assert_team_card_positions(cards: list[dict], baseline: list[dict], prefix: str = "team_card") -> bool:
+    ok = True
+    for card, ref in zip(cards, baseline, strict=True):
+        for key in ("left", "top"):
+            delta = abs(card[key] - ref[key])
+            passed = delta <= 1
+            name = f"{prefix}{card['index']}_{key}_delta_px"
+            assert_metric(name, delta, "<= 1", passed)
+            ok = ok and passed
+    return ok
+
+
+def test_js_resilience(browser, results: dict) -> bool:
+    page = browser.new_page()
+    page.route("**/assets/js/main.js", lambda route: route.abort())
+    page.set_viewport_size({"width": 1440, "height": 900})
+    page.goto(BASE, wait_until="domcontentloaded", timeout=30000)
+    page.wait_for_timeout(400)
+
+    state = page.evaluate(
+        """() => {
+          const els = document.querySelectorAll('.reveal');
+          let visible = 0;
+          els.forEach(el => { if (parseFloat(getComputedStyle(el).opacity) > 0.5) visible++; });
+          return {
+            total: els.length,
+            visible,
+            hasJsClass: document.documentElement.classList.contains('js'),
+          };
+        }"""
+    )
+    results["js_resilience"] = state
+    all_visible = state["visible"] == state["total"] and state["total"] == 24
+    assert_metric("js_blocked_reveal_visible_count", state["visible"], "24/24", all_visible)
+    assert_metric("js_blocked_reveal_total", state["total"], "24", state["total"] == 24)
+    page.close()
+    return all_visible
+
+
 def screenshot_section(page, selector: str, path: Path) -> None:
     loc = page.locator(selector)
     if loc.count():
@@ -163,6 +229,37 @@ def run_viewport(page, width: int, name: str, results: dict) -> bool:
             results["contact_desktop"] = contact
             ok = ok and td <= 8
 
+        if width == 1440:
+            page.locator("#team").scroll_into_view_if_needed()
+            page.wait_for_timeout(200)
+            team = measure_team(page)
+            if not team:
+                ok = False
+                assert_metric("team_metrics_present", 0, "present", False)
+            else:
+                hgrd = team["header_grid_right_delta_px"]
+                assert_metric("team_header_grid_right_delta_px", hgrd, "<= 2", hgrd <= 2)
+                fs_ok = team["font_size_match"]
+                assert_metric(
+                    "team_subtitle_intro_font_size_match",
+                    1 if fs_ok else 0,
+                    "equal computed font-size",
+                    fs_ok,
+                )
+                results["team_desktop"] = team
+                ok = ok and hgrd <= 2 and fs_ok
+
+                baseline_path = SHOT_DIR / "team-card-baseline-1440.json"
+                if baseline_path.exists():
+                    baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
+                    ok = assert_team_card_positions(team["cards"], baseline) and ok
+                else:
+                    baseline_path.write_text(
+                        json.dumps(team["cards"], indent=2),
+                        encoding="utf-8",
+                    )
+                    results["team_card_baseline_created"] = str(baseline_path)
+
     page.screenshot(path=str(SHOT_DIR / f"home-{name}.png"), full_page=True)
     results["screenshots"].append(f"docs/screenshots/home-{name}.png")
 
@@ -170,6 +267,7 @@ def run_viewport(page, width: int, name: str, results: dict) -> bool:
         ("#hero", "hero"),
         ("#about", "about"),
         ("#services", "services"),
+        ("#team", "team"),
         ("#contact", "contact"),
     ]:
         shot = SHOT_DIR / f"section-{slug}-{name}.png"
@@ -228,6 +326,7 @@ def main() -> int:
         ok = True
         ok = run_viewport(page, 1440, "desktop-1440", results) and ok
         ok = run_viewport(page, 390, "mobile-390", results) and ok
+        ok = test_js_resilience(browser, results) and ok
 
         page.close()
         browser.close()

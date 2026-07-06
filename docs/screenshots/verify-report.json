@@ -5,11 +5,13 @@
     "docs/screenshots/section-hero-desktop-1440.png",
     "docs/screenshots/section-about-desktop-1440.png",
     "docs/screenshots/section-services-desktop-1440.png",
+    "docs/screenshots/section-team-desktop-1440.png",
     "docs/screenshots/section-contact-desktop-1440.png",
     "docs/screenshots/home-mobile-390.png",
     "docs/screenshots/section-hero-mobile-390.png",
     "docs/screenshots/section-about-mobile-390.png",
     "docs/screenshots/section-services-mobile-390.png",
+    "docs/screenshots/section-team-mobile-390.png",
     "docs/screenshots/section-contact-mobile-390.png"
   ],
   "acceptance": {
@@ -43,6 +45,66 @@
       "limit": "<= 8",
       "passed": true
     },
+    "team_header_grid_right_delta_px": {
+      "measured": 0,
+      "limit": "<= 2",
+      "passed": true
+    },
+    "team_subtitle_intro_font_size_match": {
+      "measured": 1,
+      "limit": "equal computed font-size",
+      "passed": true
+    },
+    "team_card1_left_delta_px": {
+      "measured": 0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card1_top_delta_px": {
+      "measured": 0.0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card2_left_delta_px": {
+      "measured": 0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card2_top_delta_px": {
+      "measured": 0.0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card3_left_delta_px": {
+      "measured": 0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card3_top_delta_px": {
+      "measured": 0.0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card4_left_delta_px": {
+      "measured": 0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card4_top_delta_px": {
+      "measured": 0.0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card5_left_delta_px": {
+      "measured": 0,
+      "limit": "<= 1",
+      "passed": true
+    },
+    "team_card5_top_delta_px": {
+      "measured": 0.0,
+      "limit": "<= 1",
+      "passed": true
+    },
     "contact_form_id_desktop-1440": {
       "measured": 1,
       "limit": "present",
@@ -61,6 +123,16 @@
     "contact_form_id_mobile-390": {
       "measured": 1,
       "limit": "present",
+      "passed": true
+    },
+    "js_blocked_reveal_visible_count": {
+      "measured": 24,
+      "limit": "24/24",
+      "passed": true
+    },
+    "js_blocked_reveal_total": {
+      "measured": 24,
+      "limit": "24",
       "passed": true
     }
   },
@@ -84,6 +156,49 @@
   "contact_desktop": {
     "top_delta": 0
   },
+  "team_desktop": {
+    "header_grid_right_delta_px": 0,
+    "subtitle_font_size": "18px",
+    "intro_font_size": "18px",
+    "font_size_match": true,
+    "cards": [
+      {
+        "index": 1,
+        "left": 144,
+        "top": 224.640625,
+        "right": 512,
+        "bottom": 601.265625
+      },
+      {
+        "index": 2,
+        "left": 536,
+        "top": 224.640625,
+        "right": 904,
+        "bottom": 601.265625
+      },
+      {
+        "index": 3,
+        "left": 928,
+        "top": 224.640625,
+        "right": 1296,
+        "bottom": 601.265625
+      },
+      {
+        "index": 4,
+        "left": 340,
+        "top": 625.265625,
+        "right": 708,
+        "bottom": 955.703125
+      },
+      {
+        "index": 5,
+        "left": 732,
+        "top": 625.265625,
+        "right": 1100,
+        "bottom": 955.703125
+      }
+    ]
+  },
   "reveal_desktop-1440": {
     "total": 24,
     "visible": 24
@@ -102,6 +217,11 @@
   "reveal_mobile-390": {
     "total": 24,
     "visible": 24
+  },
+  "js_resilience": {
+    "total": 24,
+    "visible": 24,
+    "hasJsClass": false
   },
   "emblem_source_metrics": {
     "aspect_ratio": 0.9806138933764136,

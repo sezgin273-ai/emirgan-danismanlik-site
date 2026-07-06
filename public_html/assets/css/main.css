@@ -142,10 +142,11 @@ textarea {
 }
 
 .section-subtitle {
-  font-size: var(--text-lead);
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  line-height: 1.65;
   color: var(--color-text-muted);
   margin-top: var(--space-sm);
-  line-height: 1.5;
 }
 
 .section-light {
@@ -621,7 +622,9 @@ section {
    -------------------------------------------------------------------------- */
 
 .intro-text {
+  font-family: var(--font-body);
   font-size: 1.125rem;
+  line-height: 1.65;
   color: var(--color-text-muted);
   max-width: 48rem;
   margin-bottom: var(--space-2xl);
@@ -816,6 +819,10 @@ section {
    Team
    -------------------------------------------------------------------------- */
 
+#team .section-header {
+  max-width: none;
+}
+
 .team-grid {
   display: grid;
   gap: var(--space-lg);
@@ -885,18 +892,7 @@ section {
   }
 }
 
-@media (min-width: 1024px) {
-  .team-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .team-card:nth-child(4),
-  .team-card:nth-child(5) {
-    grid-column: span 1;
-  }
-}
-
-/* 5 cards: center last row on large screens */
+/* 5 kart: 3+2 ortalanmış satır (1024px+) */
 @media (min-width: 1024px) {
   .team-grid {
     grid-template-columns: repeat(6, 1fr);
