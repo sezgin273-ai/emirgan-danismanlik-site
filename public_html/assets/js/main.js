@@ -1,7 +1,65 @@
 (function () {
   'use strict';
 
+  document.documentElement.classList.add('js');
+
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const showReveal = (el) => {
+    el.classList.add('is-visible');
+  };
+
+  const initReveal = () => {
+    const revealEls = document.querySelectorAll('.reveal');
+    if (revealEls.length === 0) {
+      return;
+    }
+
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+      revealEls.forEach(showReveal);
+      return;
+    }
+
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            showReveal(entry.target);
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.01, rootMargin: '0px 0px 0px 0px' }
+    );
+
+    revealEls.forEach((el) => {
+      revealObserver.observe(el);
+    });
+
+    // Güvenlik: layout tamamlandıktan sonra görünür alandakileri hemen göster
+    requestAnimationFrame(() => {
+      revealEls.forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          showReveal(el);
+        }
+      });
+    });
+  };
+
+  const boot = () => {
+    initReveal();
+    // Son çare: gizli kalan reveal öğelerini 1 sn sonra göster
+    window.setTimeout(() => {
+      document.querySelectorAll('.reveal:not(.is-visible)').forEach(showReveal);
+    }, 1000);
+  };
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 
   /* -----------------------------------------------------------------------
      Mobile navigation
@@ -11,8 +69,8 @@
   const navToggleLabel = document.querySelector('[data-nav-toggle-label]');
 
   if (navToggle && siteNav) {
-    const openLabel = navToggleLabel?.textContent ?? '';
-    const closeLabel = navToggle.getAttribute('data-close-label') ?? openLabel;
+    const openLabel = navToggleLabel ? navToggleLabel.textContent : '';
+    const closeLabel = navToggle.getAttribute('data-close-label') || openLabel;
 
     navToggle.addEventListener('click', () => {
       const isOpen = siteNav.classList.toggle('is-open');
@@ -85,43 +143,18 @@
   }
 
   /* -----------------------------------------------------------------------
-     Scroll reveal
-     ----------------------------------------------------------------------- */
-  const revealEls = document.querySelectorAll('.reveal');
-
-  if (revealEls.length > 0) {
-    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
-      revealEls.forEach((el) => el.classList.add('is-visible'));
-    } else {
-      const revealObserver = new IntersectionObserver(
-        (entries, observer) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.12, rootMargin: '0px 0px -5% 0px' }
-      );
-
-      revealEls.forEach((el) => revealObserver.observe(el));
-    }
-  }
-
-  /* -----------------------------------------------------------------------
      Contact form — client-side validation only
      ----------------------------------------------------------------------- */
   const contactForm = document.getElementById('contact-form');
   const formFeedback = document.getElementById('form-feedback');
 
   if (contactForm && formFeedback) {
-    const successMessage = contactForm.getAttribute('data-success') ?? '';
+    const successMessage = contactForm.getAttribute('data-success') || '';
 
     const showFeedback = (message, type) => {
       formFeedback.textContent = message;
       formFeedback.hidden = false;
-      formFeedback.className = `form-feedback is-${type}`;
+      formFeedback.className = 'form-feedback is-' + type;
     };
 
     const clearInvalid = () => {
@@ -144,7 +177,9 @@
 
       [name, email, subject, message].forEach((field) => {
         if (!field || !field.value.trim()) {
-          field?.classList.add('is-invalid');
+          if (field) {
+            field.classList.add('is-invalid');
+          }
           valid = false;
         }
       });
@@ -155,10 +190,7 @@
       }
 
       if (!valid) {
-        showFeedback(
-          contactForm.getAttribute('data-error') ?? '',
-          'error'
-        );
+        showFeedback(contactForm.getAttribute('data-error') || '', 'error');
         return;
       }
 

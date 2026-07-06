@@ -28,4 +28,6 @@ $meta_description = $page_description ?? $content['hero']['description'];
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/assets/css/tokens.css">
     <link rel="stylesheet" href="/assets/css/main.css">
+    <script>document.documentElement.classList.add('js');</script>
+    <script src="/assets/js/main.js" defer></script>
 </head>

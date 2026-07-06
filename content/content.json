@@ -5,10 +5,9 @@
     "assets": {
       "favicon": "/assets/img/favicon.png",
       "apple_touch_icon": "/assets/img/apple-touch-icon.png",
-      "logo_light": "/assets/img/logo-light-bg.png",
-      "logo_dark": "/assets/img/logo-transparent-dark-hd.png",
-      "emblem_light": "/assets/img/logo-emblem-light.svg",
-      "emblem_dark": "/assets/img/logo-emblem-dark.svg"
+      "logo_light": "/assets/img/logo-full.png",
+      "logo_dark": "/assets/img/logo-full-dark.png",
+      "emblem": "/assets/img/emblem.png"
     }
   },
   "navigation": {

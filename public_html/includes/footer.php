@@ -13,7 +13,7 @@ $assets = $site['assets'];
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
-            <img src="<?= e($assets['logo_dark']) ?>" alt="<?= e($site['title']) ?>" width="200" height="66" class="footer-logo">
+            <img src="<?= e($assets['logo_dark']) ?>" alt="<?= e($site['title']) ?>" class="footer-logo">
             <p class="footer-tagline"><?= e($content['hero']['tagline']) ?></p>
         </div>
 
@@ -48,5 +48,3 @@ $assets = $site['assets'];
         </div>
     </div>
 </footer>
-
-<script src="/assets/js/main.js" defer></script>

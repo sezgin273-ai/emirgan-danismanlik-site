@@ -1,0 +1,37 @@
+{
+  "console_errors": [],
+  "checks": {
+    "desktop-1440:Güvenilir": true,
+    "desktop-1440:Kim Can": true,
+    "desktop-1440:Stratejik Yönetim": true,
+    "desktop-1440:Hakkımızda": true,
+    "desktop-1440:Bize Ulaşın": true,
+    "desktop-1440:logo-full.png": true,
+    "desktop-1440:emblem.png": true,
+    "desktop-1440:service-card": true,
+    "desktop-1440:id=\"contact-form\"": false,
+    "mobile-390:Güvenilir": true,
+    "mobile-390:Kim Can": true,
+    "mobile-390:Stratejik Yönetim": true,
+    "mobile-390:Hakkımızda": true,
+    "mobile-390:Bize Ulaşın": true,
+    "mobile-390:logo-full.png": true,
+    "mobile-390:emblem.png": true,
+    "mobile-390:service-card": true,
+    "mobile-390:id=\"contact-form\"": false
+  },
+  "screenshots": [
+    "docs\\screenshots\\home-desktop-1440.png",
+    "docs\\screenshots\\home-mobile-390.png"
+  ],
+  "reveal_desktop-1440": {
+    "total": 18,
+    "visible": 18
+  },
+  "main_js_status_desktop-1440": 200,
+  "reveal_mobile-390": {
+    "total": 18,
+    "visible": 18
+  },
+  "main_js_status_mobile-390": 200
+}

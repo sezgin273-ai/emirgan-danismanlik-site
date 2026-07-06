@@ -46,7 +46,7 @@ $assets = $content['site']['assets'];
                         <span></span><span></span><span></span>
                     </div>
                     <div class="hero-emblem-wrap">
-                        <img src="<?= e($assets['emblem_dark']) ?>" alt="" width="160" height="160" class="hero-emblem">
+                        <img src="<?= e($assets['emblem']) ?>" alt="" class="hero-emblem">
                     </div>
                     <div class="hero-stats">
                         <div class="hero-stat">
@@ -137,7 +137,7 @@ $assets = $content['site']['assets'];
                 <?php foreach ($team['members'] as $index => $member): ?>
                     <article class="team-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
                         <div class="team-avatar" aria-hidden="true">
-                            <img src="<?= e($assets['emblem_light']) ?>" alt="" class="team-avatar-emblem" width="24" height="24">
+                            <img src="<?= e($assets['emblem']) ?>" alt="" class="team-avatar-emblem" width="24" height="24">
                             <span class="team-monogram"><?= e(initials($member['name'])) ?></span>
                         </div>
                         <h3 class="team-name"><?= e($member['name']) ?></h3>

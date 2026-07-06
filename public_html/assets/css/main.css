@@ -163,8 +163,8 @@ section {
   padding-block: clamp(3rem, 8vw, var(--space-4xl));
 }
 
-/* Scroll reveal */
-.reveal {
+/* Scroll reveal — yalnızca JS aktifken gizle (progressive enhancement) */
+.js .reveal {
   opacity: 0;
   transform: translateY(1.5rem);
   transition:
@@ -173,7 +173,7 @@ section {
   transition-delay: var(--reveal-delay, 0ms);
 }
 
-.reveal.is-visible {
+.js .reveal.is-visible {
   opacity: 1;
   transform: translateY(0);
 }
@@ -297,6 +297,8 @@ section {
 .brand-logo {
   height: 2.75rem;
   width: auto;
+  max-width: none;
+  object-fit: contain;
 }
 
 .nav-toggle {
@@ -551,6 +553,7 @@ section {
 .hero-emblem {
   width: clamp(8rem, 20vw, 10rem);
   height: auto;
+  object-fit: contain;
   filter: drop-shadow(0 8px 24px rgba(184, 148, 80, 0.2));
 }
 
@@ -1016,8 +1019,10 @@ section {
 }
 
 .footer-logo {
-  height: 2.5rem;
+  height: 2.75rem;
   width: auto;
+  max-width: none;
+  object-fit: contain;
   margin-bottom: var(--space-md);
   opacity: 0.95;
 }
