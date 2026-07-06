@@ -39,6 +39,24 @@
     "visible": 25
   },
   "js_class_desktop-1440": true,
+  "polish_checks": {
+    "desktop-1440:hero_medallion": true,
+    "desktop-1440:hero_emblem_rings": true,
+    "desktop-1440:no_team_emblem_badge": true,
+    "desktop-1440:emblem_not_clipped": true,
+    "desktop-1440:about_golden_ratio": true,
+    "desktop-1440:contact_top_aligned": true,
+    "desktop-1440:service_last_centered": true,
+    "desktop-1440:no_inline_js_class": true,
+    "mobile-390:hero_medallion": true,
+    "mobile-390:hero_emblem_rings": true,
+    "mobile-390:no_team_emblem_badge": true,
+    "mobile-390:emblem_not_clipped": true,
+    "mobile-390:about_golden_ratio": true,
+    "mobile-390:contact_top_aligned": true,
+    "mobile-390:service_last_centered": true,
+    "mobile-390:no_inline_js_class": true
+  },
   "main_js_status_desktop-1440": 200,
   "reveal_mobile-390": {
     "total": 25,

@@ -42,10 +42,9 @@ $assets = $content['site']['assets'];
 
             <div class="hero-visual reveal" aria-label="<?= e($ui['hero_visual_label']) ?>">
                 <div class="hero-visual-card">
-                    <div class="hero-visual-lines" aria-hidden="true">
-                        <span></span><span></span><span></span>
-                    </div>
-                    <div class="hero-emblem-wrap">
+                    <div class="hero-medallion" aria-hidden="true">
+                        <span class="hero-medallion-ring hero-medallion-ring--outer"></span>
+                        <span class="hero-medallion-ring hero-medallion-ring--inner"></span>
                         <img src="<?= e($assets['emblem']) ?>" alt="" class="hero-emblem">
                     </div>
                     <div class="hero-stats">
@@ -137,7 +136,6 @@ $assets = $content['site']['assets'];
                 <?php foreach ($team['members'] as $index => $member): ?>
                     <article class="team-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
                         <div class="team-avatar" aria-hidden="true">
-                            <img src="<?= e($assets['emblem']) ?>" alt="" class="team-avatar-emblem" width="24" height="24">
                             <span class="team-monogram"><?= e(initials($member['name'])) ?></span>
                         </div>
                         <h3 class="team-name"><?= e($member['name']) ?></h3>
@@ -151,7 +149,7 @@ $assets = $content['site']['assets'];
 
     <section class="contact section-light" id="contact" aria-labelledby="contact-heading">
         <div class="container">
-            <div class="section-header reveal">
+            <div class="contact-intro reveal">
                 <div class="gold-divider" aria-hidden="true"></div>
                 <h2 id="contact-heading" class="section-title"><?= e($contact['title']) ?></h2>
                 <p class="section-subtitle"><?= e($contact['heading']) ?></p>

@@ -14,7 +14,15 @@
   --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --font-body: 'Inter', system-ui, -apple-system, sans-serif;
 
-  /* Boşluk */
+  /* Altın oran tip ölçeği */
+  --phi: 1.618;
+  --text-base: 1rem;
+  --text-lead: calc(var(--text-base) * var(--phi));
+  --text-h2: calc(var(--text-base) * var(--phi) * var(--phi));
+  --space-module: var(--text-base);
+  --space-section: calc(var(--space-module) * var(--phi) * var(--phi));
+
+  /* Boşluk (modüler ölçek) */
   --space-xs: 0.5rem;
   --space-sm: 0.75rem;
   --space-md: 1rem;

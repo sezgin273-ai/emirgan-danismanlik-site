@@ -60,6 +60,83 @@ def run_form_tests(page, name: str, results: dict) -> None:
     )
 
 
+def run_polish_checks(page, name: str, results: dict) -> None:
+    polish = results.setdefault("polish_checks", {})
+
+    polish[f"{name}:hero_medallion"] = page.locator(".hero-medallion").count() > 0
+    polish[f"{name}:hero_emblem_rings"] = page.locator(".hero-medallion-ring").count() >= 2
+    polish[f"{name}:no_team_emblem_badge"] = page.locator(".team-avatar-emblem").count() == 0
+
+    emblem_box = page.evaluate(
+        """() => {
+          const m = document.querySelector('.hero-medallion');
+          const img = document.querySelector('.hero-emblem');
+          if (!m || !img) return null;
+          const mr = m.getBoundingClientRect();
+          const ir = img.getBoundingClientRect();
+          return {
+            medallion: { w: mr.width, h: mr.height },
+            emblem: { w: ir.width, h: ir.height, top: ir.top, bottom: ir.bottom },
+            medallionTop: mr.top,
+            medallionBottom: mr.bottom,
+            clipped: ir.top < mr.top - 2 || ir.bottom > mr.bottom + 2 || ir.width < 20
+          };
+        }"""
+    )
+    polish[f"{name}:emblem_not_clipped"] = bool(
+        emblem_box and not emblem_box.get("clipped") and emblem_box["medallion"]["w"] > 0
+    )
+
+    about_cols = page.evaluate(
+        """() => {
+          const g = document.querySelector('.about-grid');
+          if (!g) return null;
+          const cols = getComputedStyle(g).gridTemplateColumns.split(' ');
+          if (cols.length < 2) return null;
+          const a = parseFloat(cols[0]);
+          const b = parseFloat(cols[1]);
+          if (!a || !b) return null;
+          return { ratio: a / b };
+        }"""
+    )
+    polish[f"{name}:about_golden_ratio"] = bool(
+        about_cols and abs(about_cols["ratio"] - 1.618) < 0.08
+    ) if name == "desktop-1440" else True
+
+    contact_align = page.evaluate(
+        """() => {
+          const formRow = document.querySelector('#contact-form .form-row');
+          const card = document.querySelector('.address-card');
+          if (!formRow || !card) return null;
+          const fr = formRow.getBoundingClientRect();
+          const cr = card.getBoundingClientRect();
+          return Math.abs(fr.top - cr.top) < 4;
+        }"""
+    )
+    polish[f"{name}:contact_top_aligned"] = contact_align is True if name == "desktop-1440" else True
+
+    service_center = page.evaluate(
+        """() => {
+          const cards = [...document.querySelectorAll('.service-card')];
+          if (cards.length !== 7) return false;
+          const last = cards[6].getBoundingClientRect();
+          const grid = document.querySelector('.services-grid').getBoundingClientRect();
+          const center = last.left + last.width / 2;
+          const gridCenter = grid.left + grid.width / 2;
+          return Math.abs(center - gridCenter) < last.width * 0.15;
+        }"""
+    )
+    polish[f"{name}:service_last_centered"] = service_center is True if name == "desktop-1440" else True
+
+    inline_js = page.evaluate(
+        """() => {
+          const scripts = [...document.querySelectorAll('head script:not([src])')];
+          return scripts.some(s => s.textContent.includes("classList.add('js')"));
+        }"""
+    )
+    polish[f"{name}:no_inline_js_class"] = not inline_js
+
+
 def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
     errors: list[str] = []
@@ -104,6 +181,7 @@ def main() -> int:
             page.locator("#contact").scroll_into_view_if_needed()
             page.wait_for_timeout(300)
             run_form_tests(page, name, results["form_tests"])
+            run_polish_checks(page, name, results)
 
             path = SHOT_DIR / f"home-{name}.png"
             page.screenshot(path=str(path), full_page=True)
@@ -152,6 +230,10 @@ def main() -> int:
     for key, val in results.items():
         if key.startswith("js_class_") and not val:
             print(f"JS CLASS MISSING: {key}", file=sys.stderr)
+            return 1
+    for key, val in results.get("polish_checks", {}).items():
+        if not val:
+            print(f"FAILED POLISH: {key}", file=sys.stderr)
             return 1
     return 0
 
