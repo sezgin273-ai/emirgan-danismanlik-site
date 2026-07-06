@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Emirgan — Marka Kontrol Sayfası</title>
+  <style>
+    :root {
+      --navy: #10182C;
+      --cream: #F8F4F0;
+      --gold: #B89450;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #e8e4de;
+      color: var(--navy);
+      padding: 2rem;
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 1.5rem; }
+    .grid {
+      display: grid;
+      gap: 1.5rem;
+      max-width: 1100px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 140px 1fr 1fr;
+      gap: 1rem;
+      align-items: center;
+    }
+    .label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+    .swatch {
+      padding: 1.25rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 5rem;
+    }
+    .swatch--cream { background: var(--cream); border: 1px solid rgba(16,24,44,0.08); }
+    .swatch--navy { background: var(--navy); }
+    .logo-full { height: 2.75rem; width: auto; }
+    .logo-footer { height: 2.75rem; width: auto; }
+    .emblem-hero { width: 4.5rem; height: 4.5rem; object-fit: contain; }
+    .favicon { width: 32px; height: 32px; }
+    .apple { width: 48px; height: 48px; }
+  </style>
+</head>
+<body>
+  <h1>Emirgan Danışmanlık — Marka Varlıkları Kontrol</h1>
+  <div class="grid">
+    <div class="row">
+      <span class="label">logo-full.png</span>
+      <div class="swatch swatch--cream"><img class="logo-full" src="../../public_html/assets/img/logo-full.png" alt=""></div>
+      <div class="swatch swatch--navy"><img class="logo-full" src="../../public_html/assets/img/logo-full.png" alt=""></div>
+    </div>
+    <div class="row">
+      <span class="label">logo-full-dark.png</span>
+      <div class="swatch swatch--cream"><img class="logo-footer" src="../../public_html/assets/img/logo-full-dark.png" alt=""></div>
+      <div class="swatch swatch--navy"><img class="logo-footer" src="../../public_html/assets/img/logo-full-dark.png" alt=""></div>
+    </div>
+    <div class="row">
+      <span class="label">emblem.png</span>
+      <div class="swatch swatch--cream"><img class="emblem-hero" src="../../public_html/assets/img/emblem.png" alt=""></div>
+      <div class="swatch swatch--navy"><img class="emblem-hero" src="../../public_html/assets/img/emblem.png" alt=""></div>
+    </div>
+    <div class="row">
+      <span class="label">favicon.png</span>
+      <div class="swatch swatch--cream"><img class="favicon" src="../../public_html/assets/img/favicon.png" alt=""></div>
+      <div class="swatch swatch--navy"><img class="favicon" src="../../public_html/assets/img/favicon.png" alt=""></div>
+    </div>
+    <div class="row">
+      <span class="label">apple-touch-icon</span>
+      <div class="swatch swatch--cream"><img class="apple" src="../../public_html/assets/img/apple-touch-icon.png" alt=""></div>
+      <div class="swatch swatch--navy"><img class="apple" src="../../public_html/assets/img/apple-touch-icon.png" alt=""></div>
+    </div>
+  </div>
+</body>
+</html>

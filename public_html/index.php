@@ -100,12 +100,10 @@ $assets = $content['site']['assets'];
 
     <section class="about section-light" id="about" aria-labelledby="about-heading">
         <div class="container">
-            <div class="section-header reveal">
-                <div class="gold-divider" aria-hidden="true"></div>
-                <h2 id="about-heading" class="section-title"><?= e($about['title']) ?></h2>
-            </div>
             <div class="about-grid">
                 <div class="about-text reveal">
+                    <div class="gold-divider" aria-hidden="true"></div>
+                    <h2 id="about-heading" class="section-title"><?= e($about['title']) ?></h2>
                     <h3 class="about-heading"><?= e($about['heading']) ?></h3>
                     <?php foreach ($about['paragraphs'] as $paragraph): ?>
                         <p><?= e($paragraph) ?></p>
