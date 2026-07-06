@@ -9,7 +9,7 @@
     "desktop-1440:logo-full.png": true,
     "desktop-1440:emblem.png": true,
     "desktop-1440:service-card": true,
-    "desktop-1440:id=\"contact-form\"": false,
+    "desktop-1440:contact-form-id": true,
     "mobile-390:Güvenilir": true,
     "mobile-390:Kim Can": true,
     "mobile-390:Stratejik Yönetim": true,
@@ -18,20 +18,32 @@
     "mobile-390:logo-full.png": true,
     "mobile-390:emblem.png": true,
     "mobile-390:service-card": true,
-    "mobile-390:id=\"contact-form\"": false
+    "mobile-390:contact-form-id": true
   },
   "screenshots": [
     "docs\\screenshots\\home-desktop-1440.png",
-    "docs\\screenshots\\home-mobile-390.png"
+    "docs\\screenshots\\footer-logo-desktop-1440.png",
+    "docs\\screenshots\\home-mobile-390.png",
+    "docs\\screenshots\\footer-logo-mobile-390.png"
   ],
-  "reveal_desktop-1440": {
-    "total": 18,
-    "visible": 18
+  "form_tests": {
+    "form_exists_desktop-1440": true,
+    "form_empty_error_desktop-1440": true,
+    "form_invalid_email_desktop-1440": true,
+    "form_exists_mobile-390": true,
+    "form_empty_error_mobile-390": true,
+    "form_invalid_email_mobile-390": true
   },
+  "reveal_desktop-1440": {
+    "total": 25,
+    "visible": 25
+  },
+  "js_class_desktop-1440": true,
   "main_js_status_desktop-1440": 200,
   "reveal_mobile-390": {
-    "total": 18,
-    "visible": 18
+    "total": 25,
+    "visible": 25
   },
+  "js_class_mobile-390": true,
   "main_js_status_mobile-390": 200
 }

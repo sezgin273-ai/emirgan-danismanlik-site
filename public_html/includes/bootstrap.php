@@ -33,6 +33,33 @@ function e(string $value): string
 }
 
 /**
+ * UTF-8 güvenli tek karakter (mbstring yoksa preg fallback).
+ */
+function utf8_char_at(string $value, int $index): string
+{
+    if (function_exists('mb_substr')) {
+        return mb_substr($value, $index, 1, 'UTF-8');
+    }
+
+    preg_match_all('/./us', $value, $matches);
+    $chars = $matches[0] ?? [];
+
+    return $chars[$index] ?? '';
+}
+
+/**
+ * UTF-8 güvenli büyük harf.
+ */
+function utf8_strtoupper(string $value): string
+{
+    if (function_exists('mb_strtoupper')) {
+        return mb_strtoupper($value, 'UTF-8');
+    }
+
+    return strtoupper($value);
+}
+
+/**
  * İsimden monogram baş harfleri üretir.
  */
 function initials(string $name): string
@@ -42,10 +69,10 @@ function initials(string $name): string
         return '';
     }
 
-    $first = mb_substr($parts[0], 0, 1, 'UTF-8');
-    $last = mb_substr($parts[count($parts) - 1], 0, 1, 'UTF-8');
+    $first = utf8_char_at($parts[0], 0);
+    $last = utf8_char_at($parts[count($parts) - 1], 0);
 
-    return mb_strtoupper($first . $last, 'UTF-8');
+    return utf8_strtoupper($first . $last);
 }
 
 /**

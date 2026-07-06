@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "emda.png"
+SRC = ROOT / "docs" / "brand" / "emda.png"
 BRAND_DIR = ROOT / "docs" / "brand"
 IMG_DIR = ROOT / "public_html" / "assets" / "img"
 
@@ -23,17 +23,25 @@ def is_background(r: int, g: int, b: int, a: int) -> bool:
     return False
 
 
-def is_gold(r: int, g: int, b: int, a: int) -> bool:
-    if a < 128 or is_background(r, g, b, a):
-        return False
+def is_gold_color(r: int, g: int, b: int) -> bool:
     return r > 115 and g > 85 and b < 145 and (r - b) > 35 and g > b * 0.75
 
 
-def is_navy(r: int, g: int, b: int, a: int) -> bool:
-    if a < 128 or is_background(r, g, b, a) or is_gold(r, g, b, a):
+def is_gold(r: int, g: int, b: int, a: int) -> bool:
+    if a < 25 or is_background(r, g, b, a):
         return False
+    return is_gold_color(r, g, b)
+
+
+def is_navy_color(r: int, g: int, b: int) -> bool:
     lum = 0.299 * r + 0.587 * g + 0.114 * b
     return lum < 115 and b >= r * 0.55 and b > 25
+
+
+def is_navy(r: int, g: int, b: int, a: int) -> bool:
+    if a < 25 or is_background(r, g, b, a) or is_gold(r, g, b, a):
+        return False
+    return is_navy_color(r, g, b)
 
 
 def to_rgba_array(img: Image.Image) -> np.ndarray:
@@ -79,9 +87,10 @@ def make_dark_variant(arr: np.ndarray) -> np.ndarray:
             ri, gi, bi, ai = int(r), int(g), int(b), int(a)
             if ai < 25:
                 continue
-            if is_gold(ri, gi, bi, ai):
+            if is_gold(ri, gi, bi, ai) or is_gold_color(ri, gi, bi):
                 continue
-            if is_navy(ri, gi, bi, ai):
+            # Tam opak ve yarı şeffaf lacivert kenar pikselleri kreme çevir
+            if is_navy_color(ri, gi, bi) and not is_background(ri, gi, bi, ai):
                 out[y, x] = (CREAM[0], CREAM[1], CREAM[2], ai)
     return out
 
@@ -132,7 +141,10 @@ def main() -> None:
     BRAND_DIR.mkdir(parents=True, exist_ok=True)
     IMG_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Orijinali arşivle
+    # Orijinal kaynak
+    if not SRC.exists():
+        raise FileNotFoundError(f"Logo kaynağı bulunamadı: {SRC}")
+
     archive = BRAND_DIR / "emda.png"
     if not archive.exists():
         Image.open(SRC).save(archive)

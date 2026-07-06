@@ -20,14 +20,50 @@ CHECKS = [
     "logo-full.png",
     "emblem.png",
     "service-card",
-    'id="contact-form"',
 ]
+
+
+def run_form_tests(page, name: str, results: dict) -> None:
+    form = page.locator("#contact-form")
+    feedback = page.locator("#form-feedback")
+
+    results[f"form_exists_{name}"] = form.count() > 0
+
+    # Boş gönderim
+    form.evaluate("el => el.reset()")
+    feedback.evaluate("el => { el.hidden = true; el.textContent = ''; }")
+    form.locator('button[type="submit"]').click()
+    page.wait_for_timeout(200)
+    results[f"form_empty_error_{name}"] = page.evaluate(
+        """() => {
+          const fb = document.getElementById('form-feedback');
+          return fb && !fb.hidden && fb.classList.contains('is-error') && fb.textContent.trim().length > 0;
+        }"""
+    )
+
+    # Geçersiz e-posta
+    form.evaluate("el => el.reset()")
+    feedback.evaluate("el => { el.hidden = true; el.textContent = ''; }")
+    page.fill("#contact-name", "Test Kullanıcı")
+    page.fill("#contact-email", "gecersiz-eposta")
+    page.fill("#contact-subject", "Test")
+    page.fill("#contact-message", "Test mesajı")
+    form.locator('button[type="submit"]').click()
+    page.wait_for_timeout(200)
+    results[f"form_invalid_email_{name}"] = page.evaluate(
+        """() => {
+          const fb = document.getElementById('form-feedback');
+          const email = document.getElementById('contact-email');
+          return fb && !fb.hidden && fb.classList.contains('is-error')
+            && email && email.classList.contains('is-invalid');
+        }"""
+    )
 
 
 def main() -> int:
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
     errors: list[str] = []
-    results: dict = {"console_errors": [], "checks": {}, "screenshots": []}
+    results: dict = {"console_errors": [], "checks": {}, "screenshots": [], "form_tests": {}}
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -44,7 +80,10 @@ def main() -> int:
                 key = f"{name}:{check}"
                 results["checks"][key] = check in html
 
-            # Görünürlük: .reveal öğelerinin opacity kontrolü
+            # Form id — DOM üzerinden doğrula (HTML string tırnak farklarından etkilenmez)
+            form_id_ok = page.evaluate("() => document.getElementById('contact-form') !== null")
+            results["checks"][f"{name}:contact-form-id"] = form_id_ok
+
             visible_count = page.evaluate(
                 """() => {
                   const els = document.querySelectorAll('.reveal');
@@ -58,12 +97,25 @@ def main() -> int:
             )
             results[f"reveal_{name}"] = visible_count
 
-            # Tam sayfa ekran görüntüsü
+            js_class = page.evaluate("() => document.documentElement.classList.contains('js')")
+            results[f"js_class_{name}"] = js_class
+
+            # Form doğrulama testleri (yalnızca masaüstü — mobilde de çalıştır)
+            page.locator("#contact").scroll_into_view_if_needed()
+            page.wait_for_timeout(300)
+            run_form_tests(page, name, results["form_tests"])
+
             path = SHOT_DIR / f"home-{name}.png"
             page.screenshot(path=str(path), full_page=True)
             results["screenshots"].append(str(path.relative_to(ROOT)))
 
-            # JS asset 404 kontrolü
+            # Footer logo halo kontrolü ekran görüntüsü
+            footer_path = SHOT_DIR / f"footer-logo-{name}.png"
+            footer = page.locator(".footer-brand")
+            if footer.count():
+                footer.screenshot(path=str(footer_path))
+                results["screenshots"].append(str(footer_path.relative_to(ROOT)))
+
             js_status = page.evaluate(
                 """async () => {
                   const r = await fetch('/assets/js/main.js');
@@ -92,6 +144,14 @@ def main() -> int:
     for key, val in results.items():
         if key.startswith("reveal_") and val["visible"] < val["total"] * 0.8:
             print(f"LOW VISIBILITY {key}: {val}", file=sys.stderr)
+            return 1
+    for key, val in results.get("form_tests", {}).items():
+        if not val:
+            print(f"FAILED FORM TEST: {key}", file=sys.stderr)
+            return 1
+    for key, val in results.items():
+        if key.startswith("js_class_") and not val:
+            print(f"JS CLASS MISSING: {key}", file=sys.stderr)
             return 1
     return 0
 
