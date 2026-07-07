@@ -63,6 +63,8 @@ if (!isset($config['mail_mode']) || !in_array((string) $config['mail_mode'], ['l
 
 if (!isset($config['mail_to']) || trim((string) $config['mail_to']) === '') {
     $config['mail_to'] = 'info@emirgandanismanlik.com';
+} elseif (!filter_var((string) $config['mail_to'], FILTER_VALIDATE_EMAIL)) {
+    $config['mail_to'] = 'info@emirgandanismanlik.com';
 }
 
 if (empty($config['admin_password_hash'])) {

@@ -14,6 +14,15 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+function contact_encode_mime_header(string $text): string
+{
+    if (function_exists('mb_encode_mimeheader')) {
+        return mb_encode_mimeheader($text, 'UTF-8', 'B', "\r\n");
+    }
+
+    return '=?UTF-8?B?' . base64_encode($text) . '?=';
+}
+
 function contact_strip_crlf(string $value): string
 {
     return str_replace(["\r", "\n", "\0"], '', $value);
@@ -156,7 +165,11 @@ if (
 
 $config = contact_load_config();
 $mailMode = (string) ($config['mail_mode'] ?? 'log');
-$mailTo = contact_strip_crlf((string) ($config['mail_to'] ?? 'info@emirgandanismanlik.com'));
+$defaultMailTo = 'info@emirgandanismanlik.com';
+$rawMailTo = contact_strip_crlf(trim((string) ($config['mail_to'] ?? $defaultMailTo)));
+$mailTo = ($rawMailTo !== '' && filter_var($rawMailTo, FILTER_VALIDATE_EMAIL))
+    ? $rawMailTo
+    : $defaultMailTo;
 
 $payload = [
     'timestamp' => date('c'),
@@ -170,7 +183,7 @@ $payload = [
 
 if ($mailMode === 'mail') {
     $encodedSubject = $subject !== '' ? $subject : 'İletişim formu mesajı';
-    $mimeSubject = mb_encode_mimeheader($encodedSubject, 'UTF-8', 'B', "\r\n");
+    $mimeSubject = contact_encode_mime_header($encodedSubject);
     $body = "Ad Soyad: {$name}\n"
         . "E-posta: {$email}\n"
         . "Telefon: {$phone}\n"
@@ -180,11 +193,11 @@ if ($mailMode === 'mail') {
     $headers = [
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
-        'From: ' . $mailTo,
+        'From: ' . contact_encode_mime_header('Emirgan Danışmanlık') . ' <' . $mailTo . '>',
         'Reply-To: ' . $email,
     ];
 
-    $sent = @mail($mailTo, $mimeSubject, $body, implode("\r\n", $headers));
+    $sent = @mail($mailTo, $mimeSubject, $body, implode("\r\n", $headers), '-f' . $mailTo);
     if (!$sent) {
         if (contact_wants_json()) {
             http_response_code(500);

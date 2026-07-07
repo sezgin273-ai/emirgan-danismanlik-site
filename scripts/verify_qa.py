@@ -6,12 +6,13 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import xml.etree.ElementTree as ET
+from email import message_from_bytes
+from email.header import decode_header
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import quote, urljoin, urlparse
-
 from urllib.parse import quote, urljoin, urlparse
 
 import requests
@@ -26,6 +27,12 @@ QA_SHOT_DIR = SHOT_DIR / "qa"
 REPORT_PATH = SHOT_DIR / "verify-qa-report.json"
 HTACCESS_PATH = ROOT / "public_html/.htaccess"
 BASE = "http://localhost:8080"
+MAIL_TEST_BASE = "http://localhost:8081"
+MAIL_TEST_PORT = 8081
+CONFIG_PATH = ROOT / "public_html/config.php"
+STUB_SCRIPT = ROOT / "scripts/mail_capture_stub.py"
+CSS_DIR = ROOT / "public_html/assets/css"
+CREDENTIAL_PATTERNS = ("smtp_pass", "mail_password", "smtp_user", "smtp_password")
 TEST_PASSWORD = ".eE951623"
 CONTACT_SECTION_BASELINE_HEIGHT_PX = 956
 CONTACT_SECTION_MAX_HEIGHT_PX = 790
@@ -276,6 +283,251 @@ def assert_contact_api() -> bool:
     ok = ok and status1 == 200 and status2 == 429
 
     restore_mail_log(before_logs)
+    return ok
+
+
+def snapshot_config() -> bytes | None:
+    if CONFIG_PATH.is_file():
+        return CONFIG_PATH.read_bytes()
+    return None
+
+
+def restore_config(data: bytes | None) -> None:
+    if data is None:
+        if CONFIG_PATH.is_file():
+            CONFIG_PATH.unlink()
+    else:
+        CONFIG_PATH.write_bytes(data)
+
+
+def set_config_mail_mode(mode: str) -> None:
+    setup_admin_config()
+    text = CONFIG_PATH.read_text(encoding="utf-8")
+    text = re.sub(r"('mail_mode'\s*=>\s*)'[^']*'", rf"\1'{mode}'", text, count=1)
+    CONFIG_PATH.write_text(text, encoding="utf-8")
+
+
+def write_mail_send_cmd(stub_dir: Path, *, fail: bool = False) -> Path:
+    cmd_path = stub_dir / ("mail_send_fail.cmd" if fail else "mail_send.cmd")
+    args = f'"{sys.executable}" "{STUB_SCRIPT}" "{stub_dir}"'
+    if fail:
+        args += " --fail"
+    cmd_path.write_text(f"@echo off\r\n{args}\r\n", encoding="utf-8")
+    return cmd_path
+
+
+def start_mail_test_server(stub_dir: Path, *, fail: bool = False) -> subprocess.Popen:
+    ini_path = stub_dir / "php-sendmail.ini"
+    cmd_path = write_mail_send_cmd(stub_dir, fail=fail)
+    sendmail_line = f'sendmail_path="{cmd_path}"'
+    if PHP_INI.exists():
+        base_ini = PHP_INI.read_text(encoding="utf-8")
+        ini_path.write_text(
+            base_ini.rstrip() + "\n"
+            + sendmail_line + "\n",
+            encoding="utf-8",
+        )
+    else:
+        ini_path.write_text(
+            "[PHP]\n"
+            + sendmail_line + "\n",
+            encoding="utf-8",
+        )
+    cmd = [str(PHP_BIN), "-c", str(ini_path), "-S", f"localhost:{MAIL_TEST_PORT}", "-t", "public_html", "public_html/router.php"]
+    return subprocess.Popen(
+        cmd,
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def wait_http_ready(base: str, timeout: float = 12.0) -> bool:
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            resp = requests.get(base + "/", timeout=2)
+            if resp.status_code == 200:
+                return True
+        except requests.RequestException:
+            pass
+        time.sleep(0.25)
+    return False
+
+
+def stop_server(proc: subprocess.Popen | None) -> None:
+    if proc is None:
+        return
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=3)
+
+
+def decode_mime_header(value: str) -> str:
+    chunks: list[str] = []
+    for fragment, charset in decode_header(value):
+        if isinstance(fragment, bytes):
+            chunks.append(fragment.decode(charset or "utf-8", errors="replace"))
+        else:
+            chunks.append(fragment)
+    return "".join(chunks)
+
+
+def parse_mail_file(path: Path) -> dict[str, str]:
+    msg = message_from_bytes(path.read_bytes())
+    return {
+        "to": msg.get("To", ""),
+        "reply_to": msg.get("Reply-To", ""),
+        "subject": decode_mime_header(msg.get("Subject", "")),
+        "body": msg.get_payload(decode=True).decode("utf-8", errors="replace") if msg.get_payload(decode=True) else "",
+    }
+
+
+def assert_faz51_contact_mail() -> bool:
+    ok = True
+    config_before = snapshot_config()
+    server: subprocess.Popen | None = None
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="mail-stub-") as tmp:
+            stub_dir = Path(tmp)
+            set_config_mail_mode("mail")
+            server = start_mail_test_server(stub_dir, fail=False)
+            ready = wait_http_ready(MAIL_TEST_BASE)
+            assert_metric("mail_stub_server_ready", 1 if ready else 0, "HTTP 200", ready)
+            ok = ok and ready
+            if not ready:
+                return ok
+
+            payload = {
+                "name": "Mail Stub QA",
+                "email": "stub.sender@example.com",
+                "phone": "5550001122",
+                "subject": "UTF-8 konu: İletişim testi",
+                "message": "Stub gövde mesajı doğrulama metni.",
+            }
+            session = requests.Session()
+            resp = session.post(
+                MAIL_TEST_BASE + "/api/contact.php",
+                data=payload,
+                headers={"Accept": "application/json"},
+                timeout=30,
+            )
+            body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+            captured = sorted(stub_dir.glob("mail-*.eml"))
+            count_ok = len(captured) == 1
+            assert_metric("mail_mode_valid_post_status", resp.status_code, "200", resp.status_code == 200)
+            assert_metric("mail_mode_stub_file_count", len(captured), "1", count_ok)
+            assert_metric("mail_mode_valid_post_ok", 1 if body.get("ok") else 0, "true", bool(body.get("ok")))
+            ok = ok and resp.status_code == 200 and count_ok and bool(body.get("ok"))
+
+            if captured:
+                mail = parse_mail_file(captured[0])
+                to_ok = "info@emirgandanismanlik.com" in mail["to"]
+                reply_ok = mail["reply_to"] == payload["email"]
+                subject_ok = mail["subject"] == payload["subject"]
+                body_ok = payload["name"] in mail["body"] and payload["message"] in mail["body"]
+                assert_metric("mail_mode_captured_to", mail["to"], "info@emirgandanismanlik.com", to_ok)
+                assert_metric("mail_mode_captured_reply_to", mail["reply_to"], payload["email"], reply_ok)
+                assert_metric("mail_mode_captured_subject", mail["subject"], payload["subject"], subject_ok)
+                assert_metric("mail_mode_captured_body", 1 if body_ok else 0, "name+message present", body_ok)
+                ok = ok and to_ok and reply_ok and subject_ok and body_ok
+
+            stop_server(server)
+            server = None
+
+            fail_dir = stub_dir / "fail"
+            fail_dir.mkdir()
+            set_config_mail_mode("mail")
+            server = start_mail_test_server(fail_dir, fail=True)
+            fail_ready = wait_http_ready(MAIL_TEST_BASE)
+            assert_metric("mail_stub_fail_server_ready", 1 if fail_ready else 0, "HTTP 200", fail_ready)
+            ok = ok and fail_ready
+            if fail_ready:
+                logs_before = snapshot_mail_log()
+                fail_session = requests.Session()
+                fail_resp = fail_session.post(
+                    MAIL_TEST_BASE + "/api/contact.php",
+                    data={
+                        "name": "Fail Stub",
+                        "email": "fail.stub@example.com",
+                        "subject": "Fail",
+                        "message": "Stub fail senaryosu.",
+                    },
+                    headers={"Accept": "application/json"},
+                    timeout=30,
+                )
+                logs_after = snapshot_mail_log()
+                fail_files = list(fail_dir.glob("mail-*.eml"))
+                status_ok = fail_resp.status_code == 500
+                no_log_ok = logs_after == logs_before
+                no_stub_ok = len(fail_files) == 0
+                assert_metric("mail_mode_stub_fail_status", fail_resp.status_code, "500", status_ok)
+                assert_metric("mail_mode_stub_fail_no_log", 1 if no_log_ok else 0, "no new mail-log", no_log_ok)
+                assert_metric("mail_mode_stub_fail_no_capture", len(fail_files), "0", no_stub_ok)
+                ok = ok and status_ok and no_log_ok and no_stub_ok
+    finally:
+        stop_server(server)
+        restore_config(config_before)
+
+    return ok
+
+
+def assert_mail_security() -> bool:
+    ok = True
+    tracked = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    ).stdout.splitlines()
+    config_tracked = "public_html/config.php" in tracked
+    assert_metric("security_config_not_tracked", 0 if config_tracked else 1, "absent from git ls-files", not config_tracked)
+    ok = ok and not config_tracked
+
+    gitignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    ignore_ok = "config.php" in gitignore
+    assert_metric("security_gitignore_config_php", 1 if ignore_ok else 0, "listed", ignore_ok)
+    ok = ok and ignore_ok
+
+    credential_hits = 0
+    for rel in tracked:
+        if rel.replace("\\", "/") == "scripts/verify_qa.py":
+            continue
+        path = ROOT / rel
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore").lower()
+        except OSError:
+            continue
+        for pattern in CREDENTIAL_PATTERNS:
+            if pattern in text:
+                credential_hits += 1
+                break
+    cred_ok = credential_hits == 0
+    assert_metric("security_no_credential_keys_in_repo", credential_hits, "0", cred_ok)
+    ok = ok and cred_ok
+    return ok
+
+
+def assert_faz51_scope_css() -> bool:
+    ok = True
+    for name in ("tokens.css", "main.css"):
+        path = CSS_DIR / name
+        rel = path.relative_to(ROOT).as_posix()
+        head = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=ROOT, capture_output=True)
+        if head.returncode != 0:
+            assert_metric(f"scope_unchanged_css_{name}", 0, "unchanged", False)
+            ok = False
+            continue
+        passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
+        assert_metric(f"scope_unchanged_css_{name}", 1 if passed else 0, "unchanged", passed)
+        ok = ok and passed
     return ok
 
 
@@ -836,7 +1088,10 @@ def main() -> int:
 
     try:
         setup_admin_config()
+        set_config_mail_mode("log")
         ok = assert_contact_api() and ok
+        ok = assert_faz51_contact_mail() and ok
+        ok = assert_mail_security() and ok
         ok = assert_seo_files() and ok
         ok = assert_page_health() and ok
         ok = assert_htaccess() and ok
@@ -850,6 +1105,7 @@ def main() -> int:
         ok = viewport_ok and ok
         results["screenshots"] = shots
         ok = assert_scope_unchanged() and ok
+        ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok
         ok = run_verify_admin() and ok
     finally:

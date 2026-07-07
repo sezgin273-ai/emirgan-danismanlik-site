@@ -48,6 +48,81 @@
       "limit": "429",
       "passed": true
     },
+    "mail_stub_server_ready": {
+      "measured": 1,
+      "limit": "HTTP 200",
+      "passed": true
+    },
+    "mail_mode_valid_post_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "mail_mode_stub_file_count": {
+      "measured": 1,
+      "limit": "1",
+      "passed": true
+    },
+    "mail_mode_valid_post_ok": {
+      "measured": 1,
+      "limit": "true",
+      "passed": true
+    },
+    "mail_mode_captured_to": {
+      "measured": "info@emirgandanismanlik.com",
+      "limit": "info@emirgandanismanlik.com",
+      "passed": true
+    },
+    "mail_mode_captured_reply_to": {
+      "measured": "stub.sender@example.com",
+      "limit": "stub.sender@example.com",
+      "passed": true
+    },
+    "mail_mode_captured_subject": {
+      "measured": "UTF-8 konu: İletişim testi",
+      "limit": "UTF-8 konu: İletişim testi",
+      "passed": true
+    },
+    "mail_mode_captured_body": {
+      "measured": 1,
+      "limit": "name+message present",
+      "passed": true
+    },
+    "mail_stub_fail_server_ready": {
+      "measured": 1,
+      "limit": "HTTP 200",
+      "passed": true
+    },
+    "mail_mode_stub_fail_status": {
+      "measured": 500,
+      "limit": "500",
+      "passed": true
+    },
+    "mail_mode_stub_fail_no_log": {
+      "measured": 1,
+      "limit": "no new mail-log",
+      "passed": true
+    },
+    "mail_mode_stub_fail_no_capture": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "security_config_not_tracked": {
+      "measured": 1,
+      "limit": "absent from git ls-files",
+      "passed": true
+    },
+    "security_gitignore_config_php": {
+      "measured": 1,
+      "limit": "listed",
+      "passed": true
+    },
+    "security_no_credential_keys_in_repo": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
     "homepage_meta_canonical": {
       "measured": 1,
       "limit": "present",
@@ -184,7 +259,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.90209,
+      "measured": -5.92898,
       "limit": "<= -2px",
       "passed": true
     },
@@ -249,7 +324,7 @@
       "passed": true
     },
     "contact_section_height_px": {
-      "measured": 702,
+      "measured": 726,
       "limit": "<= 790",
       "passed": true
     },
@@ -364,6 +439,16 @@
       "passed": true
     },
     "scope_unchanged_emblem-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_css_tokens.css": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_css_main.css": {
       "measured": 1,
       "limit": "unchanged",
       "passed": true
