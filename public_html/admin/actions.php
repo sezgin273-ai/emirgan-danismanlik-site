@@ -71,6 +71,10 @@ function admin_normalize_content(array $posted, array $current): array
         }
     }
 
+    if (isset($posted['hero']) && is_array($posted['hero'])) {
+        $content['hero']['watermark_enabled'] = !empty($posted['hero']['watermark_enabled']);
+    }
+
     if (isset($posted['intro']) && is_array($posted['intro'])) {
         $content['intro']['title'] = trim((string) ($posted['intro']['title'] ?? $content['intro']['title']));
         $content['intro']['text'] = trim((string) ($posted['intro']['text'] ?? $content['intro']['text']));
@@ -116,13 +120,44 @@ function admin_normalize_content(array $posted, array $current): array
                 if ($title === '') {
                     continue;
                 }
+                $icon = trim((string) ($item['icon'] ?? ''));
+                if ($icon === '') {
+                    $icon = 'strategy';
+                }
+                if (!is_valid_service_icon($icon)) {
+                    admin_abort_with_status(422, 'Geçersiz hizmet ikonu.');
+                }
                 $items[] = [
                     'title' => $title,
                     'description' => trim((string) ($item['description'] ?? '')),
-                    'icon' => trim((string) ($item['icon'] ?? 'strategy')),
+                    'icon' => $icon,
                 ];
             }
             $content['services']['items'] = $items;
+        }
+    }
+
+    if (isset($posted['process']) && is_array($posted['process'])) {
+        if (!isset($content['process']) || !is_array($content['process'])) {
+            $content['process'] = ['title' => '', 'steps' => []];
+        }
+        $content['process']['title'] = trim((string) ($posted['process']['title'] ?? $content['process']['title'] ?? ''));
+        if (isset($posted['process']['steps']) && is_array($posted['process']['steps'])) {
+            $steps = [];
+            foreach ($posted['process']['steps'] as $step) {
+                if (!is_array($step)) {
+                    continue;
+                }
+                $title = trim((string) ($step['title'] ?? ''));
+                if ($title === '') {
+                    continue;
+                }
+                $steps[] = [
+                    'title' => $title,
+                    'description' => trim((string) ($step['description'] ?? '')),
+                ];
+            }
+            $content['process']['steps'] = $steps;
         }
     }
 
@@ -327,6 +362,28 @@ match ($action) {
             delete_uploaded_file($removedPhoto);
         }
         admin_redirect('/admin/dashboard.php#team', 'ok', 'Ekip üyesi silindi.');
+    })(),
+    'delete_process_step' => (function () use ($current) {
+        $rawIndex = $_POST['step_index'] ?? null;
+        $index = filter_var($rawIndex, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        $steps = $current['process']['steps'] ?? [];
+        if ($index === false || !isset($steps[$index])) {
+            admin_abort_with_status(422, 'Geçersiz süreç adımı index değeri.');
+        }
+
+        $postedTitle = str_replace(["\r", "\n", "\0"], '', trim((string) ($_POST['step_title'] ?? '')));
+        $serverTitle = trim((string) ($steps[$index]['title'] ?? ''));
+        if ($postedTitle === '' || $postedTitle !== $serverTitle) {
+            admin_abort_with_status(409, 'Süreç adımı sırası değişmiş olabilir. Önce kaydedin veya sayfayı yenileyin.');
+        }
+
+        unset($steps[$index]);
+        $current['process']['steps'] = array_values($steps);
+
+        if (!save_content($current)) {
+            admin_redirect('/admin/dashboard.php#process', 'error', 'Süreç adımı silinemedi.');
+        }
+        admin_redirect('/admin/dashboard.php#process', 'ok', 'Süreç adımı silindi.');
     })(),
     'upload_asset' => (function () use ($current) {
         $assetKey = (string) ($_POST['asset_key'] ?? '');

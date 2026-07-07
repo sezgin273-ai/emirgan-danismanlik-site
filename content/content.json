@@ -22,6 +22,9 @@
       "about": {
         "visible": true
       },
+      "process": {
+        "visible": true
+      },
       "team": {
         "visible": true
       },
@@ -81,7 +84,8 @@
   "hero": {
     "company": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
     "tagline": "Güvenilir Çözüm Ortağınız",
-    "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz."
+    "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
+    "watermark_enabled": true
   },
   "intro": {
     "title": "Kısa Tanıtım",

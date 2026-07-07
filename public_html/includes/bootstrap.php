@@ -78,10 +78,54 @@ function initials(string $name): string
 }
 
 /**
+ * Geçerli hizmet ikon adlarını döndürür.
+ *
+ * @return list<string>
+ */
+function service_icon_names(): array
+{
+    return ['strategy', 'legal', 'finance', 'feasibility', 'realestate', 'trade', 'governance'];
+}
+
+/**
+ * Hizmet ikonu whitelist doğrulaması.
+ */
+function is_valid_service_icon(string $icon): bool
+{
+    return in_array($icon, service_icon_names(), true);
+}
+
+/**
+ * Süreç bölümü ön yüzde render edilebilir mi?
+ */
+function process_section_renderable(array $content): bool
+{
+    if (!section_visible($content, 'process')) {
+        return false;
+    }
+
+    $steps = $content['process']['steps'] ?? null;
+
+    return is_array($steps) && $steps !== [];
+}
+
+/**
+ * Hero watermark etkin mi? (varsayılan: açık)
+ */
+function hero_watermark_enabled(array $content): bool
+{
+    return ($content['hero']['watermark_enabled'] ?? true) !== false;
+}
+
+/**
  * Hizmet ikonu SVG döndürür.
  */
 function service_icon(string $icon): string
 {
+    if ($icon === '' || !is_valid_service_icon($icon)) {
+        $icon = 'strategy';
+    }
+
     $attrs = 'viewBox="0 0 24 24" aria-hidden="true" focusable="false"';
     $icons = [
         'strategy' => '<svg ' . $attrs . '><path d="M3 17l6-6 4 4 7-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8h7v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',

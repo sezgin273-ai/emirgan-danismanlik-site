@@ -4,6 +4,7 @@
     "docs/screenshots/admin-dashboard.png",
     "docs/screenshots/admin-media-upload.png",
     "docs/screenshots/admin-content-editor.png",
+    "docs/screenshots/admin-process-editor.png",
     "docs/screenshots/team-card-with-photo.png"
   ],
   "acceptance": {
@@ -38,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.85,
+      "measured": 1.3,
       "limit": ">= 1",
       "passed": true
     },
@@ -182,6 +183,121 @@
       "limit": "present",
       "passed": true
     },
+    "process_text_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "process_add_step_count": {
+      "measured": 5,
+      "limit": "5",
+      "passed": true
+    },
+    "process_add_step_home_visible": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "process_delete_ui_reject_count_unchanged": {
+      "measured": 4,
+      "limit": "== 4",
+      "passed": true
+    },
+    "process_delete_ui_confirm_dialog": {
+      "measured": 1,
+      "limit": "shown",
+      "passed": true
+    },
+    "process_delete_ui_first_step_removed": {
+      "measured": 1,
+      "limit": "index 0 removed only",
+      "passed": true
+    },
+    "process_reorder_json": {
+      "measured": 1,
+      "limit": "swapped",
+      "passed": true
+    },
+    "process_reorder_home": {
+      "measured": "20,129",
+      "limit": "first before second",
+      "passed": true
+    },
+    "process_reorder_persistent": {
+      "measured": 1,
+      "limit": "order matches",
+      "passed": true
+    },
+    "process_delete_unsaved_sort_status": {
+      "measured": 409,
+      "limit": "409",
+      "passed": true
+    },
+    "process_delete_unsaved_sort_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "process_delete_invalid_index_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "process_section_hidden": {
+      "measured": 1,
+      "limit": "absent + console 0",
+      "passed": true
+    },
+    "process_section_visible": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "process_all_steps_removed_no_section": {
+      "measured": 1,
+      "limit": "absent + no PHP noise",
+      "passed": true
+    },
+    "service_icon_change_first_only": {
+      "measured": 1,
+      "limit": "first svg changed",
+      "passed": true
+    },
+    "service_add_icon_svg_count": {
+      "measured": 8,
+      "limit": "8",
+      "passed": true
+    },
+    "service_add_no_iconless_card": {
+      "measured": 1,
+      "limit": "all have svg",
+      "passed": true
+    },
+    "service_icon_invalid_post_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "service_icon_invalid_content_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "hero_watermark_disabled_absent": {
+      "measured": 1,
+      "limit": "no layer",
+      "passed": true
+    },
+    "hero_watermark_off_title_color": {
+      "measured": "rgb(248, 244, 240)",
+      "limit": "rgb(248, 244, 240)",
+      "passed": true
+    },
+    "hero_watermark_enabled_opacity": {
+      "measured": 0.05,
+      "limit": "0.03-0.08",
+      "passed": true
+    },
     "team_delete_ui_reject_count_unchanged": {
       "measured": 5,
       "limit": "== 5",
@@ -258,6 +374,11 @@
       "passed": true
     },
     "scope_unchanged_css_tokens.css": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_css_main.css": {
       "measured": 1,
       "limit": "unchanged",
       "passed": true

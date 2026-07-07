@@ -138,6 +138,14 @@ def assert_content_json_scope() -> bool:
     )
     assert_metric("content_json_process_added", 1 if process_ok else 0, "process key with 4 steps", process_ok)
 
+    watermark_ok = current.get("hero", {}).get("watermark_enabled") is True
+    assert_metric("content_json_watermark_enabled_added", 1 if watermark_ok else 0, "true", watermark_ok)
+
+    process_section_ok = (
+        current.get("site", {}).get("sections", {}).get("process", {}).get("visible") is True
+    )
+    assert_metric("content_json_process_section_visible_added", 1 if process_section_ok else 0, "true", process_section_ok)
+
     url_ok = current.get("site", {}).get("url") == "https://emirgandanismanlik.com"
     og_ok = current.get("site", {}).get("meta", {}).get("og_image") == "/assets/img/og-image.png"
     assert_metric("content_json_site_url_added", current.get("site", {}).get("url", ""), "https://emirgandanismanlik.com", url_ok)
@@ -147,7 +155,7 @@ def assert_content_json_scope() -> bool:
         "/assets/img/og-image.png",
         og_ok,
     )
-    return ok and process_ok and url_ok and og_ok
+    return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok
 
 
 def assert_scope_unchanged() -> bool:

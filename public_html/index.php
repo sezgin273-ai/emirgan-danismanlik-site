@@ -16,7 +16,7 @@ $vision = $content['vision'];
 $mission = $content['mission'];
 $team = $content['team'];
 $services = $content['services'];
-$process = $content['process'];
+$process = $content['process'] ?? ['title' => '', 'steps' => []];
 $contact = $content['contact'];
 $ui = $content['ui'];
 $assets = $content['site']['assets'];
@@ -30,7 +30,9 @@ $assets = $content['site']['assets'];
 <main id="main-content">
     <?php if (section_visible($content, 'hero')): ?>
     <section class="hero section-dark" id="hero" aria-labelledby="hero-heading">
+        <?php if (hero_watermark_enabled($content)): ?>
         <div class="hero-watermark" aria-hidden="true" style="background-image: url('<?= e($assets['emblem']) ?>')"></div>
+        <?php endif; ?>
         <div class="container hero-grid">
             <div class="hero-content reveal">
                 <p class="hero-eyebrow"><?= e($hero['company']) ?></p>
@@ -138,6 +140,7 @@ $assets = $content['site']['assets'];
     </section>
     <?php endif; ?>
 
+    <?php if (process_section_renderable($content)): ?>
     <section class="process section-dark" id="process" aria-labelledby="process-heading">
         <div class="container">
             <div class="section-header section-header--dark reveal">
@@ -157,6 +160,7 @@ $assets = $content['site']['assets'];
             </ol>
         </div>
     </section>
+    <?php endif; ?>
 
     <?php if (section_visible($content, 'team')): ?>
     <section class="team section-light" id="team" aria-labelledby="team-heading">

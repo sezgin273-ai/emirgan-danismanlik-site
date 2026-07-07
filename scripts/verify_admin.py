@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import json
 import re
 import subprocess
@@ -281,21 +282,355 @@ def assert_scope_unchanged() -> bool:
 
 
 def assert_css_unchanged() -> bool:
-    """Faz 4.5 main.css değişebilir; yalnızca tokens.css HEAD ile bayt-özdeş kalmalı."""
+    """Faz 4.6: tokens.css ve main.css HEAD ile bayt-özdeş kalmalı."""
     ok = True
-    tokens_path = CSS_DIR / "tokens.css"
-    rel = tokens_path.relative_to(ROOT).as_posix()
-    head = subprocess.run(
-        ["git", "show", f"HEAD:{rel}"],
-        cwd=ROOT,
-        capture_output=True,
+    for name in ("tokens.css", "main.css"):
+        path = CSS_DIR / name
+        rel = path.relative_to(ROOT).as_posix()
+        head = subprocess.run(
+            ["git", "show", f"HEAD:{rel}"],
+            cwd=ROOT,
+            capture_output=True,
+        )
+        if head.returncode != 0:
+            assert_metric(f"scope_unchanged_css_{name}", 0, "unchanged", False)
+            ok = False
+            continue
+        passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
+        assert_metric(f"scope_unchanged_css_{name}", 1 if passed else 0, "unchanged", passed)
+        ok = ok and passed
+    return ok
+
+
+def build_process_save_form(content: dict) -> dict[str, str]:
+    form: dict[str, str] = {
+        "content[process][title]": content.get("process", {}).get("title", ""),
+    }
+    for i, step in enumerate(content.get("process", {}).get("steps", [])):
+        form[f"content[process][steps][{i}][title]"] = step.get("title", "")
+        form[f"content[process][steps][{i}][description]"] = step.get("description", "")
+    return form
+
+
+def build_services_save_form(content: dict) -> dict[str, str]:
+    form: dict[str, str] = {"content[services][title]": content["services"]["title"]}
+    for i, item in enumerate(content["services"]["items"]):
+        form[f"content[services][items][{i}][title]"] = item["title"]
+        form[f"content[services][items][{i}][description]"] = item["description"]
+        form[f"content[services][items][{i}][icon]"] = item.get("icon", "strategy")
+    return form
+
+
+def service_svg_signatures(html: str) -> list[str]:
+    cards = re.findall(r'class="service-card[^"]*"[^>]*>(.*?)</article>', html, flags=re.DOTALL)
+    sigs: list[str] = []
+    for card in cards:
+        paths = re.findall(r'<path[^>]+d="([^"]+)"', card)
+        sigs.append("|".join(paths))
+    return sigs
+
+
+def process_step_titles(html: str) -> list[str]:
+    return [
+        html.unescape(m)
+        for m in re.findall(r'class="process-step-title"[^>]*>\s*([^<]+?)\s*<', html)
+    ]
+
+
+def assert_faz46_admin(client: AdminClient, test_password: str, original_content: dict) -> bool:
+    ok = True
+    save_content_direct(json.loads(json.dumps(original_content)))
+    original = json.loads(json.dumps(original_content))
+    process_marker = "VERIFY_PROCESS_TITLE_MARKER"
+    step_marker = "VERIFY_STEP_DESC_MARKER"
+
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+
+    data = json.loads(json.dumps(original))
+    data["process"]["title"] = process_marker
+    data["process"]["steps"][0]["description"] = step_marker
+    form = {"csrf_token": csrf, "action": "save_content", **build_process_save_form(data)}
+    client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
+    status, home, _ = client.request("GET", "/")
+    roundtrip_ok = process_marker in home and step_marker in home
+    assert_metric("process_text_roundtrip_frontend", 1 if roundtrip_ok else 0, "visible", roundtrip_ok)
+    ok = ok and roundtrip_ok
+
+    save_content_direct(original)
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+
+    data = json.loads(json.dumps(load_content()))
+    data["process"]["steps"].append(
+        {
+            "title": "VERIFY TEST ADIM",
+            "description": "Admin verify otomasyon test adımı.",
+        }
     )
-    if head.returncode != 0:
-        assert_metric("scope_unchanged_css_tokens.css", 0, "unchanged", False)
-        return False
-    passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(tokens_path.read_bytes()).hexdigest()
-    assert_metric("scope_unchanged_css_tokens.css", 1 if passed else 0, "unchanged", passed)
-    return passed
+    form = {"csrf_token": csrf, "action": "save_content", **build_process_save_form(data)}
+    client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
+    steps_after_add = len(load_content()["process"]["steps"])
+    status, home, _ = client.request("GET", "/")
+    add_ok = steps_after_add == 5 and home.count("VERIFY TEST ADIM") >= 1
+    assert_metric("process_add_step_count", steps_after_add, "5", steps_after_add == 5)
+    assert_metric("process_add_step_home_visible", 1 if "VERIFY TEST ADIM" in home else 0, "visible", "VERIFY TEST ADIM" in home)
+    ok = ok and add_ok
+
+    save_content_direct(original)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+        page.fill("#password", test_password)
+        page.click('button[type="submit"]')
+        page.wait_for_url("**/admin/dashboard.php")
+
+        steps_before = [s.get("title", "") for s in load_content()["process"]["steps"]]
+        count_before_reject = len(steps_before)
+        page.once("dialog", lambda dialog: dialog.dismiss())
+        page.locator("#process-list [data-delete-process-step]").first.click()
+        page.wait_for_timeout(500)
+        count_after_reject = len(load_content()["process"]["steps"])
+        reject_ok = count_after_reject == count_before_reject
+        assert_metric("process_delete_ui_reject_count_unchanged", count_after_reject, f"== {count_before_reject}", reject_ok)
+        ok = ok and reject_ok
+
+        dialog_seen = False
+
+        def accept_dialog(dialog) -> None:
+            nonlocal dialog_seen
+            dialog_seen = True
+            dialog.accept()
+
+        page.once("dialog", accept_dialog)
+        with page.expect_response(lambda r: "/admin/actions.php" in r.url) as resp_info:
+            page.locator("#process-list [data-delete-process-step]").first.click()
+        delete_resp = resp_info.value
+        page.wait_for_timeout(500)
+        steps_after_delete = [s.get("title", "") for s in load_content()["process"]["steps"]]
+        expected_after = steps_before[1:]
+        delete_ok = dialog_seen and steps_after_delete == expected_after and delete_resp.status in (200, 302)
+        assert_metric("process_delete_ui_confirm_dialog", 1 if dialog_seen else 0, "shown", dialog_seen)
+        assert_metric(
+            "process_delete_ui_first_step_removed",
+            1 if steps_after_delete == expected_after else 0,
+            "index 0 removed only",
+            steps_after_delete == expected_after,
+        )
+        ok = ok and delete_ok
+
+        save_content_direct(original)
+        page.reload(wait_until="networkidle")
+        page.locator('a[href="#process"]').click()
+        page.wait_for_timeout(300)
+
+        steps_before_sort = [s.get("title", "") for s in load_content()["process"]["steps"]]
+        page.locator("#process-list [data-sort-down]").first.click()
+        page.wait_for_timeout(300)
+        page.locator('#content-form button[type="submit"]').click()
+        page.wait_for_load_state("networkidle")
+        page.wait_for_timeout(800)
+        reordered = load_content()["process"]["steps"]
+        json_ok = (
+            len(reordered) == len(steps_before_sort)
+            and reordered[0]["title"] == steps_before_sort[1]
+            and reordered[1]["title"] == steps_before_sort[0]
+        )
+        page.goto(f"{BASE}/#process", wait_until="networkidle")
+        page.wait_for_timeout(1000)
+        body_text = page.evaluate("() => document.getElementById('process')?.innerText ?? ''")
+        first_idx = body_text.find(reordered[0]["title"]) if json_ok else -1
+        second_idx = body_text.find(reordered[1]["title"]) if json_ok else -1
+        home_ok = first_idx != -1 and second_idx != -1 and first_idx < second_idx
+        reorder_ok = json_ok and home_ok
+        assert_metric("process_reorder_json", 1 if json_ok else 0, "swapped", json_ok)
+        assert_metric(
+            "process_reorder_home",
+            f"{first_idx},{second_idx}",
+            "first before second",
+            home_ok,
+        )
+        assert_metric("process_reorder_persistent", 1 if reorder_ok else 0, "order matches", reorder_ok)
+        ok = ok and reorder_ok
+
+        save_content_direct(original)
+        page.goto(f"{BASE}/admin/dashboard.php#process", wait_until="networkidle")
+        page.wait_for_timeout(300)
+
+        unsaved_before = [s.get("title", "") for s in load_content()["process"]["steps"]]
+        page.locator("#process-list [data-sort-down]").first.click()
+        page.wait_for_timeout(300)
+        guard_dialog = False
+
+        def accept_guard(dialog) -> None:
+            nonlocal guard_dialog
+            guard_dialog = True
+            dialog.accept()
+
+        page.once("dialog", accept_guard)
+        with page.expect_response(lambda r: "/admin/actions.php" in r.url) as guard_resp:
+            page.locator("#process-list [data-delete-process-step]").first.click()
+        guard_status = guard_resp.value.status
+        page.wait_for_timeout(400)
+        unsaved_after = [s.get("title", "") for s in load_content()["process"]["steps"]]
+        guard_ok = guard_status == 409 and unsaved_after == unsaved_before
+        assert_metric("process_delete_unsaved_sort_status", guard_status, "409", guard_status == 409)
+        assert_metric(
+            "process_delete_unsaved_sort_unchanged",
+            1 if unsaved_after == unsaved_before else 0,
+            "unchanged",
+            unsaved_after == unsaved_before,
+        )
+        ok = ok and guard_ok
+
+        browser.close()
+
+    save_content_direct(original)
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    bad_status, _, _ = client.request(
+        "POST",
+        "/admin/actions.php",
+        data={
+            "csrf_token": csrf,
+            "action": "delete_process_step",
+            "step_index": "9999",
+            "step_title": "x",
+        },
+        allow_redirects=False,
+    )
+    invalid_ok = bad_status == 422
+    assert_metric("process_delete_invalid_index_status", bad_status, "422", invalid_ok)
+    ok = ok and invalid_ok
+
+    content_hide = load_content()
+    if "process" not in content_hide.get("site", {}).get("sections", {}):
+        content_hide.setdefault("site", {}).setdefault("sections", {})["process"] = {"visible": True}
+    content_hide["site"]["sections"]["process"]["visible"] = False
+    save_content_direct(content_hide)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        errors: list[str] = []
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(500)
+        html = page.content()
+        hidden_ok = 'id="process"' not in html and len(errors) == 0
+        assert_metric("process_section_hidden", 1 if hidden_ok else 0, "absent + console 0", hidden_ok)
+        ok = ok and hidden_ok
+        browser.close()
+
+    content_show = load_content()
+    content_show["site"]["sections"]["process"]["visible"] = True
+    save_content_direct(content_show)
+    status, home, _ = client.request("GET", "/")
+    show_ok = 'id="process"' in home
+    assert_metric("process_section_visible", 1 if show_ok else 0, "present", show_ok)
+    ok = ok and show_ok
+
+    content_empty = load_content()
+    content_empty["process"]["steps"] = []
+    save_content_direct(content_empty)
+    status, home, _ = client.request("GET", "/")
+    empty_ok = 'id="process"' not in home and "Warning" not in home and "Notice" not in home
+    assert_metric("process_all_steps_removed_no_section", 1 if empty_ok else 0, "absent + no PHP noise", empty_ok)
+    ok = ok and empty_ok
+    save_content_direct(original)
+
+    status, home_before, _ = client.request("GET", "/")
+    sigs_before = service_svg_signatures(home_before)
+    content_icon = load_content()
+    alt_icon = "legal" if content_icon["services"]["items"][0].get("icon") != "legal" else "finance"
+    content_icon["services"]["items"][0]["icon"] = alt_icon
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    form = {"csrf_token": csrf, "action": "save_content", **build_services_save_form(content_icon)}
+    client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
+    status, home_after, _ = client.request("GET", "/")
+    sigs_after = service_svg_signatures(home_after)
+    icon_change_ok = (
+        len(sigs_before) == len(sigs_after) == 7
+        and sigs_before[0] != sigs_after[0]
+        and sigs_before[1:] == sigs_after[1:]
+    )
+    assert_metric("service_icon_change_first_only", 1 if icon_change_ok else 0, "first svg changed", icon_change_ok)
+    ok = ok and icon_change_ok
+    save_content_direct(original)
+
+    content_svc = load_content()
+    content_svc["services"]["items"].append(
+        {
+            "title": "VERIFY ICON TEST HİZMET",
+            "description": "İkon varsayılan testi",
+            "icon": "strategy",
+        }
+    )
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    form = {"csrf_token": csrf, "action": "save_content", **build_services_save_form(content_svc)}
+    client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
+    status, home, _ = client.request("GET", "/")
+    svg_count = home.count("<svg")
+    service_cards = len(re.findall(r'class="service-card', home))
+    add_svc_ok = service_cards == 8 and svg_count >= 8 and home.count("VERIFY ICON TEST HİZMET") >= 1
+    assert_metric("service_add_icon_svg_count", service_cards, "8", service_cards == 8)
+    assert_metric("service_add_no_iconless_card", 1 if add_svc_ok else 0, "all have svg", add_svc_ok)
+    ok = ok and add_svc_ok
+    save_content_direct(original)
+
+    bytes_before = CONTENT_PATH.read_bytes()
+    content_bad = load_content()
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    form = {"csrf_token": csrf, "action": "save_content", **build_services_save_form(content_bad)}
+    form["content[services][items][0][icon]"] = "not-a-valid-icon"
+    bad_icon_status, _, _ = client.request("POST", "/admin/actions.php", data=form, allow_redirects=False)
+    bytes_after = CONTENT_PATH.read_bytes()
+    bad_icon_ok = bad_icon_status == 422 and bytes_before == bytes_after
+    assert_metric("service_icon_invalid_post_status", bad_icon_status, "422", bad_icon_status == 422)
+    assert_metric("service_icon_invalid_content_unchanged", 1 if bytes_before == bytes_after else 0, "unchanged", bytes_before == bytes_after)
+    ok = ok and bad_icon_ok
+
+    content_wm = load_content()
+    content_wm["hero"]["watermark_enabled"] = False
+    save_content_direct(content_wm)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        wm_off = page.evaluate(
+            """() => ({
+              watermark: document.querySelector('.hero-watermark'),
+              titleColor: getComputedStyle(document.querySelector('.hero-title')).color,
+              emblem: document.querySelector('.hero-emblem'),
+            })"""
+        )
+        off_ok = wm_off["watermark"] is None and wm_off["titleColor"] == "rgb(248, 244, 240)" and wm_off["emblem"] is not None
+        assert_metric("hero_watermark_disabled_absent", 1 if wm_off["watermark"] is None else 0, "no layer", wm_off["watermark"] is None)
+        assert_metric("hero_watermark_off_title_color", wm_off["titleColor"], "rgb(248, 244, 240)", wm_off["titleColor"] == "rgb(248, 244, 240)")
+        ok = ok and off_ok
+
+        content_wm["hero"]["watermark_enabled"] = True
+        save_content_direct(content_wm)
+        page.goto(BASE + "/", wait_until="networkidle")
+        wm_on = page.evaluate(
+            """() => {
+              const el = document.querySelector('.hero-watermark');
+              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
+              const s = getComputedStyle(el);
+              return { exists: true, opacity: parseFloat(s.opacity), pointerEvents: s.pointerEvents };
+            }"""
+        )
+        on_ok = wm_on.get("exists") and 0.03 <= wm_on.get("opacity", 0) <= 0.08 and wm_on.get("pointerEvents") == "none"
+        assert_metric("hero_watermark_enabled_opacity", wm_on.get("opacity", 0), "0.03-0.08", on_ok)
+        ok = ok and on_ok
+        browser.close()
+
+    save_content_direct(original)
+    return ok
 
 
 def admin_screenshots() -> list[str]:
@@ -325,6 +660,11 @@ def admin_screenshots() -> list[str]:
         page.wait_for_timeout(200)
         page.screenshot(path=str(SHOT_DIR / "admin-content-editor.png"), full_page=True)
         paths.append("docs/screenshots/admin-content-editor.png")
+
+        page.locator('a[href="#process"]').click()
+        page.wait_for_timeout(200)
+        page.screenshot(path=str(SHOT_DIR / "admin-process-editor.png"), full_page=True)
+        paths.append("docs/screenshots/admin-process-editor.png")
 
         browser.close()
     return paths
@@ -693,6 +1033,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = ok and htaccess.exists()
 
     baseline_members = load_content()["team"]["members"]
+    ok = assert_faz46_admin(client, TEST_PASSWORD, original_content) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
 
     return ok

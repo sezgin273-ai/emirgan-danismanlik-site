@@ -154,7 +154,7 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 584331,
+      "measured": 584355,
       "limit": "<= 650000",
       "passed": true
     },
@@ -184,7 +184,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.97679,
+      "measured": -5.9496,
       "limit": "<= -2px",
       "passed": true
     },
@@ -313,6 +313,16 @@
       "limit": "process key with 4 steps",
       "passed": true
     },
+    "content_json_watermark_enabled_added": {
+      "measured": 1,
+      "limit": "true",
+      "passed": true
+    },
+    "content_json_process_section_visible_added": {
+      "measured": 1,
+      "limit": "true",
+      "passed": true
+    },
     "content_json_site_url_added": {
       "measured": "https://emirgandanismanlik.com",
       "limit": "https://emirgandanismanlik.com",
@@ -339,6 +349,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 584331,
+  "homepage_total_resource_bytes": 584355,
   "all_passed": true
 }

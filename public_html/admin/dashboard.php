@@ -17,13 +17,15 @@ if (!empty($_SESSION['admin_flash'])) {
     unset($_SESSION['admin_flash']);
 }
 
-$serviceIcons = ['strategy', 'legal', 'finance', 'feasibility', 'realestate', 'trade', 'governance'];
+$serviceIcons = service_icon_names();
 $badgeIcons = ['energy', 'realestate', 'trade', 'construction', 'investment'];
+$processSteps = $content['process']['steps'] ?? [];
 $sectionLabels = [
     'hero' => 'Ana Sayfa (Hero)',
     'intro' => 'Kısa Tanıtım',
     'services' => 'Hizmetler',
     'about' => 'Hakkımızda',
+    'process' => 'Nasıl Çalışıyoruz',
     'team' => 'Ekibimiz',
     'contact' => 'İletişim',
 ];
@@ -59,6 +61,7 @@ $sectionLabels = [
         <a href="#hero">Hero</a>
         <a href="#intro">Tanıtım</a>
         <a href="#about">Hakkımızda</a>
+        <a href="#process">Süreç</a>
         <a href="#services">Hizmetler</a>
         <a href="#team">Ekip</a>
         <a href="#contact">İletişim</a>
@@ -112,6 +115,11 @@ $sectionLabels = [
             <input type="text" id="hero-tagline" name="content[hero][tagline]" value="<?= e($content['hero']['tagline']) ?>">
             <label for="hero-description">Açıklama</label>
             <textarea id="hero-description" name="content[hero][description]"><?= e($content['hero']['description']) ?></textarea>
+            <label class="admin-check">
+                <input type="checkbox" name="content[hero][watermark_enabled]" value="1"
+                    <?= hero_watermark_enabled($content) ? 'checked' : '' ?>>
+                Arka plan watermark (amblem) göster
+            </label>
         </section>
 
         <section class="admin-card" id="intro">
@@ -155,6 +163,31 @@ $sectionLabels = [
             <h3>Misyon</h3>
             <input type="text" name="content[mission][title]" value="<?= e($content['mission']['title']) ?>">
             <textarea name="content[mission][text]"><?= e($content['mission']['text']) ?></textarea>
+        </section>
+
+        <section class="admin-card" id="process">
+            <h2>Nasıl Çalışıyoruz</h2>
+            <label for="process-title">Bölüm başlığı</label>
+            <input type="text" id="process-title" name="content[process][title]" value="<?= e($content['process']['title'] ?? '') ?>">
+            <div id="process-list" data-sortable-prefix="content[process][steps]" data-label-prefix="Adım">
+                <?php foreach ($processSteps as $i => $step): ?>
+                    <div class="admin-list-item" data-sortable-item>
+                        <div class="admin-list-item__head">
+                            <strong data-item-label>Adım <?= $i + 1 ?></strong>
+                            <div class="admin-actions-row">
+                                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                                <button type="button" class="admin-btn admin-btn--danger" data-delete-process-step data-step-index="<?= $i ?>">Sil</button>
+                            </div>
+                        </div>
+                        <label>Başlık</label>
+                        <input type="text" name="content[process][steps][<?= $i ?>][title]" value="<?= e($step['title']) ?>">
+                        <label>Açıklama</label>
+                        <textarea name="content[process][steps][<?= $i ?>][description]"><?= e($step['description']) ?></textarea>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="admin-btn admin-btn--gold" data-add-process>Adım Ekle</button>
         </section>
 
         <section class="admin-card" id="services">
@@ -376,6 +409,21 @@ $sectionLabels = [
         </select>
         <input type="text" name="content[services][items][__INDEX__][title]" placeholder="Başlık">
         <textarea name="content[services][items][__INDEX__][description]" placeholder="Açıklama"></textarea>
+    </div>
+</template>
+
+<template id="process-item-template">
+    <div class="admin-list-item" data-sortable-item>
+        <div class="admin-list-item__head">
+            <strong data-item-label>Yeni adım</strong>
+            <div class="admin-actions-row">
+                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                <button type="button" class="admin-btn admin-btn--danger" data-delete-process-step data-step-index="__INDEX__">Sil</button>
+            </div>
+        </div>
+        <input type="text" name="content[process][steps][__INDEX__][title]" placeholder="Adım başlığı">
+        <textarea name="content[process][steps][__INDEX__][description]" placeholder="Adım açıklaması"></textarea>
     </div>
 </template>
 

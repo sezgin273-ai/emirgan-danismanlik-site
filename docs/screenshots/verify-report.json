@@ -106,7 +106,7 @@
       "passed": true
     },
     "team_card1_top_delta_px": {
-      "measured": 0.484375,
+      "measured": 0.0,
       "limit": "<= 1",
       "passed": true
     },
@@ -116,7 +116,7 @@
       "passed": true
     },
     "team_card2_top_delta_px": {
-      "measured": 0.484375,
+      "measured": 0.0,
       "limit": "<= 1",
       "passed": true
     },
@@ -126,7 +126,7 @@
       "passed": true
     },
     "team_card3_top_delta_px": {
-      "measured": 0.484375,
+      "measured": 0.0,
       "limit": "<= 1",
       "passed": true
     },
@@ -136,7 +136,7 @@
       "passed": true
     },
     "team_card4_top_delta_px": {
-      "measured": 0.484375,
+      "measured": 0.0,
       "limit": "<= 1",
       "passed": true
     },
@@ -146,7 +146,7 @@
       "passed": true
     },
     "team_card5_top_delta_px": {
-      "measured": 0.484375,
+      "measured": 0.0,
       "limit": "<= 1",
       "passed": true
     },

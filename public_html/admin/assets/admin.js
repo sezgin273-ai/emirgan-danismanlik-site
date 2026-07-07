@@ -12,6 +12,9 @@
       item.querySelectorAll('[data-member-index]').forEach(function (el) {
         el.setAttribute('data-member-index', String(index));
       });
+      item.querySelectorAll('[data-step-index]').forEach(function (el) {
+        el.setAttribute('data-step-index', String(index));
+      });
     });
   }
 
@@ -88,6 +91,54 @@
         el.setAttribute('data-member-index', String(index));
       });
       container.appendChild(clone);
+    });
+  });
+
+  document.querySelectorAll('[data-add-process]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var container = document.getElementById('process-list');
+      var index = container.querySelectorAll('[data-sortable-item]').length;
+      var tpl = document.getElementById('process-item-template');
+      if (!tpl || !container) return;
+      var clone = tpl.content.cloneNode(true);
+      clone.querySelectorAll('[name]').forEach(function (el) {
+        el.name = el.name.replace(/__INDEX__/g, String(index));
+      });
+      clone.querySelectorAll('[data-step-index]').forEach(function (el) {
+        el.setAttribute('data-step-index', String(index));
+      });
+      container.appendChild(clone);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-process-step]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu süreç adımını silmek istediğinize emin misiniz?')) {
+        return;
+      }
+      var index = btn.getAttribute('data-step-index');
+      var item = btn.closest('[data-sortable-item]');
+      var titleInput = item ? item.querySelector('input[name*="[title]"]') : null;
+      var stepTitle = titleInput ? titleInput.value : '';
+      var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
+      var csrf = csrfEl ? csrfEl.value : '';
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = '/admin/actions.php';
+      [
+        { name: 'csrf_token', value: csrf },
+        { name: 'action', value: 'delete_process_step' },
+        { name: 'step_index', value: index },
+        { name: 'step_title', value: stepTitle },
+      ].forEach(function (field) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = field.name;
+        input.value = field.value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
     });
   });
 
