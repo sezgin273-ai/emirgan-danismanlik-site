@@ -108,6 +108,81 @@ def extract_csrf(html: str) -> str:
     return m.group(1)
 
 
+def nested_forms_in_content_form(html: str) -> int:
+    m = re.search(
+        r'<form[^>]*\bid=["\']content-form["\'][^>]*>(.*?)</form>',
+        html,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+    if not m:
+        return -1
+    return len(re.findall(r"<form\b", m.group(1), flags=re.IGNORECASE))
+
+
+def member_names(members: list) -> list[str]:
+    return [m.get("name", "") for m in members]
+
+
+def assert_team_delete_ui(test_password: str, baseline_members: list) -> bool:
+    ok = True
+    expected_if_first_removed = baseline_members[1:]
+    expected_names_if_first_removed = member_names(expected_if_first_removed)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+
+        page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+        page.fill("#password", test_password)
+        page.click('button[type="submit"]')
+        page.wait_for_url("**/admin/dashboard.php")
+
+        count_before_reject = len(load_content()["team"]["members"])
+        page.once("dialog", lambda dialog: dialog.dismiss())
+        page.locator("#team-list [data-delete-team-member]").first.click()
+        page.wait_for_timeout(500)
+        count_after_reject = len(load_content()["team"]["members"])
+        reject_ok = count_after_reject == count_before_reject
+        assert_metric(
+            "team_delete_ui_reject_count_unchanged",
+            count_after_reject,
+            f"== {count_before_reject}",
+            reject_ok,
+        )
+        ok = ok and reject_ok
+
+        dialog_seen = False
+
+        def accept_dialog(dialog) -> None:
+            nonlocal dialog_seen
+            dialog_seen = True
+            dialog.accept()
+
+        page.once("dialog", accept_dialog)
+        page.locator("#team-list [data-delete-team-member]").first.click()
+
+        members_after_accept = load_content()["team"]["members"]
+        for _ in range(40):
+            members_after_accept = load_content()["team"]["members"]
+            if len(members_after_accept) == len(baseline_members) - 1:
+                break
+            page.wait_for_timeout(250)
+        names_after_accept = member_names(members_after_accept)
+        accept_ok = dialog_seen and names_after_accept == expected_names_if_first_removed
+        assert_metric("team_delete_ui_confirm_dialog", 1 if dialog_seen else 0, "shown", dialog_seen)
+        assert_metric(
+            "team_delete_ui_first_member_removed",
+            1 if names_after_accept == expected_names_if_first_removed else 0,
+            "index 0 removed only",
+            names_after_accept == expected_names_if_first_removed,
+        )
+        ok = ok and accept_ok
+
+        browser.close()
+
+    return ok
+
+
 def make_test_png(size: int = 600) -> bytes:
     img = Image.new("RGB", (size, size), color=(180, 140, 80))
     buf = BytesIO()
@@ -315,6 +390,11 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
 
     status, html, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(html)
+
+    nested_count = nested_forms_in_content_form(html)
+    nested_ok = nested_count == 0
+    assert_metric("content_form_no_nested_forms", nested_count, "== 0", nested_ok)
+    ok = ok and nested_ok
 
     team_members_before = load_content()["team"]["members"]
     team_names_before = [m.get("name", "") for m in team_members_before]
@@ -609,6 +689,9 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     htaccess = UPLOADS_DIR / ".htaccess"
     assert_metric("uploads_htaccess_exists", 1 if htaccess.exists() else 0, "present", htaccess.exists())
     ok = ok and htaccess.exists()
+
+    baseline_members = load_content()["team"]["members"]
+    ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
 
     return ok
 

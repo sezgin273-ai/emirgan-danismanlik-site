@@ -8,6 +8,9 @@
       if (label) {
         label.textContent = 'Kart ' + (index + 1);
       }
+      item.querySelectorAll('[data-member-index]').forEach(function (el) {
+        el.setAttribute('data-member-index', String(index));
+      });
     });
   }
 
@@ -80,10 +83,37 @@
       clone.querySelectorAll('[name]').forEach(function (el) {
         el.name = el.name.replace(/__INDEX__/g, String(index));
       });
-      clone.querySelectorAll('[name="member_index"]').forEach(function (el) {
-        el.value = String(index);
+      clone.querySelectorAll('[data-member-index]').forEach(function (el) {
+        el.setAttribute('data-member-index', String(index));
       });
       container.appendChild(clone);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-team-member]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu ekip üyesini silmek istediğinize emin misiniz?')) {
+        return;
+      }
+      var index = btn.getAttribute('data-member-index');
+      var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
+      var csrf = csrfEl ? csrfEl.value : '';
+      var form = document.createElement('form');
+      form.method = 'post';
+      form.action = '/admin/actions.php';
+      [
+        { name: 'csrf_token', value: csrf },
+        { name: 'action', value: 'delete_team_member' },
+        { name: 'member_index', value: index },
+      ].forEach(function (field) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = field.name;
+        input.value = field.value;
+        form.appendChild(input);
+      });
+      document.body.appendChild(form);
+      form.submit();
     });
   });
 
