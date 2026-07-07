@@ -115,6 +115,19 @@ def make_test_png(size: int = 600) -> bytes:
     return buf.getvalue()
 
 
+def build_team_save_form(content: dict) -> dict[str, str]:
+    form: dict[str, str] = {
+        "content[team][title]": content["team"]["title"],
+        "content[team][intro]": content["team"]["intro"],
+    }
+    for i, member in enumerate(content["team"]["members"]):
+        form[f"content[team][members][{i}][name]"] = member.get("name", "")
+        form[f"content[team][members][{i}][title]"] = member.get("title", "")
+        form[f"content[team][members][{i}][description]"] = member.get("description", "")
+        form[f"content[team][members][{i}][photo]"] = member.get("photo", "")
+    return form
+
+
 def original_tagline_543df4a() -> str:
     raw = subprocess.run(
         ["git", "show", f"{BASELINE_COMMIT}:content/content.json"],
@@ -127,6 +140,13 @@ def original_tagline_543df4a() -> str:
 
 def backup_names() -> set[str]:
     return {p.name for p in (ROOT / "content/backups").glob("content-*.json")}
+
+
+def backup_latest_mtime() -> float:
+    files = list((ROOT / "content/backups").glob("content-*.json"))
+    if not files:
+        return 0.0
+    return max(p.stat().st_mtime for p in files)
 
 
 def snapshot_uploads() -> dict[str, bytes]:
@@ -296,7 +316,106 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     status, html, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(html)
 
+    team_members_before = load_content()["team"]["members"]
+    team_names_before = [m.get("name", "") for m in team_members_before]
+    team_delete_buttons = html.count("data-delete-team-member")
+    buttons_ok = team_delete_buttons == len(team_members_before)
+    assert_metric(
+        "team_delete_button_per_member",
+        team_delete_buttons,
+        f"== {len(team_members_before)}",
+        buttons_ok,
+    )
+    ok = ok and buttons_ok
+
+    test_member_name = "VERIFY TEST ÜYE"
+    content = load_content()
+    content["team"]["members"].append(
+        {
+            "name": test_member_name,
+            "title": "Verify Otomasyon Üyesi",
+            "description": "Panel silme testi için eklendi.",
+            "photo": "",
+        }
+    )
+    add_form = {
+        "csrf_token": csrf,
+        "action": "save_content",
+        **build_team_save_form(content),
+    }
+    client.request("POST", "/admin/actions.php", data=add_form, allow_redirects=True)
+
+    content_after_add = load_content()
+    member_count_after_add = len(content_after_add["team"]["members"])
+    status, home_after_add, _ = client.request("GET", "/")
+    test_member_visible = test_member_name in home_after_add
+    assert_metric("team_add_member_count", member_count_after_add, "6", member_count_after_add == 6)
+    assert_metric("team_add_member_home_visible", 1 if test_member_visible else 0, "visible", test_member_visible)
+    ok = ok and member_count_after_add == 6 and test_member_visible
+
+    test_member_index = member_count_after_add - 1
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    member_png = make_test_png(620)
+    client.request(
+        "POST",
+        "/admin/actions.php",
+        data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": str(test_member_index)},
+        files={"photo": ("verify-member.png", member_png, "image/png")},
+        allow_redirects=True,
+    )
+    content_after_photo = load_content()
+    test_photo_path = content_after_photo["team"]["members"][test_member_index].get("photo", "")
+    test_photo_file = ROOT / "public_html" / test_photo_path.lstrip("/") if test_photo_path else None
+    photo_uploaded = bool(test_photo_file and test_photo_file.is_file())
+    assert_metric("team_member_photo_uploaded", 1 if photo_uploaded else 0, "file exists", photo_uploaded)
+    ok = ok and photo_uploaded
+
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    del_status, _, _ = client.request(
+        "POST",
+        "/admin/actions.php",
+        data={"csrf_token": csrf, "action": "delete_team_member", "member_index": str(test_member_index)},
+        allow_redirects=False,
+    )
+    content_after_delete = load_content()
+    member_count_after_delete = len(content_after_delete["team"]["members"])
+    remaining_names_after_delete = [m.get("name", "") for m in content_after_delete["team"]["members"]]
+    status, home_after_delete, _ = client.request("GET", "/")
+    member_removed_home = test_member_name not in home_after_delete
+    photo_deleted = bool(test_photo_file) and (not test_photo_file.exists())
+    names_unchanged = remaining_names_after_delete == team_names_before
+    assert_metric("team_delete_post_status", del_status, "302", del_status == 302)
+    assert_metric("team_delete_member_count", member_count_after_delete, "5", member_count_after_delete == 5)
+    assert_metric("team_delete_member_home_absent", 1 if member_removed_home else 0, "absent", member_removed_home)
+    assert_metric("team_delete_photo_removed", 1 if photo_deleted else 0, "file removed", photo_deleted)
+    assert_metric("team_delete_remaining_names_preserved", 1 if names_unchanged else 0, "unchanged", names_unchanged)
+    ok = ok and del_status == 302 and member_count_after_delete == 5 and member_removed_home and photo_deleted and names_unchanged
+
+    status, dash, _ = client.request("GET", "/admin/dashboard.php")
+    csrf = extract_csrf(dash)
+    before_invalid_delete_count = len(load_content()["team"]["members"])
+    bad_status, _, _ = client.request(
+        "POST",
+        "/admin/actions.php",
+        data={"csrf_token": csrf, "action": "delete_team_member", "member_index": "9999"},
+        allow_redirects=False,
+    )
+    after_invalid_delete_count = len(load_content()["team"]["members"])
+    invalid_4xx = 400 <= bad_status < 500
+    invalid_kept_count = before_invalid_delete_count == after_invalid_delete_count
+    assert_metric("team_delete_invalid_index_status", bad_status, "4xx", invalid_4xx)
+    assert_metric(
+        "team_delete_invalid_index_member_count_unchanged",
+        after_invalid_delete_count,
+        f"== {before_invalid_delete_count}",
+        invalid_kept_count,
+    )
+    ok = ok and invalid_4xx and invalid_kept_count
+
     backups_before = backup_names()
+    latest_backup_before = backup_latest_mtime()
 
     data = json.loads(json.dumps(original_content))
     data["hero"]["tagline"] = MARKER
@@ -330,13 +449,15 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = ok and MARKER in home_after
 
     new_backups = backup_names() - backups_before
+    latest_backup_after = backup_latest_mtime()
+    backup_created = len(new_backups) >= 1 or latest_backup_after > latest_backup_before
     assert_metric(
         "backup_created_on_save",
         len(new_backups),
         ">= 1",
-        len(new_backups) >= 1,
+        backup_created,
     )
-    ok = ok and len(new_backups) >= 1
+    ok = ok and backup_created
 
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)

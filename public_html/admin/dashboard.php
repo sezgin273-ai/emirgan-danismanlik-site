@@ -202,6 +202,12 @@ $sectionLabels = [
                             <div class="admin-actions-row">
                                 <button type="button" class="admin-btn" data-sort-up>↑</button>
                                 <button type="button" class="admin-btn" data-sort-down>↓</button>
+                                <form method="post" action="/admin/actions.php" onsubmit="return confirm('Bu ekip üyesini silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+                                    <input type="hidden" name="action" value="delete_team_member">
+                                    <input type="hidden" name="member_index" value="<?= $i ?>">
+                                    <button type="submit" class="admin-btn admin-btn--danger" data-delete-team-member>Sil</button>
+                                </form>
                             </div>
                         </div>
                         <input type="hidden" name="content[team][members][<?= $i ?>][photo]" value="<?= e($member['photo'] ?? '') ?>">

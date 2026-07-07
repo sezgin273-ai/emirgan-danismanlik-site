@@ -29,6 +29,14 @@ function admin_redirect(string $url, string $flash, string $message = ''): never
     exit;
 }
 
+function admin_abort_with_status(int $statusCode, string $message): never
+{
+    http_response_code($statusCode);
+    header('Content-Type: text/plain; charset=UTF-8');
+    echo $message;
+    exit;
+}
+
 function admin_normalize_content(array $posted, array $current): array
 {
     $content = $current;
@@ -281,6 +289,38 @@ match ($action) {
             admin_redirect('/admin/dashboard.php#team', 'error', 'Fotoğraf kaldırılamadı.');
         }
         admin_redirect('/admin/dashboard.php#team', 'ok', 'Fotoğraf kaldırıldı.');
+    })(),
+    'delete_team_member' => (function () use ($current) {
+        $rawIndex = $_POST['member_index'] ?? null;
+        $index = filter_var($rawIndex, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if ($index === false || !isset($current['team']['members'][$index])) {
+            admin_abort_with_status(422, 'Geçersiz ekip üyesi index değeri.');
+        }
+
+        $members = $current['team']['members'];
+        $removed = $members[$index];
+        unset($members[$index]);
+        $current['team']['members'] = array_values($members);
+
+        $removedPhoto = trim((string) ($removed['photo'] ?? ''));
+        $canDeletePhoto = $removedPhoto !== '' && str_starts_with($removedPhoto, uploads_url_prefix() . '/');
+        if ($canDeletePhoto) {
+            foreach ($current['team']['members'] as $member) {
+                if (($member['photo'] ?? '') === $removedPhoto) {
+                    $canDeletePhoto = false;
+                    break;
+                }
+            }
+        }
+
+        if (!save_content($current)) {
+            admin_redirect('/admin/dashboard.php#team', 'error', 'Ekip üyesi silinemedi.');
+        }
+
+        if ($canDeletePhoto) {
+            delete_uploaded_file($removedPhoto);
+        }
+        admin_redirect('/admin/dashboard.php#team', 'ok', 'Ekip üyesi silindi.');
     })(),
     'upload_asset' => (function () use ($current) {
         $assetKey = (string) ($_POST['asset_key'] ?? '');

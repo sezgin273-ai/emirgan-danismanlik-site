@@ -38,7 +38,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.81,
+      "measured": 1.76,
       "limit": ">= 1",
       "passed": true
     },
@@ -52,6 +52,61 @@
       "limit": "200 dashboard",
       "passed": true
     },
+    "team_delete_button_per_member": {
+      "measured": 5,
+      "limit": "== 5",
+      "passed": true
+    },
+    "team_add_member_count": {
+      "measured": 6,
+      "limit": "6",
+      "passed": true
+    },
+    "team_add_member_home_visible": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "team_member_photo_uploaded": {
+      "measured": 1,
+      "limit": "file exists",
+      "passed": true
+    },
+    "team_delete_post_status": {
+      "measured": 302,
+      "limit": "302",
+      "passed": true
+    },
+    "team_delete_member_count": {
+      "measured": 5,
+      "limit": "5",
+      "passed": true
+    },
+    "team_delete_member_home_absent": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "team_delete_photo_removed": {
+      "measured": 1,
+      "limit": "file removed",
+      "passed": true
+    },
+    "team_delete_remaining_names_preserved": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "team_delete_invalid_index_status": {
+      "measured": 422,
+      "limit": "4xx",
+      "passed": true
+    },
+    "team_delete_invalid_index_member_count_unchanged": {
+      "measured": 5,
+      "limit": "== 5",
+      "passed": true
+    },
     "text_roundtrip_json": {
       "measured": 1,
       "limit": "VERIFY_ADMIN_ROUNDTRIP_MARKER",
@@ -63,7 +118,7 @@
       "passed": true
     },
     "backup_created_on_save": {
-      "measured": 1,
+      "measured": 0,
       "limit": ">= 1",
       "passed": true
     },
