@@ -456,7 +456,12 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     del_status, _, _ = client.request(
         "POST",
         "/admin/actions.php",
-        data={"csrf_token": csrf, "action": "delete_team_member", "member_index": str(test_member_index)},
+        data={
+            "csrf_token": csrf,
+            "action": "delete_team_member",
+            "member_index": str(test_member_index),
+            "member_name": test_member_name,
+        },
         allow_redirects=False,
     )
     content_after_delete = load_content()

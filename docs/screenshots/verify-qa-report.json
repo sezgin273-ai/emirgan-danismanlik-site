@@ -1,0 +1,274 @@
+{
+  "screenshots": [
+    "docs/screenshots/qa/qa-home-mobile-360x740.png",
+    "docs/screenshots/qa/qa-kvkk-mobile-360x740.png",
+    "docs/screenshots/qa/qa-home-tablet-768x1024.png",
+    "docs/screenshots/qa/qa-kvkk-tablet-768x1024.png",
+    "docs/screenshots/qa/qa-home-desktop-1440x900.png",
+    "docs/screenshots/qa/qa-kvkk-desktop-1440x900.png"
+  ],
+  "acceptance": {
+    "contact_valid_post_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "contact_valid_post_ok": {
+      "measured": 1,
+      "limit": "true",
+      "passed": true
+    },
+    "contact_valid_log_created": {
+      "measured": 1,
+      "limit": ">= 1",
+      "passed": true
+    },
+    "contact_missing_required_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "contact_invalid_email_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "contact_honeypot_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "contact_honeypot_no_log": {
+      "measured": 1,
+      "limit": "no new log",
+      "passed": true
+    },
+    "contact_rate_limit_second_status": {
+      "measured": 429,
+      "limit": "429",
+      "passed": true
+    },
+    "homepage_meta_canonical": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "homepage_meta_og_title": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "homepage_meta_og_description": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "homepage_meta_og_image": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "homepage_meta_twitter_card": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "og_image_width": {
+      "measured": 1200,
+      "limit": "1200",
+      "passed": true
+    },
+    "og_image_height": {
+      "measured": 630,
+      "limit": "630",
+      "passed": true
+    },
+    "robots_txt_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "robots_txt_rules": {
+      "measured": 1,
+      "limit": "admin/api disallowed + sitemap",
+      "passed": true
+    },
+    "sitemap_xml_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "sitemap_xml_url_count": {
+      "measured": 2,
+      "limit": "2",
+      "passed": true
+    },
+    "home_broken_resources": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "home_imgs_without_alt": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "home_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "kvkk_broken_resources": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "kvkk_imgs_without_alt": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "kvkk_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "kvkk_note_not_rendered": {
+      "measured": 1,
+      "limit": "absent on frontend",
+      "passed": true
+    },
+    "missing_page_status": {
+      "measured": 404,
+      "limit": "404",
+      "passed": true
+    },
+    "htaccess_cache_block": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "htaccess_deflate_block": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "homepage_total_resource_bytes": {
+      "measured": 578341,
+      "limit": "reported",
+      "passed": true
+    },
+    "team_label_after_sort": {
+      "measured": 1,
+      "limit": "starts with Üye",
+      "passed": true
+    },
+    "team_reorder_delete_status": {
+      "measured": 409,
+      "limit": "409",
+      "passed": true
+    },
+    "team_reorder_delete_list_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "overflow_mobile_home": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_mobile_kvkk": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_tablet_home": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_tablet_kvkk": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_desktop_home": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_desktop_kvkk": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "homepage_reveal_visible": {
+      "measured": 24,
+      "limit": "24/24",
+      "passed": true
+    },
+    "scope_unchanged_logo-full.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_logo-full-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_favicon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_apple-touch-icon.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_emblem.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "scope_unchanged_emblem-dark.png": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "content_json_existing_values_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "content_json_site_url_added": {
+      "measured": "https://emirgandanismanlik.com",
+      "limit": "https://emirgandanismanlik.com",
+      "passed": true
+    },
+    "content_json_og_image_added": {
+      "measured": "/assets/img/og-image.png",
+      "limit": "/assets/img/og-image.png",
+      "passed": true
+    },
+    "verify_admin_all_passed": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "content_json_byte_restored": {
+      "measured": 1,
+      "limit": "identical",
+      "passed": true
+    },
+    "content_json_git_clean": {
+      "measured": 1,
+      "limit": "same as pre-test",
+      "passed": true
+    }
+  },
+  "homepage_total_resource_bytes": 578341,
+  "all_passed": true
+}

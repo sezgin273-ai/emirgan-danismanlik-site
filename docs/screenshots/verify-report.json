@@ -86,7 +86,7 @@
       "passed": true
     },
     "contact_top_delta_px": {
-      "measured": 0,
+      "measured": 1,
       "limit": "<= 8",
       "passed": true
     },
@@ -218,7 +218,7 @@
     "alignItems": "center"
   },
   "contact_desktop": {
-    "top_delta": 0
+    "top_delta": 1
   },
   "team_desktop": {
     "header_grid_right_delta_px": 0,

@@ -150,6 +150,7 @@
 
   if (contactForm && formFeedback) {
     const successMessage = contactForm.getAttribute('data-success') || '';
+    const errorMessage = contactForm.getAttribute('data-error') || '';
 
     const showFeedback = (message, type) => {
       formFeedback.textContent = message;
@@ -163,10 +164,8 @@
       });
     };
 
-    contactForm.addEventListener('submit', (event) => {
-      event.preventDefault();
+    const validateForm = () => {
       clearInvalid();
-      formFeedback.hidden = true;
 
       const name = contactForm.querySelector('#contact-name');
       const email = contactForm.querySelector('#contact-email');
@@ -189,13 +188,51 @@
         valid = false;
       }
 
-      if (!valid) {
-        showFeedback(contactForm.getAttribute('data-error') || '', 'error');
+      return valid;
+    };
+
+    contactForm.addEventListener('submit', (event) => {
+      if (!document.documentElement.classList.contains('js')) {
         return;
       }
 
-      showFeedback(successMessage, 'success');
-      contactForm.reset();
+      event.preventDefault();
+      formFeedback.hidden = true;
+
+      if (!validateForm()) {
+        showFeedback(errorMessage, 'error');
+        return;
+      }
+
+      const submitBtn = contactForm.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+      }
+
+      fetch('/api/contact.php', {
+        method: 'POST',
+        headers: { Accept: 'application/json' },
+        body: new FormData(contactForm),
+      })
+        .then((response) => {
+          return response.json().then((data) => ({ response, data }));
+        })
+        .then(({ response, data }) => {
+          if (response.ok && data.ok) {
+            showFeedback(data.message || successMessage, 'success');
+            contactForm.reset();
+            return;
+          }
+          showFeedback(data.message || errorMessage, 'error');
+        })
+        .catch(() => {
+          showFeedback(errorMessage, 'error');
+        })
+        .finally(() => {
+          if (submitBtn) {
+            submitBtn.disabled = false;
+          }
+        });
     });
   }
 })();

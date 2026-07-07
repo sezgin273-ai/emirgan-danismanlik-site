@@ -161,7 +161,7 @@ $sectionLabels = [
             <h2>Hizmetler</h2>
             <label for="services-title">Bölüm başlığı</label>
             <input type="text" id="services-title" name="content[services][title]" value="<?= e($content['services']['title']) ?>">
-            <div id="services-list" data-sortable-prefix="content[services][items]">
+            <div id="services-list" data-sortable-prefix="content[services][items]" data-label-prefix="Kart">
                 <?php foreach ($content['services']['items'] as $i => $service): ?>
                     <div class="admin-list-item" data-sortable-item>
                         <div class="admin-list-item__head">
@@ -194,7 +194,7 @@ $sectionLabels = [
             <input type="text" id="team-title" name="content[team][title]" value="<?= e($content['team']['title']) ?>">
             <label for="team-intro">Giriş metni</label>
             <textarea id="team-intro" name="content[team][intro]"><?= e($content['team']['intro']) ?></textarea>
-            <div id="team-list" data-sortable-prefix="content[team][members]">
+            <div id="team-list" data-sortable-prefix="content[team][members]" data-label-prefix="Üye">
                 <?php foreach ($content['team']['members'] as $i => $member): ?>
                     <div class="admin-list-item" data-sortable-item>
                         <div class="admin-list-item__head">

@@ -6,7 +6,8 @@
       });
       var label = item.querySelector('[data-item-label]');
       if (label) {
-        label.textContent = 'Kart ' + (index + 1);
+        var labelPrefix = container.getAttribute('data-label-prefix') || 'Kart';
+        label.textContent = labelPrefix + ' ' + (index + 1);
       }
       item.querySelectorAll('[data-member-index]').forEach(function (el) {
         el.setAttribute('data-member-index', String(index));
@@ -96,6 +97,9 @@
         return;
       }
       var index = btn.getAttribute('data-member-index');
+      var item = btn.closest('[data-sortable-item]');
+      var nameInput = item ? item.querySelector('input[name*="[name]"]') : null;
+      var memberName = nameInput ? nameInput.value : '';
       var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
       var csrf = csrfEl ? csrfEl.value : '';
       var form = document.createElement('form');
@@ -105,6 +109,7 @@
         { name: 'csrf_token', value: csrf },
         { name: 'action', value: 'delete_team_member' },
         { name: 'member_index', value: index },
+        { name: 'member_name', value: memberName },
       ].forEach(function (field) {
         var input = document.createElement('input');
         input.type = 'hidden';

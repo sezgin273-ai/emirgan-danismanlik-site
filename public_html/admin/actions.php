@@ -297,6 +297,12 @@ match ($action) {
             admin_abort_with_status(422, 'Geçersiz ekip üyesi index değeri.');
         }
 
+        $postedName = str_replace(["\r", "\n", "\0"], '', trim((string) ($_POST['member_name'] ?? '')));
+        $serverName = trim((string) ($current['team']['members'][$index]['name'] ?? ''));
+        if ($postedName === '' || $postedName !== $serverName) {
+            admin_abort_with_status(409, 'Ekip üyesi sırası değişmiş olabilir. Önce kaydedin veya sayfayı yenileyin.');
+        }
+
         $members = $current['team']['members'];
         $removed = $members[$index];
         unset($members[$index]);

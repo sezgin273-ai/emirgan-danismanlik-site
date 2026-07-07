@@ -38,7 +38,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.97,
+      "measured": 1.53,
       "limit": ">= 1",
       "passed": true
     },
@@ -123,7 +123,7 @@
       "passed": true
     },
     "backup_created_on_save": {
-      "measured": 0,
+      "measured": 1,
       "limit": ">= 1",
       "passed": true
     },

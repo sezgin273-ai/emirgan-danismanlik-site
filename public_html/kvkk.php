@@ -8,6 +8,7 @@ $is_home = false;
 $kvkk = $content['kvkk'];
 $page_title = $kvkk['title'] . ' — ' . $content['site']['title'];
 $page_description = $kvkk['intro'];
+$canonical_path = '/kvkk.php';
 $ui = $content['ui'];
 ?>
 <!DOCTYPE html>
@@ -33,10 +34,6 @@ $ui = $content['ui'];
                     <?php endforeach; ?>
                 </section>
             <?php endforeach; ?>
-
-            <?php if (!empty($kvkk['note'])): ?>
-                <p class="kvkk-note"><em><?= e($kvkk['note']) ?></em></p>
-            <?php endif; ?>
 
             <p class="kvkk-back">
                 <a class="btn btn-outline-navy" href="/"><?= e($ui['back_home']) ?></a>

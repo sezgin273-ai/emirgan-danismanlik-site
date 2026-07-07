@@ -2,10 +2,12 @@
   "site": {
     "title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
     "lang": "tr",
+    "url": "https://emirgandanismanlik.com",
     "meta": {
       "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
       "og_title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-      "og_description": "Güvenilir çözüm ortağınız — stratejik yönetim, hukuki ve finansal danışmanlık."
+      "og_description": "Güvenilir çözüm ortağınız — stratejik yönetim, hukuki ve finansal danışmanlık.",
+      "og_image": "/assets/img/og-image.png"
     },
     "sections": {
       "hero": {

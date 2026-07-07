@@ -7,6 +7,7 @@ $content = load_content();
 $is_home = true;
 $page_title = $content['site']['title'];
 $page_description = $content['site']['meta']['description'] ?? $content['hero']['description'];
+$canonical_path = '/';
 
 $hero = $content['hero'];
 $intro = $content['intro'];
@@ -168,7 +169,11 @@ $assets = $content['site']['assets'];
                 <p class="section-subtitle"><?= e($contact['heading']) ?></p>
             </div>
             <div class="contact-grid">
-                <form class="contact-form reveal" id="contact-form" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
+                <form class="contact-form reveal" id="contact-form" action="/api/contact.php" method="post" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
+                    <div class="form-row visually-hidden" aria-hidden="true">
+                        <label for="contact-website">Website</label>
+                        <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off">
+                    </div>
                     <div class="form-row">
                         <label for="contact-name"><?= e($contact['form']['name']['label']) ?></label>
                         <input
