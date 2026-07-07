@@ -195,6 +195,7 @@ def build_team_save_form(content: dict) -> dict[str, str]:
     form: dict[str, str] = {
         "content[team][title]": content["team"]["title"],
         "content[team][intro]": content["team"]["intro"],
+        "content[team][members_present]": "1",
     }
     for i, member in enumerate(content["team"]["members"]):
         form[f"content[team][members][{i}][name]"] = member.get("name", "")
@@ -223,6 +224,168 @@ def backup_latest_mtime() -> float:
     if not files:
         return 0.0
     return max(p.stat().st_mtime for p in files)
+
+
+def backups_created_since(since_mtime: float) -> int:
+    return sum(
+        1
+        for path in (ROOT / "content/backups").glob("content-*.json")
+        if path.stat().st_mtime > since_mtime
+    )
+
+
+SECTION_IDS = ["hero", "intro", "services", "about", "process", "team", "contact"]
+NAV_SECTION_IDS = {"hero", "services", "about", "team", "contact"}
+SAVE_ALL_BTN = "button.admin-btn--primary"
+
+
+def playwright_admin_login(page, test_password: str) -> None:
+    page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+    page.fill("#password", test_password)
+    page.click('button[type="submit"]')
+    page.wait_for_url("**/admin/dashboard.php")
+
+
+def click_save_all_content(page) -> None:
+    page.locator(SAVE_ALL_BTN, has_text="Tüm İçeriği Kaydet").click()
+    page.wait_for_url("**/admin/dashboard.php")
+
+
+def set_section_visible_checkbox(page, section_id: str, visible: bool) -> None:
+    if "/admin/dashboard.php" not in page.url:
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+    page.locator('a[href="#sections"]').click()
+    cb = page.locator(f'input[name="content[site][sections][{section_id}][visible]"]')
+    if visible:
+        cb.check()
+    else:
+        cb.uncheck()
+
+
+def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict) -> bool:
+    ok = True
+    original = json.loads(json.dumps(original_content))
+    save_content_direct(original)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        playwright_admin_login(page, test_password)
+
+        for sid in SECTION_IDS:
+            set_section_visible_checkbox(page, sid, False)
+            click_save_all_content(page)
+            visible_json = load_content()["site"]["sections"][sid]["visible"] is False
+            errors: list[str] = []
+            page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+            page.goto(BASE + "/", wait_until="networkidle")
+            html = page.content()
+            section_gone = f'id="{sid}"' not in html
+            nav_gone = sid not in NAV_SECTION_IDS or f'data-nav-link="{sid}"' not in html
+            hide_ok = visible_json and section_gone and nav_gone and len(errors) == 0
+            assert_metric(f"section_{sid}_hide_json", 1 if visible_json else 0, "false", visible_json)
+            assert_metric(f"section_{sid}_hide_frontend", 1 if hide_ok else 0, "absent + console 0", hide_ok)
+            ok = ok and hide_ok
+
+            set_section_visible_checkbox(page, sid, True)
+            click_save_all_content(page)
+            visible_show = load_content()["site"]["sections"][sid]["visible"] is True
+            page.goto(BASE + "/", wait_until="networkidle")
+            html_show = page.content()
+            section_back = f'id="{sid}"' in html_show
+            nav_back = sid not in NAV_SECTION_IDS or f'data-nav-link="{sid}"' in html_show
+            show_ok = visible_show and section_back and nav_back
+            assert_metric(f"section_{sid}_show_json", 1 if visible_show else 0, "true", visible_show)
+            assert_metric(f"section_{sid}_show_frontend", 1 if show_ok else 0, "present", show_ok)
+            ok = ok and show_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+        page.locator('a[href="#hero"]').click()
+        wm_cb = page.locator('input[name="content[hero][watermark_enabled]"][type="checkbox"]')
+        wm_cb.uncheck()
+        click_save_all_content(page)
+        wm_off_json = not load_content()["hero"]["watermark_enabled"]
+        page.goto(BASE + "/", wait_until="networkidle")
+        wm_off = page.evaluate(
+            """() => ({
+              watermark: document.querySelector('.hero-watermark'),
+              titleColor: getComputedStyle(document.querySelector('.hero-title')).color,
+              emblem: document.querySelector('.hero-emblem'),
+            })"""
+        )
+        off_ok = (
+            wm_off_json
+            and wm_off["watermark"] is None
+            and wm_off["titleColor"] == "rgb(248, 244, 240)"
+            and wm_off["emblem"] is not None
+        )
+        assert_metric("hero_watermark_form_off_json", 1 if wm_off_json else 0, "false", wm_off_json)
+        assert_metric("hero_watermark_form_off_frontend", 1 if off_ok else 0, "no layer + color", off_ok)
+        ok = ok and off_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+        page.locator('a[href="#hero"]').click()
+        wm_cb.check()
+        click_save_all_content(page)
+        wm_on_json = bool(load_content()["hero"]["watermark_enabled"])
+        page.goto(BASE + "/", wait_until="networkidle")
+        wm_on = page.evaluate(
+            """() => {
+              const el = document.querySelector('.hero-watermark');
+              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
+              const s = getComputedStyle(el);
+              return { exists: true, opacity: parseFloat(s.opacity), pointerEvents: s.pointerEvents };
+            }"""
+        )
+        on_ok = (
+            wm_on_json
+            and wm_on.get("exists")
+            and 0.03 <= wm_on.get("opacity", 0) <= 0.08
+            and wm_on.get("pointerEvents") == "none"
+        )
+        assert_metric("hero_watermark_form_on_json", 1 if wm_on_json else 0, "true", wm_on_json)
+        assert_metric("hero_watermark_form_on_frontend", 1 if on_ok else 0, "opacity 0.03-0.08", on_ok)
+        ok = ok and on_ok
+
+        save_content_direct(original)
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+        page.locator('a[href="#intro"]').click()
+        while page.locator("#badges-list [data-remove-item]").count() > 0:
+            page.locator("#badges-list [data-remove-item]").first.click()
+        click_save_all_content(page)
+        badges = load_content()["intro"]["badges"]
+        page.goto(BASE + "/", wait_until="networkidle")
+        badge_count = page.locator(".badge-item").count()
+        intro_html = page.content()
+        badges_ok = badges == [] and badge_count == 0 and "Warning" not in intro_html and "Notice" not in intro_html
+        assert_metric("intro_badges_empty_json", len(badges), "0", badges == [])
+        assert_metric("intro_badges_empty_frontend", badge_count, "0", badges_ok)
+        ok = ok and badges_ok
+
+        save_content_direct(original)
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+        page.locator('a[href="#process"]').click()
+        page.evaluate(
+            "() => document.querySelectorAll('#process-list [data-sortable-item]').forEach(el => el.remove())"
+        )
+        click_save_all_content(page)
+        steps = load_content()["process"]["steps"]
+        page.goto(BASE + "/", wait_until="networkidle")
+        process_html = page.content()
+        steps_ok = (
+            steps == []
+            and 'id="process"' not in process_html
+            and "Warning" not in process_html
+            and "Notice" not in process_html
+        )
+        assert_metric("process_steps_empty_json", len(steps), "0", steps == [])
+        assert_metric("process_steps_empty_frontend", 1 if steps_ok else 0, "absent + no PHP noise", steps_ok)
+        ok = ok and steps_ok
+
+        browser.close()
+
+    save_content_direct(original)
+    return ok
 
 
 def snapshot_uploads() -> dict[str, bytes]:
@@ -305,6 +468,7 @@ def assert_css_unchanged() -> bool:
 def build_process_save_form(content: dict) -> dict[str, str]:
     form: dict[str, str] = {
         "content[process][title]": content.get("process", {}).get("title", ""),
+        "content[process][steps_present]": "1",
     }
     for i, step in enumerate(content.get("process", {}).get("steps", [])):
         form[f"content[process][steps][{i}][title]"] = step.get("title", "")
@@ -313,7 +477,10 @@ def build_process_save_form(content: dict) -> dict[str, str]:
 
 
 def build_services_save_form(content: dict) -> dict[str, str]:
-    form: dict[str, str] = {"content[services][title]": content["services"]["title"]}
+    form: dict[str, str] = {
+        "content[services][title]": content["services"]["title"],
+        "content[services][items_present]": "1",
+    }
     for i, item in enumerate(content["services"]["items"]):
         form[f"content[services][items][{i}][title]"] = item["title"]
         form[f"content[services][items][{i}][description]"] = item["description"]
@@ -505,32 +672,6 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     assert_metric("process_delete_invalid_index_status", bad_status, "422", invalid_ok)
     ok = ok and invalid_ok
 
-    content_hide = load_content()
-    if "process" not in content_hide.get("site", {}).get("sections", {}):
-        content_hide.setdefault("site", {}).setdefault("sections", {})["process"] = {"visible": True}
-    content_hide["site"]["sections"]["process"]["visible"] = False
-    save_content_direct(content_hide)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        errors: list[str] = []
-        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
-        page.goto(BASE + "/", wait_until="networkidle")
-        page.wait_for_timeout(500)
-        html = page.content()
-        hidden_ok = 'id="process"' not in html and len(errors) == 0
-        assert_metric("process_section_hidden", 1 if hidden_ok else 0, "absent + console 0", hidden_ok)
-        ok = ok and hidden_ok
-        browser.close()
-
-    content_show = load_content()
-    content_show["site"]["sections"]["process"]["visible"] = True
-    save_content_direct(content_show)
-    status, home, _ = client.request("GET", "/")
-    show_ok = 'id="process"' in home
-    assert_metric("process_section_visible", 1 if show_ok else 0, "present", show_ok)
-    ok = ok and show_ok
-
     content_empty = load_content()
     content_empty["process"]["steps"] = []
     save_content_direct(content_empty)
@@ -593,41 +734,6 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     assert_metric("service_icon_invalid_post_status", bad_icon_status, "422", bad_icon_status == 422)
     assert_metric("service_icon_invalid_content_unchanged", 1 if bytes_before == bytes_after else 0, "unchanged", bytes_before == bytes_after)
     ok = ok and bad_icon_ok
-
-    content_wm = load_content()
-    content_wm["hero"]["watermark_enabled"] = False
-    save_content_direct(content_wm)
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page(viewport={"width": 1440, "height": 900})
-        page.goto(BASE + "/", wait_until="networkidle")
-        wm_off = page.evaluate(
-            """() => ({
-              watermark: document.querySelector('.hero-watermark'),
-              titleColor: getComputedStyle(document.querySelector('.hero-title')).color,
-              emblem: document.querySelector('.hero-emblem'),
-            })"""
-        )
-        off_ok = wm_off["watermark"] is None and wm_off["titleColor"] == "rgb(248, 244, 240)" and wm_off["emblem"] is not None
-        assert_metric("hero_watermark_disabled_absent", 1 if wm_off["watermark"] is None else 0, "no layer", wm_off["watermark"] is None)
-        assert_metric("hero_watermark_off_title_color", wm_off["titleColor"], "rgb(248, 244, 240)", wm_off["titleColor"] == "rgb(248, 244, 240)")
-        ok = ok and off_ok
-
-        content_wm["hero"]["watermark_enabled"] = True
-        save_content_direct(content_wm)
-        page.goto(BASE + "/", wait_until="networkidle")
-        wm_on = page.evaluate(
-            """() => {
-              const el = document.querySelector('.hero-watermark');
-              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
-              const s = getComputedStyle(el);
-              return { exists: true, opacity: parseFloat(s.opacity), pointerEvents: s.pointerEvents };
-            }"""
-        )
-        on_ok = wm_on.get("exists") and 0.03 <= wm_on.get("opacity", 0) <= 0.08 and wm_on.get("pointerEvents") == "none"
-        assert_metric("hero_watermark_enabled_opacity", wm_on.get("opacity", 0), "0.03-0.08", on_ok)
-        ok = ok and on_ok
-        browser.close()
 
     save_content_direct(original)
     return ok
@@ -872,10 +978,11 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
 
     new_backups = backup_names() - backups_before
     latest_backup_after = backup_latest_mtime()
-    backup_created = len(new_backups) >= 1 or latest_backup_after > latest_backup_before
+    measured_backups = len(new_backups) if new_backups else backups_created_since(latest_backup_before)
+    backup_created = measured_backups >= 1
     assert_metric(
         "backup_created_on_save",
-        len(new_backups),
+        measured_backups,
         ">= 1",
         backup_created,
     )
@@ -896,6 +1003,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         "csrf_token": csrf,
         "action": "save_content",
         "content[services][title]": content["services"]["title"],
+        "content[services][items_present]": "1",
     }
     for i, item in enumerate(items):
         form[f"content[services][items][{i}][title]"] = item["title"]
@@ -915,6 +1023,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         "csrf_token": csrf,
         "action": "save_content",
         "content[services][title]": content["services"]["title"],
+        "content[services][items_present]": "1",
     }
     for i, item in enumerate(content["services"]["items"]):
         form[f"content[services][items][{i}][title]"] = item["title"]
@@ -936,6 +1045,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
             "csrf_token": csrf,
             "action": "save_content",
             "content[services][title]": content["services"]["title"],
+            "content[services][items_present]": "1",
         }
         for i, item in enumerate(items):
             form[f"content[services][items][{i}][title]"] = item["title"]
@@ -951,21 +1061,6 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         items[0], items[1] = items[1], items[0]
         content["services"]["items"] = items
         save_content_direct(content)
-
-    content = load_content()
-    content["site"]["sections"]["team"]["visible"] = False
-    save_content_direct(content)
-    status, home, _ = client.request("GET", "/")
-    team_hidden = 'id="team"' not in home and "#team" not in home
-    assert_metric("section_hide_team", 1 if team_hidden else 0, "no section/nav", team_hidden)
-    ok = ok and team_hidden
-
-    content["site"]["sections"]["team"]["visible"] = True
-    save_content_direct(content)
-    status, home, _ = client.request("GET", "/")
-    team_visible = 'id="team"' in home
-    assert_metric("section_show_team", 1 if team_visible else 0, "section present", team_visible)
-    ok = ok and team_visible
 
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)
@@ -1034,6 +1129,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
 
     baseline_members = load_content()["team"]["members"]
     ok = assert_faz46_admin(client, TEST_PASSWORD, original_content) and ok
+    ok = assert_faz46b_checkbox_and_lists(TEST_PASSWORD, original_content) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
 
     return ok

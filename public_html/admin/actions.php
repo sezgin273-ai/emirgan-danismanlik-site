@@ -49,14 +49,10 @@ function admin_normalize_content(array $posted, array $current): array
                 $content['site']['meta'][$key] = trim((string) ($posted['site']['meta'][$key] ?? $content['site']['meta'][$key] ?? ''));
             }
         }
-        if (isset($posted['site']['sections']) && is_array($posted['site']['sections'])) {
-            foreach ($content['site']['sections'] as $sid => $section) {
-                if (array_key_exists($sid, $posted['site']['sections'])) {
-                    $content['site']['sections'][$sid]['visible'] = !empty(
-                        $posted['site']['sections'][$sid]['visible']
-                    );
-                }
-            }
+        foreach ($content['site']['sections'] as $sid => $section) {
+            $content['site']['sections'][$sid]['visible'] = !empty(
+                $posted['site']['sections'][$sid]['visible'] ?? null
+            );
         }
     }
 
@@ -78,20 +74,22 @@ function admin_normalize_content(array $posted, array $current): array
     if (isset($posted['intro']) && is_array($posted['intro'])) {
         $content['intro']['title'] = trim((string) ($posted['intro']['title'] ?? $content['intro']['title']));
         $content['intro']['text'] = trim((string) ($posted['intro']['text'] ?? $content['intro']['text']));
-        if (isset($posted['intro']['badges']) && is_array($posted['intro']['badges'])) {
+        if (isset($posted['intro']['badges_present'])) {
             $badges = [];
-            foreach ($posted['intro']['badges'] as $badge) {
-                if (!is_array($badge)) {
-                    continue;
+            if (isset($posted['intro']['badges']) && is_array($posted['intro']['badges'])) {
+                foreach ($posted['intro']['badges'] as $badge) {
+                    if (!is_array($badge)) {
+                        continue;
+                    }
+                    $label = trim((string) ($badge['label'] ?? ''));
+                    if ($label === '') {
+                        continue;
+                    }
+                    $badges[] = [
+                        'icon' => trim((string) ($badge['icon'] ?? 'energy')),
+                        'label' => $label,
+                    ];
                 }
-                $label = trim((string) ($badge['label'] ?? ''));
-                if ($label === '') {
-                    continue;
-                }
-                $badges[] = [
-                    'icon' => trim((string) ($badge['icon'] ?? 'energy')),
-                    'label' => $label,
-                ];
             }
             $content['intro']['badges'] = $badges;
         }
@@ -100,38 +98,44 @@ function admin_normalize_content(array $posted, array $current): array
     if (isset($posted['about']) && is_array($posted['about'])) {
         $content['about']['title'] = trim((string) ($posted['about']['title'] ?? $content['about']['title']));
         $content['about']['heading'] = trim((string) ($posted['about']['heading'] ?? $content['about']['heading']));
-        if (isset($posted['about']['paragraphs']) && is_array($posted['about']['paragraphs'])) {
-            $content['about']['paragraphs'] = array_values(array_filter(
-                array_map(static fn($p) => trim((string) $p), $posted['about']['paragraphs']),
-                static fn(string $p) => $p !== ''
-            ));
+        if (isset($posted['about']['paragraphs_present'])) {
+            $paragraphs = [];
+            if (isset($posted['about']['paragraphs']) && is_array($posted['about']['paragraphs'])) {
+                $paragraphs = array_values(array_filter(
+                    array_map(static fn($p) => trim((string) $p), $posted['about']['paragraphs']),
+                    static fn(string $p) => $p !== ''
+                ));
+            }
+            $content['about']['paragraphs'] = $paragraphs;
         }
     }
 
     if (isset($posted['services']) && is_array($posted['services'])) {
         $content['services']['title'] = trim((string) ($posted['services']['title'] ?? $content['services']['title']));
-        if (isset($posted['services']['items']) && is_array($posted['services']['items'])) {
+        if (isset($posted['services']['items_present'])) {
             $items = [];
-            foreach ($posted['services']['items'] as $item) {
-                if (!is_array($item)) {
-                    continue;
+            if (isset($posted['services']['items']) && is_array($posted['services']['items'])) {
+                foreach ($posted['services']['items'] as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+                    $title = trim((string) ($item['title'] ?? ''));
+                    if ($title === '') {
+                        continue;
+                    }
+                    $icon = trim((string) ($item['icon'] ?? ''));
+                    if ($icon === '') {
+                        $icon = 'strategy';
+                    }
+                    if (!is_valid_service_icon($icon)) {
+                        admin_abort_with_status(422, 'Geçersiz hizmet ikonu.');
+                    }
+                    $items[] = [
+                        'title' => $title,
+                        'description' => trim((string) ($item['description'] ?? '')),
+                        'icon' => $icon,
+                    ];
                 }
-                $title = trim((string) ($item['title'] ?? ''));
-                if ($title === '') {
-                    continue;
-                }
-                $icon = trim((string) ($item['icon'] ?? ''));
-                if ($icon === '') {
-                    $icon = 'strategy';
-                }
-                if (!is_valid_service_icon($icon)) {
-                    admin_abort_with_status(422, 'Geçersiz hizmet ikonu.');
-                }
-                $items[] = [
-                    'title' => $title,
-                    'description' => trim((string) ($item['description'] ?? '')),
-                    'icon' => $icon,
-                ];
             }
             $content['services']['items'] = $items;
         }
@@ -142,20 +146,22 @@ function admin_normalize_content(array $posted, array $current): array
             $content['process'] = ['title' => '', 'steps' => []];
         }
         $content['process']['title'] = trim((string) ($posted['process']['title'] ?? $content['process']['title'] ?? ''));
-        if (isset($posted['process']['steps']) && is_array($posted['process']['steps'])) {
+        if (isset($posted['process']['steps_present'])) {
             $steps = [];
-            foreach ($posted['process']['steps'] as $step) {
-                if (!is_array($step)) {
-                    continue;
+            if (isset($posted['process']['steps']) && is_array($posted['process']['steps'])) {
+                foreach ($posted['process']['steps'] as $step) {
+                    if (!is_array($step)) {
+                        continue;
+                    }
+                    $title = trim((string) ($step['title'] ?? ''));
+                    if ($title === '') {
+                        continue;
+                    }
+                    $steps[] = [
+                        'title' => $title,
+                        'description' => trim((string) ($step['description'] ?? '')),
+                    ];
                 }
-                $title = trim((string) ($step['title'] ?? ''));
-                if ($title === '') {
-                    continue;
-                }
-                $steps[] = [
-                    'title' => $title,
-                    'description' => trim((string) ($step['description'] ?? '')),
-                ];
             }
             $content['process']['steps'] = $steps;
         }
@@ -164,23 +170,25 @@ function admin_normalize_content(array $posted, array $current): array
     if (isset($posted['team']) && is_array($posted['team'])) {
         $content['team']['title'] = trim((string) ($posted['team']['title'] ?? $content['team']['title']));
         $content['team']['intro'] = trim((string) ($posted['team']['intro'] ?? $content['team']['intro']));
-        if (isset($posted['team']['members']) && is_array($posted['team']['members'])) {
+        if (isset($posted['team']['members_present'])) {
             $members = [];
-            foreach ($posted['team']['members'] as $idx => $member) {
-                if (!is_array($member)) {
-                    continue;
+            if (isset($posted['team']['members']) && is_array($posted['team']['members'])) {
+                foreach ($posted['team']['members'] as $idx => $member) {
+                    if (!is_array($member)) {
+                        continue;
+                    }
+                    $name = trim((string) ($member['name'] ?? ''));
+                    if ($name === '') {
+                        continue;
+                    }
+                    $photo = trim((string) ($member['photo'] ?? ''));
+                    $members[] = [
+                        'name' => $name,
+                        'title' => trim((string) ($member['title'] ?? '')),
+                        'description' => trim((string) ($member['description'] ?? '')),
+                        'photo' => $photo,
+                    ];
                 }
-                $name = trim((string) ($member['name'] ?? ''));
-                if ($name === '') {
-                    continue;
-                }
-                $photo = trim((string) ($member['photo'] ?? ''));
-                $members[] = [
-                    'name' => $name,
-                    'title' => trim((string) ($member['title'] ?? '')),
-                    'description' => trim((string) ($member['description'] ?? '')),
-                    'photo' => $photo,
-                ];
             }
             $content['team']['members'] = $members;
         }
@@ -190,20 +198,22 @@ function admin_normalize_content(array $posted, array $current): array
         $content['contact']['title'] = trim((string) ($posted['contact']['title'] ?? $content['contact']['title']));
         $content['contact']['heading'] = trim((string) ($posted['contact']['heading'] ?? $content['contact']['heading']));
         $content['contact']['email'] = trim((string) ($posted['contact']['email'] ?? $content['contact']['email']));
-        if (isset($posted['contact']['addresses']) && is_array($posted['contact']['addresses'])) {
+        if (isset($posted['contact']['addresses_present'])) {
             $addresses = [];
-            foreach ($posted['contact']['addresses'] as $addr) {
-                if (!is_array($addr)) {
-                    continue;
+            if (isset($posted['contact']['addresses']) && is_array($posted['contact']['addresses'])) {
+                foreach ($posted['contact']['addresses'] as $addr) {
+                    if (!is_array($addr)) {
+                        continue;
+                    }
+                    $label = trim((string) ($addr['label'] ?? ''));
+                    if ($label === '') {
+                        continue;
+                    }
+                    $addresses[] = [
+                        'label' => $label,
+                        'text' => trim((string) ($addr['text'] ?? '')),
+                    ];
                 }
-                $label = trim((string) ($addr['label'] ?? ''));
-                if ($label === '') {
-                    continue;
-                }
-                $addresses[] = [
-                    'label' => $label,
-                    'text' => trim((string) ($addr['text'] ?? '')),
-                ];
             }
             $content['contact']['addresses'] = $addresses;
         }
@@ -249,24 +259,26 @@ function admin_normalize_content(array $posted, array $current): array
         $content['kvkk']['title'] = trim((string) ($posted['kvkk']['title'] ?? $content['kvkk']['title']));
         $content['kvkk']['intro'] = trim((string) ($posted['kvkk']['intro'] ?? $content['kvkk']['intro']));
         $content['kvkk']['note'] = trim((string) ($posted['kvkk']['note'] ?? $content['kvkk']['note'] ?? ''));
-        if (isset($posted['kvkk']['sections']) && is_array($posted['kvkk']['sections'])) {
+        if (isset($posted['kvkk']['sections_present'])) {
             $sections = [];
-            foreach ($posted['kvkk']['sections'] as $section) {
-                if (!is_array($section)) {
-                    continue;
+            if (isset($posted['kvkk']['sections']) && is_array($posted['kvkk']['sections'])) {
+                foreach ($posted['kvkk']['sections'] as $section) {
+                    if (!is_array($section)) {
+                        continue;
+                    }
+                    $heading = trim((string) ($section['heading'] ?? ''));
+                    if ($heading === '') {
+                        continue;
+                    }
+                    $paragraphs = [];
+                    if (isset($section['paragraphs']) && is_array($section['paragraphs'])) {
+                        $paragraphs = array_values(array_filter(
+                            array_map(static fn($p) => trim((string) $p), $section['paragraphs']),
+                            static fn(string $p) => $p !== ''
+                        ));
+                    }
+                    $sections[] = ['heading' => $heading, 'paragraphs' => $paragraphs];
                 }
-                $heading = trim((string) ($section['heading'] ?? ''));
-                if ($heading === '') {
-                    continue;
-                }
-                $paragraphs = [];
-                if (isset($section['paragraphs']) && is_array($section['paragraphs'])) {
-                    $paragraphs = array_values(array_filter(
-                        array_map(static fn($p) => trim((string) $p), $section['paragraphs']),
-                        static fn(string $p) => $p !== ''
-                    ));
-                }
-                $sections[] = ['heading' => $heading, 'paragraphs' => $paragraphs];
             }
             $content['kvkk']['sections'] = $sections;
         }

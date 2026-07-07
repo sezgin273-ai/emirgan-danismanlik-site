@@ -67,7 +67,11 @@
     btn.addEventListener('click', function () {
       var item = btn.closest('[data-sortable-item]');
       var container = item && item.parentNode;
-      if (item && container && container.querySelectorAll('[data-sortable-item]').length > 1) {
+      if (!item || !container) {
+        return;
+      }
+      var minItems = container.hasAttribute('data-allow-empty') ? 0 : 1;
+      if (container.querySelectorAll('[data-sortable-item]').length > minItems) {
         item.remove();
         var prefix = container.getAttribute('data-sortable-prefix');
         if (prefix) {

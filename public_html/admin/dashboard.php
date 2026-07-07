@@ -116,6 +116,7 @@ $sectionLabels = [
             <label for="hero-description">Açıklama</label>
             <textarea id="hero-description" name="content[hero][description]"><?= e($content['hero']['description']) ?></textarea>
             <label class="admin-check">
+                <input type="hidden" name="content[hero][watermark_enabled]" value="0">
                 <input type="checkbox" name="content[hero][watermark_enabled]" value="1"
                     <?= hero_watermark_enabled($content) ? 'checked' : '' ?>>
                 Arka plan watermark (amblem) göster
@@ -129,22 +130,31 @@ $sectionLabels = [
             <label for="intro-text">Metin</label>
             <textarea id="intro-text" name="content[intro][text]"><?= e($content['intro']['text']) ?></textarea>
             <h3>Rozetler</h3>
-            <?php foreach ($content['intro']['badges'] as $i => $badge): ?>
-                <div class="admin-grid-2">
-                    <div>
-                        <label>İkon</label>
-                        <select name="content[intro][badges][<?= $i ?>][icon]">
-                            <?php foreach ($badgeIcons as $icon): ?>
-                                <option value="<?= e($icon) ?>" <?= $badge['icon'] === $icon ? 'selected' : '' ?>><?= e($icon) ?></option>
-                            <?php endforeach; ?>
-                        </select>
+            <input type="hidden" name="content[intro][badges_present]" value="1">
+            <div id="badges-list" data-sortable-prefix="content[intro][badges]" data-label-prefix="Rozet" data-allow-empty>
+                <?php foreach ($content['intro']['badges'] as $i => $badge): ?>
+                    <div class="admin-list-item" data-sortable-item>
+                        <div class="admin-list-item__head">
+                            <strong data-item-label>Rozet <?= $i + 1 ?></strong>
+                            <button type="button" class="admin-btn admin-btn--danger" data-remove-item>Sil</button>
+                        </div>
+                        <div class="admin-grid-2">
+                            <div>
+                                <label>İkon</label>
+                                <select name="content[intro][badges][<?= $i ?>][icon]">
+                                    <?php foreach ($badgeIcons as $icon): ?>
+                                        <option value="<?= e($icon) ?>" <?= $badge['icon'] === $icon ? 'selected' : '' ?>><?= e($icon) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Etiket</label>
+                                <input type="text" name="content[intro][badges][<?= $i ?>][label]" value="<?= e($badge['label']) ?>">
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label>Etiket</label>
-                        <input type="text" name="content[intro][badges][<?= $i ?>][label]" value="<?= e($badge['label']) ?>">
-                    </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </section>
 
         <section class="admin-card" id="about">
@@ -153,6 +163,7 @@ $sectionLabels = [
             <input type="text" id="about-title" name="content[about][title]" value="<?= e($content['about']['title']) ?>">
             <label for="about-heading">Alt başlık</label>
             <input type="text" id="about-heading" name="content[about][heading]" value="<?= e($content['about']['heading']) ?>">
+            <input type="hidden" name="content[about][paragraphs_present]" value="1">
             <?php foreach ($content['about']['paragraphs'] as $i => $paragraph): ?>
                 <label>Paragraf <?= $i + 1 ?></label>
                 <textarea name="content[about][paragraphs][<?= $i ?>]"><?= e($paragraph) ?></textarea>
@@ -169,6 +180,7 @@ $sectionLabels = [
             <h2>Nasıl Çalışıyoruz</h2>
             <label for="process-title">Bölüm başlığı</label>
             <input type="text" id="process-title" name="content[process][title]" value="<?= e($content['process']['title'] ?? '') ?>">
+            <input type="hidden" name="content[process][steps_present]" value="1">
             <div id="process-list" data-sortable-prefix="content[process][steps]" data-label-prefix="Adım">
                 <?php foreach ($processSteps as $i => $step): ?>
                     <div class="admin-list-item" data-sortable-item>
@@ -194,6 +206,7 @@ $sectionLabels = [
             <h2>Hizmetler</h2>
             <label for="services-title">Bölüm başlığı</label>
             <input type="text" id="services-title" name="content[services][title]" value="<?= e($content['services']['title']) ?>">
+            <input type="hidden" name="content[services][items_present]" value="1">
             <div id="services-list" data-sortable-prefix="content[services][items]" data-label-prefix="Kart">
                 <?php foreach ($content['services']['items'] as $i => $service): ?>
                     <div class="admin-list-item" data-sortable-item>
@@ -227,6 +240,7 @@ $sectionLabels = [
             <input type="text" id="team-title" name="content[team][title]" value="<?= e($content['team']['title']) ?>">
             <label for="team-intro">Giriş metni</label>
             <textarea id="team-intro" name="content[team][intro]"><?= e($content['team']['intro']) ?></textarea>
+            <input type="hidden" name="content[team][members_present]" value="1">
             <div id="team-list" data-sortable-prefix="content[team][members]" data-label-prefix="Üye">
                 <?php foreach ($content['team']['members'] as $i => $member): ?>
                     <div class="admin-list-item" data-sortable-item>
@@ -262,6 +276,7 @@ $sectionLabels = [
             <input type="text" id="contact-heading" name="content[contact][heading]" value="<?= e($content['contact']['heading']) ?>">
             <label for="contact-email">E-posta</label>
             <input type="email" id="contact-email" name="content[contact][email]" value="<?= e($content['contact']['email']) ?>">
+            <input type="hidden" name="content[contact][addresses_present]" value="1">
             <?php foreach ($content['contact']['addresses'] as $i => $address): ?>
                 <h3>Adres <?= $i + 1 ?></h3>
                 <input type="text" name="content[contact][addresses][<?= $i ?>][label]" value="<?= e($address['label']) ?>">
@@ -287,6 +302,7 @@ $sectionLabels = [
             <input type="text" id="kvkk-title" name="content[kvkk][title]" value="<?= e($content['kvkk']['title']) ?>">
             <label for="kvkk-intro">Giriş</label>
             <textarea id="kvkk-intro" name="content[kvkk][intro]"><?= e($content['kvkk']['intro']) ?></textarea>
+            <input type="hidden" name="content[kvkk][sections_present]" value="1">
             <?php foreach ($content['kvkk']['sections'] as $i => $section): ?>
                 <h3>Bölüm <?= $i + 1 ?></h3>
                 <input type="text" name="content[kvkk][sections][<?= $i ?>][heading]" value="<?= e($section['heading']) ?>">
