@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.49,
+      "measured": 1.39,
       "limit": ">= 1",
       "passed": true
     },
@@ -443,6 +443,16 @@
       "limit": "absent + no PHP noise",
       "passed": true
     },
+    "contact_map_address_roundtrip": {
+      "measured": 1,
+      "limit": "marker in iframe src",
+      "passed": true
+    },
+    "contact_map_address_restore": {
+      "measured": 1,
+      "limit": "original src",
+      "passed": true
+    },
     "team_delete_ui_reject_count_unchanged": {
       "measured": 5,
       "limit": "== 5",
@@ -519,11 +529,6 @@
       "passed": true
     },
     "scope_unchanged_css_tokens.css": {
-      "measured": 1,
-      "limit": "unchanged",
-      "passed": true
-    },
-    "scope_unchanged_css_main.css": {
       "measured": 1,
       "limit": "unchanged",
       "passed": true

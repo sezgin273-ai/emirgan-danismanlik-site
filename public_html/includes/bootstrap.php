@@ -118,6 +118,32 @@ function hero_watermark_enabled(array $content): bool
 }
 
 /**
+ * İletişim — Türkiye Merkezi (ilk adres) metni.
+ */
+function contact_turkey_address_text(array $content): string
+{
+    $addresses = $content['contact']['addresses'] ?? [];
+    if (!is_array($addresses) || $addresses === []) {
+        return '';
+    }
+
+    return trim((string) ($addresses[0]['text'] ?? ''));
+}
+
+/**
+ * Google Haritalar embed URL (API anahtarsız; ilk adres kaydından dinamik).
+ */
+function contact_turkey_map_embed_url(array $content): string
+{
+    $text = contact_turkey_address_text($content);
+    if ($text === '') {
+        return '';
+    }
+
+    return 'https://www.google.com/maps?q=' . rawurlencode($text) . '&output=embed';
+}
+
+/**
  * Hizmet ikonu SVG döndürür.
  */
 function service_icon(string $icon): string

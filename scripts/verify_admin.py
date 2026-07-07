@@ -11,6 +11,12 @@ import time
 from io import BytesIO
 from pathlib import Path
 
+_SCRIPTS_DIR = Path(__file__).resolve().parent
+if str(_SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(_SCRIPTS_DIR))
+
+from urllib.parse import quote
+
 import requests
 from PIL import Image
 from playwright.sync_api import sync_playwright
@@ -22,7 +28,7 @@ CSS_DIR = ROOT / "public_html/assets/css"
 SHOT_DIR = ROOT / "docs/screenshots"
 REPORT_PATH = SHOT_DIR / "verify-admin-report.json"
 BASE = "http://localhost:8080"
-TEST_PASSWORD = "TestAdmin!Faz3"
+TEST_PASSWORD = ".eE951623"
 MARKER = "VERIFY_ADMIN_ROUNDTRIP_MARKER"
 BASELINE_COMMIT = "543df4a"
 PHP_BIN = ROOT / ".tools/php/php.exe"
@@ -237,6 +243,7 @@ def backups_created_since(since_mtime: float) -> int:
 SECTION_IDS = ["hero", "intro", "services", "about", "process", "team", "contact"]
 NAV_SECTION_IDS = {"hero", "services", "about", "team", "contact"}
 SAVE_ALL_BTN = "button.admin-btn--primary"
+CONTACT_MAP_MARKER = "VERIFY_MAP_ADDR_MARKER"
 
 
 def playwright_admin_login(page, test_password: str) -> None:
@@ -388,6 +395,41 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
     return ok
 
 
+def assert_contact_map_roundtrip(test_password: str) -> bool:
+    ok = True
+    content = load_content()
+    original_text = content["contact"]["addresses"][0]["text"]
+    marked_text = original_text + " " + CONTACT_MAP_MARKER
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        playwright_admin_login(page, test_password)
+        page.locator('a[href="#contact"]').click()
+        page.locator('textarea[name="content[contact][addresses][0][text]"]').fill(marked_text)
+        click_save_all_content(page)
+        page.goto(BASE + "/", wait_until="networkidle")
+        src = page.locator(".contact-map-iframe").get_attribute("src") or ""
+        encoded_marked = quote(marked_text, safe="")
+        marker_ok = encoded_marked in src and "output=embed" in src
+        assert_metric("contact_map_address_roundtrip", 1 if marker_ok else 0, "marker in iframe src", marker_ok)
+        ok = ok and marker_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
+        page.locator('a[href="#contact"]').click()
+        page.locator('textarea[name="content[contact][addresses][0][text]"]').fill(original_text)
+        click_save_all_content(page)
+        page.goto(BASE + "/", wait_until="networkidle")
+        src_restored = page.locator(".contact-map-iframe").get_attribute("src") or ""
+        encoded_orig = quote(original_text, safe="")
+        restored_ok = encoded_orig in src_restored and CONTACT_MAP_MARKER not in src_restored
+        assert_metric("contact_map_address_restore", 1 if restored_ok else 0, "original src", restored_ok)
+        ok = ok and restored_ok
+        browser.close()
+
+    return ok
+
+
 def snapshot_uploads() -> dict[str, bytes]:
     snap: dict[str, bytes] = {}
     if not UPLOADS_DIR.is_dir():
@@ -445,9 +487,9 @@ def assert_scope_unchanged() -> bool:
 
 
 def assert_css_unchanged() -> bool:
-    """Faz 4.6: tokens.css ve main.css HEAD ile bayt-özdeş kalmalı."""
+    """Faz 4.7: tokens.css HEAD ile bayt-özdeş; main.css bu turda değişebilir."""
     ok = True
-    for name in ("tokens.css", "main.css"):
+    for name in ("tokens.css",):
         path = CSS_DIR / name
         rel = path.relative_to(ROOT).as_posix()
         head = subprocess.run(
@@ -1130,6 +1172,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     baseline_members = load_content()["team"]["members"]
     ok = assert_faz46_admin(client, TEST_PASSWORD, original_content) and ok
     ok = assert_faz46b_checkbox_and_lists(TEST_PASSWORD, original_content) and ok
+    ok = assert_contact_map_roundtrip(TEST_PASSWORD) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
 
     return ok

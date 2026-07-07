@@ -10,7 +10,9 @@ import time
 import xml.etree.ElementTree as ET
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import quote, urljoin, urlparse
+
+from urllib.parse import quote, urljoin, urlparse
 
 import requests
 from PIL import Image
@@ -24,7 +26,8 @@ QA_SHOT_DIR = SHOT_DIR / "qa"
 REPORT_PATH = SHOT_DIR / "verify-qa-report.json"
 HTACCESS_PATH = ROOT / "public_html/.htaccess"
 BASE = "http://localhost:8080"
-TEST_PASSWORD = "TestAdmin!Faz3"
+TEST_PASSWORD = ".eE951623"
+CONTACT_SECTION_BASELINE_HEIGHT_PX = 956
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
 
@@ -630,6 +633,104 @@ def assert_visual_enrichment() -> bool:
     return ok
 
 
+def assert_faz47_contact_layout() -> bool:
+    """Faz 4.7: kompakt iletişim yerleşimi ve Google Harita embed."""
+    ok = True
+    content = json.loads(CONTENT_PATH.read_text(encoding="utf-8"))
+    turkey_address = content["contact"]["addresses"][0]["text"]
+    encoded_address = quote(turkey_address, safe="")
+    max_height = int(CONTACT_SECTION_BASELINE_HEIGHT_PX * 0.8)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        errors: list[str] = []
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.goto(BASE + "/#contact", wait_until="networkidle")
+        page.wait_for_timeout(500)
+
+        height = page.evaluate(
+            """() => Math.round(document.getElementById('contact').getBoundingClientRect().height)"""
+        )
+        height_ok = height <= max_height
+        assert_metric("contact_section_height_baseline_px", CONTACT_SECTION_BASELINE_HEIGHT_PX, "baseline", True)
+        assert_metric("contact_section_height_px", height, f"<= {max_height}", height_ok)
+        ok = ok and height_ok
+
+        layout = page.evaluate(
+            """() => {
+              const cards = Array.from(document.querySelectorAll('.contact-info-addresses .address-card'));
+              const r0 = cards[0].getBoundingClientRect();
+              const r1 = cards[1].getBoundingClientRect();
+              const topDiff = Math.abs(r0.top - r1.top);
+              const sideBySide = r0.right <= r1.left || r1.right <= r0.left;
+              const addresses = document.querySelector('.contact-info-addresses').getBoundingClientRect();
+              const email = document.querySelector('.contact-info-email').getBoundingClientRect();
+              const addressesCenter = addresses.left + addresses.width / 2;
+              const emailCenter = email.left + email.width / 2;
+              const emailBelow = email.top >= Math.max(r0.bottom, r1.bottom) - 4;
+              const emailCenterDelta = Math.abs(emailCenter - addressesCenter);
+              const iframe = document.querySelector('.contact-map-iframe');
+              const iframeRect = iframe ? iframe.getBoundingClientRect() : { height: 0 };
+              return {
+                topDiff,
+                sideBySide,
+                emailCenterDelta,
+                emailBelow,
+                iframeHeight: iframeRect.height,
+                src: iframe ? iframe.getAttribute('src') || '' : '',
+              };
+            }"""
+        )
+        cards_ok = layout["topDiff"] <= 8 and layout["sideBySide"]
+        assert_metric("contact_address_cards_top_delta_px", round(layout["topDiff"], 2), "<= 8", layout["topDiff"] <= 8)
+        assert_metric("contact_address_cards_side_by_side", 1 if layout["sideBySide"] else 0, "no horizontal overlap", layout["sideBySide"])
+        ok = ok and cards_ok
+
+        email_ok = layout["emailBelow"] and layout["emailCenterDelta"] <= 8
+        assert_metric("contact_email_center_delta_px", round(layout["emailCenterDelta"], 2), "<= 8", layout["emailCenterDelta"] <= 8)
+        assert_metric("contact_email_below_cards", 1 if layout["emailBelow"] else 0, "below cards", layout["emailBelow"])
+        ok = ok and email_ok
+
+        map_h = layout["iframeHeight"]
+        map_h_ok = 240 <= map_h <= 320
+        src = layout["src"]
+        map_src_ok = (
+            "google.com/maps" in src
+            and encoded_address in src
+            and "output=embed" in src
+        )
+        assert_metric("contact_map_iframe_height_px", round(map_h, 2), "240-320", map_h_ok)
+        assert_metric("contact_map_iframe_src", 1 if map_src_ok else 0, "encoded address + output=embed", map_src_ok)
+        ok = ok and map_h_ok and map_src_ok
+
+        console_ok = len(errors) == 0
+        assert_metric("contact_section_console_errors", len(errors), "0", console_ok)
+        ok = ok and console_ok
+
+        mobile = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile.goto(BASE + "/#contact", wait_until="networkidle")
+        mobile.wait_for_timeout(400)
+        mobile_layout = mobile.evaluate(
+            """() => {
+              const cards = Array.from(document.querySelectorAll('.contact-info-addresses .address-card'));
+              const r0 = cards[0].getBoundingClientRect();
+              const r1 = cards[1].getBoundingClientRect();
+              const stacked = r1.top >= r0.bottom - 4;
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return { stacked, overflow };
+            }"""
+        )
+        mobile_ok = mobile_layout["stacked"] and mobile_layout["overflow"]
+        assert_metric("contact_mobile_cards_stacked", 1 if mobile_layout["stacked"] else 0, "vertical stack", mobile_layout["stacked"])
+        assert_metric("contact_mobile_no_overflow", 1 if mobile_layout["overflow"] else 0, "no horizontal overflow", mobile_layout["overflow"])
+        ok = ok and mobile_ok
+        mobile.close()
+        browser.close()
+
+    return ok
+
+
 def assert_viewport_qa() -> tuple[bool, list[str]]:
     ok = True
     shots: list[str] = []
@@ -705,6 +806,7 @@ def main() -> int:
         ok = total_bytes <= 650_000 and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
+        ok = assert_faz47_contact_layout() and ok
         viewport_ok, shots = assert_viewport_qa()
         ok = viewport_ok and ok
         results["screenshots"] = shots

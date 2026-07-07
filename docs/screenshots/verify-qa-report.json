@@ -154,7 +154,7 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 584355,
+      "measured": 586113,
       "limit": "<= 650000",
       "passed": true
     },
@@ -184,7 +184,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.94956,
+      "measured": -5.92888,
       "limit": "<= -2px",
       "passed": true
     },
@@ -239,6 +239,61 @@
       "passed": true
     },
     "overflow_mobile_home_process": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "contact_section_height_baseline_px": {
+      "measured": 956,
+      "limit": "baseline",
+      "passed": true
+    },
+    "contact_section_height_px": {
+      "measured": 750,
+      "limit": "<= 764",
+      "passed": true
+    },
+    "contact_address_cards_top_delta_px": {
+      "measured": 0,
+      "limit": "<= 8",
+      "passed": true
+    },
+    "contact_address_cards_side_by_side": {
+      "measured": 1,
+      "limit": "no horizontal overlap",
+      "passed": true
+    },
+    "contact_email_center_delta_px": {
+      "measured": 0,
+      "limit": "<= 8",
+      "passed": true
+    },
+    "contact_email_below_cards": {
+      "measured": 1,
+      "limit": "below cards",
+      "passed": true
+    },
+    "contact_map_iframe_height_px": {
+      "measured": 240,
+      "limit": "240-320",
+      "passed": true
+    },
+    "contact_map_iframe_src": {
+      "measured": 1,
+      "limit": "encoded address + output=embed",
+      "passed": true
+    },
+    "contact_section_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "contact_mobile_cards_stacked": {
+      "measured": 1,
+      "limit": "vertical stack",
+      "passed": true
+    },
+    "contact_mobile_no_overflow": {
       "measured": 1,
       "limit": "no horizontal overflow",
       "passed": true
@@ -349,6 +404,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 584355,
+  "homepage_total_resource_bytes": 586113,
   "all_passed": true
 }

@@ -251,7 +251,7 @@ $assets = $content['site']['assets'];
                         <textarea
                             id="contact-message"
                             name="message"
-                            rows="5"
+                            rows="3"
                             required
                             placeholder="<?= e($contact['form']['message']['placeholder']) ?>"
                         ></textarea>
@@ -261,18 +261,33 @@ $assets = $content['site']['assets'];
                 </form>
 
                 <div class="contact-info reveal">
-                    <?php foreach ($contact['addresses'] as $address): ?>
-                        <article class="address-card">
-                            <h3><?= e($address['label']) ?></h3>
-                            <address><?= e($address['text']) ?></address>
-                        </article>
-                    <?php endforeach; ?>
-                    <article class="address-card">
+                    <div class="contact-info-addresses">
+                        <?php foreach ($contact['addresses'] as $address): ?>
+                            <article class="address-card">
+                                <h3><?= e($address['label']) ?></h3>
+                                <address><?= e($address['text']) ?></address>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                    <article class="address-card contact-info-email">
                         <h3><?= e($ui['email_label']) ?></h3>
                         <p>
                             <a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a>
                         </p>
                     </article>
+                    <?php $mapEmbedUrl = contact_turkey_map_embed_url($content); ?>
+                    <?php if ($mapEmbedUrl !== ''): ?>
+                        <article class="address-card contact-map-card">
+                            <iframe
+                                class="contact-map-iframe"
+                                src="<?= e($mapEmbedUrl) ?>"
+                                loading="lazy"
+                                title="Türkiye ofisi konumu"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                allowfullscreen
+                            ></iframe>
+                        </article>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
