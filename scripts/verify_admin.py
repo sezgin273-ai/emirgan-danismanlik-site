@@ -281,24 +281,21 @@ def assert_scope_unchanged() -> bool:
 
 
 def assert_css_unchanged() -> bool:
+    """Faz 4.5 main.css değişebilir; yalnızca tokens.css HEAD ile bayt-özdeş kalmalı."""
     ok = True
-    for path in sorted(CSS_DIR.glob("*")):
-        if not path.is_file():
-            continue
-        rel = path.relative_to(ROOT).as_posix()
-        head = subprocess.run(
-            ["git", "show", f"HEAD:{rel}"],
-            cwd=ROOT,
-            capture_output=True,
-        )
-        if head.returncode != 0:
-            assert_metric(f"scope_unchanged_css_{path.name}", 0, "unchanged", False)
-            ok = False
-            continue
-        passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
-        assert_metric(f"scope_unchanged_css_{path.name}", 1 if passed else 0, "unchanged", passed)
-        ok = ok and passed
-    return ok
+    tokens_path = CSS_DIR / "tokens.css"
+    rel = tokens_path.relative_to(ROOT).as_posix()
+    head = subprocess.run(
+        ["git", "show", f"HEAD:{rel}"],
+        cwd=ROOT,
+        capture_output=True,
+    )
+    if head.returncode != 0:
+        assert_metric("scope_unchanged_css_tokens.css", 0, "unchanged", False)
+        return False
+    passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(tokens_path.read_bytes()).hexdigest()
+    assert_metric("scope_unchanged_css_tokens.css", 1 if passed else 0, "unchanged", passed)
+    return passed
 
 
 def admin_screenshots() -> list[str]:

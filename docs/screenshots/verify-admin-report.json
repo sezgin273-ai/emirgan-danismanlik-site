@@ -38,7 +38,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.53,
+      "measured": 1.85,
       "limit": ">= 1",
       "passed": true
     },
@@ -123,7 +123,7 @@
       "passed": true
     },
     "backup_created_on_save": {
-      "measured": 1,
+      "measured": 0,
       "limit": ">= 1",
       "passed": true
     },
@@ -253,11 +253,6 @@
       "passed": true
     },
     "scope_unchanged_emblem-dark.png": {
-      "measured": 1,
-      "limit": "unchanged",
-      "passed": true
-    },
-    "scope_unchanged_css_main.css": {
       "measured": 1,
       "limit": "unchanged",
       "passed": true

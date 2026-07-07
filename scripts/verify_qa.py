@@ -118,15 +118,25 @@ def deep_equal_except_allowed(head: object, current: object, path: str = "") -> 
 def assert_content_json_scope() -> bool:
     head = head_content_json()
     current = load_content()
+    head_cmp = json.loads(json.dumps(head))
     current_cmp = json.loads(json.dumps(current))
-    if "site" in current_cmp:
-        current_cmp["site"].pop("url", None)
-        if "meta" in current_cmp["site"]:
-            current_cmp["site"]["meta"].pop("og_image", None)
-    ok, reason = deep_equal_except_allowed(head, current_cmp)
+    for cmp_obj in (head_cmp, current_cmp):
+        if "site" in cmp_obj:
+            cmp_obj["site"].pop("url", None)
+            if "meta" in cmp_obj["site"]:
+                cmp_obj["site"]["meta"].pop("og_image", None)
+    ok, reason = deep_equal_except_allowed(head_cmp, current_cmp)
     assert_metric("content_json_existing_values_unchanged", 1 if ok else 0, "unchanged", ok)
     if not ok:
         print(f"content diff: {reason}", file=sys.stderr)
+
+    process_ok = (
+        "process" in current
+        and isinstance(current["process"], dict)
+        and current["process"].get("title") == "Nasıl Çalışıyoruz"
+        and len(current["process"].get("steps", [])) == 4
+    )
+    assert_metric("content_json_process_added", 1 if process_ok else 0, "process key with 4 steps", process_ok)
 
     url_ok = current.get("site", {}).get("url") == "https://emirgandanismanlik.com"
     og_ok = current.get("site", {}).get("meta", {}).get("og_image") == "/assets/img/og-image.png"
@@ -137,7 +147,7 @@ def assert_content_json_scope() -> bool:
         "/assets/img/og-image.png",
         og_ok,
     )
-    return ok and url_ok and og_ok
+    return ok and process_ok and url_ok and og_ok
 
 
 def assert_scope_unchanged() -> bool:
@@ -375,7 +385,8 @@ def measure_homepage_total_bytes() -> int:
                 total += len(resp.content)
         except requests.RequestException:
             pass
-    assert_metric("homepage_total_resource_bytes", total, "reported", True)
+    limit_ok = total <= 650_000
+    assert_metric("homepage_total_resource_bytes", total, "<= 650000", limit_ok)
     return total
 
 
@@ -445,6 +456,172 @@ def assert_team_reorder_delete_guard() -> bool:
     return ok
 
 
+def assert_visual_enrichment() -> bool:
+    ok = True
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(1200)
+
+        service_data = page.evaluate(
+            """() => {
+              const cards = document.querySelectorAll('.service-card');
+              const svgs = Array.from(cards).map(c => c.querySelector('svg'));
+              const signatures = svgs.map(svg => {
+                if (!svg) return '';
+                return Array.from(svg.querySelectorAll('path'))
+                  .map(p => p.getAttribute('d'))
+                  .filter(Boolean)
+                  .join('|');
+              }).filter(Boolean);
+              const uniqueSignatures = new Set(signatures);
+              return {
+                cardCount: cards.length,
+                svgCount: svgs.filter(Boolean).length,
+                uniqueSignatureCount: uniqueSignatures.size,
+              };
+            }"""
+        )
+        svc_count = service_data["svgCount"]
+        svc_ok = svc_count == 7 and service_data["uniqueSignatureCount"] == 7
+        assert_metric("service_card_inline_svg_count", svc_count, "7", svc_count == 7)
+        assert_metric("service_icon_unique_paths", service_data["uniqueSignatureCount"], "7", service_data["uniqueSignatureCount"] == 7)
+        ok = ok and svc_ok
+
+        page.emulate_media(reduced_motion="no-preference")
+        card = page.locator(".service-card").first
+        shadow_before = card.evaluate("el => getComputedStyle(el).boxShadow")
+        card.hover()
+        page.wait_for_timeout(300)
+        hover_after = card.evaluate(
+            """el => {
+              const style = getComputedStyle(el);
+              let translateY = 0;
+              const t = style.transform;
+              if (t && t !== 'none') {
+                const m = t.match(/matrix\\(([^)]+)\\)/);
+                if (m) {
+                  const vals = m[1].split(',').map(s => parseFloat(s.trim()));
+                  translateY = vals.length === 6 ? vals[5] : (vals[13] || 0);
+                }
+              }
+              return { translateY, boxShadow: style.boxShadow };
+            }"""
+        )
+        hover_y_ok = hover_after["translateY"] <= -2
+        shadow_changed = hover_after["boxShadow"] != shadow_before
+        assert_metric("service_card_hover_translate_y", hover_after["translateY"], "<= -2px", hover_y_ok)
+        assert_metric("service_card_hover_shadow_changed", 1 if shadow_changed else 0, "changed", shadow_changed)
+        ok = ok and hover_y_ok and shadow_changed
+
+        watermark = page.evaluate(
+            """() => {
+              const el = document.querySelector('.hero-watermark');
+              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
+              const s = getComputedStyle(el);
+              return {
+                exists: true,
+                opacity: parseFloat(s.opacity),
+                pointerEvents: s.pointerEvents,
+              };
+            }"""
+        )
+        wm_ok = (
+            watermark.get("exists")
+            and 0.03 <= watermark.get("opacity", 0) <= 0.08
+            and watermark.get("pointerEvents") == "none"
+        )
+        assert_metric("hero_watermark_opacity", watermark.get("opacity", 0), "0.03-0.08", wm_ok)
+        assert_metric("hero_watermark_pointer_events", watermark.get("pointerEvents", ""), "none", watermark.get("pointerEvents") == "none")
+        ok = ok and wm_ok
+
+        title_color = page.evaluate(
+            """() => {
+              const el = document.querySelector('.hero-title');
+              return el ? getComputedStyle(el).color : '';
+            }"""
+        )
+        title_ok = title_color == "rgb(248, 244, 240)"
+        assert_metric("hero_title_color_unchanged", title_color, "rgb(248, 244, 240)", title_ok)
+        ok = ok and title_ok
+
+        process_data = page.evaluate(
+            """() => {
+              const section = document.querySelector('#process');
+              if (!section) return { bg: '', steps: 0, contrast: 0 };
+              const bg = getComputedStyle(section).backgroundColor;
+              const steps = section.querySelectorAll('.process-step').length;
+              const body = section.querySelector('.process-step-description');
+              const textColor = body ? getComputedStyle(body).color : '';
+              function parseRgb(c) {
+                const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                return m ? [+m[1], +m[2], +m[3]] : [0,0,0];
+              }
+              function lum(rgb) {
+                const a = rgb.map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+                return a[0]*0.2126 + a[1]*0.7152 + a[2]*0.0722;
+              }
+              const l1 = lum(parseRgb(bg));
+              const l2 = lum(parseRgb(textColor));
+              const contrast = (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+              return { bg, steps, contrast };
+            }"""
+        )
+        bg_ok = process_data.get("bg") == "rgb(16, 24, 44)"
+        steps_ok = process_data.get("steps") == 4
+        contrast_ok = process_data.get("contrast", 0) >= 4.5
+        assert_metric("process_section_bg_color", process_data.get("bg", ""), "rgb(16, 24, 44)", bg_ok)
+        assert_metric("process_step_count", process_data.get("steps", 0), "4", steps_ok)
+        assert_metric("process_section_contrast_ratio", round(process_data.get("contrast", 0), 2), ">= 4.5", contrast_ok)
+        ok = ok and bg_ok and steps_ok and contrast_ok
+
+        rhythm = page.evaluate(
+            """() => {
+              const ids = ['intro', 'services', 'about', 'process', 'team', 'contact'];
+              const colors = ids.map(id => {
+                const el = document.getElementById(id);
+                return el ? getComputedStyle(el).backgroundColor : null;
+              }).filter(Boolean);
+              let consecutive = false;
+              for (let i = 1; i < colors.length; i++) {
+                if (colors[i] === colors[i-1]) consecutive = true;
+              }
+              const unique = new Set(colors);
+              return { colors, consecutive, uniqueCount: unique.size };
+            }"""
+        )
+        rhythm_ok = not rhythm.get("consecutive") and rhythm.get("uniqueCount", 0) >= 3
+        assert_metric("section_bg_no_consecutive_same", 1 if not rhythm.get("consecutive") else 0, "no pairs", not rhythm.get("consecutive"))
+        assert_metric("section_bg_unique_count", rhythm.get("uniqueCount", 0), ">= 3", rhythm.get("uniqueCount", 0) >= 3)
+        ok = ok and rhythm_ok
+
+        reveal = page.evaluate(
+            """() => {
+              const els = document.querySelectorAll('.reveal');
+              let v = 0;
+              els.forEach(el => { if (parseFloat(getComputedStyle(el).opacity) > 0.5) v++; });
+              return { total: els.length, visible: v };
+            }"""
+        )
+        reveal_ok = reveal["visible"] == reveal["total"] and reveal["total"] > 24
+        assert_metric("homepage_reveal_visible", f"{reveal['visible']}/{reveal['total']}", "all visible", reveal_ok)
+        ok = ok and reveal_ok
+
+        page.close()
+
+        mobile = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile.goto(BASE + "/", wait_until="networkidle")
+        mobile.wait_for_timeout(500)
+        overflow = mobile.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
+        assert_metric("overflow_mobile_home_process", 1 if overflow else 0, "no horizontal overflow", overflow)
+        ok = ok and overflow
+
+        browser.close()
+
+    return ok
+
+
 def assert_viewport_qa() -> tuple[bool, list[str]]:
     ok = True
     shots: list[str] = []
@@ -473,21 +650,6 @@ def assert_viewport_qa() -> tuple[bool, list[str]]:
                 shots.append(f"docs/screenshots/qa/{shot_name}")
                 page.close()
 
-        page = browser.new_page(viewport={"width": 1440, "height": 900})
-        page.goto(BASE + "/", wait_until="networkidle")
-        page.wait_for_timeout(1200)
-        reveal = page.evaluate(
-            """() => {
-              const els = document.querySelectorAll('.reveal');
-              let v = 0;
-              els.forEach(el => { if (parseFloat(getComputedStyle(el).opacity) > 0.5) v++; });
-              return { total: els.length, visible: v };
-            }"""
-        )
-        reveal_ok = reveal["visible"] == reveal["total"] == 24
-        assert_metric("homepage_reveal_visible", reveal["visible"], "24/24", reveal_ok)
-        ok = ok and reveal_ok
-        page.close()
         browser.close()
 
     return ok, shots
@@ -532,7 +694,9 @@ def main() -> int:
         ok = assert_htaccess() and ok
         total_bytes = measure_homepage_total_bytes()
         results["homepage_total_resource_bytes"] = total_bytes
+        ok = total_bytes <= 650_000 and ok
         ok = assert_team_reorder_delete_guard() and ok
+        ok = assert_visual_enrichment() and ok
         viewport_ok, shots = assert_viewport_qa()
         ok = viewport_ok and ok
         results["screenshots"] = shots

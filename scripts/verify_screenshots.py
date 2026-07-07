@@ -233,9 +233,14 @@ def test_js_resilience(browser, results: dict) -> bool:
         }"""
     )
     results["js_resilience"] = state
-    all_visible = state["visible"] == state["total"] and state["total"] == 24
-    assert_metric("js_blocked_reveal_visible_count", state["visible"], "24/24", all_visible)
-    assert_metric("js_blocked_reveal_total", state["total"], "24", state["total"] == 24)
+    all_visible = state["visible"] == state["total"] and state["total"] > 24
+    assert_metric(
+        "js_blocked_reveal_visible_count",
+        f"{state['visible']}/{state['total']}",
+        "all visible",
+        all_visible,
+    )
+    assert_metric("js_blocked_reveal_total", state["total"], "> 24", state["total"] > 24)
     page.close()
     return all_visible
 

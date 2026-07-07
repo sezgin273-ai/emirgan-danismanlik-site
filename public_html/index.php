@@ -16,6 +16,7 @@ $vision = $content['vision'];
 $mission = $content['mission'];
 $team = $content['team'];
 $services = $content['services'];
+$process = $content['process'];
 $contact = $content['contact'];
 $ui = $content['ui'];
 $assets = $content['site']['assets'];
@@ -29,12 +30,17 @@ $assets = $content['site']['assets'];
 <main id="main-content">
     <?php if (section_visible($content, 'hero')): ?>
     <section class="hero section-dark" id="hero" aria-labelledby="hero-heading">
+        <div class="hero-watermark" aria-hidden="true" style="background-image: url('<?= e($assets['emblem']) ?>')"></div>
         <div class="container hero-grid">
             <div class="hero-content reveal">
                 <p class="hero-eyebrow"><?= e($hero['company']) ?></p>
-                <h1 id="hero-heading" class="hero-title">
-                    <span class="hero-title-accent"><?= e($hero['tagline']) ?></span>
-                </h1>
+                <div class="hero-title-wrap">
+                    <span class="hero-title-line hero-title-line--left" aria-hidden="true"></span>
+                    <h1 id="hero-heading" class="hero-title">
+                        <span class="hero-title-accent"><?= e($hero['tagline']) ?></span>
+                    </h1>
+                    <span class="hero-title-line hero-title-line--right" aria-hidden="true"></span>
+                </div>
                 <p class="hero-description"><?= e($hero['description']) ?></p>
                 <div class="hero-actions">
                     <a class="btn btn-gold" href="#contact"><?= e($contact['heading']) ?></a>
@@ -132,8 +138,28 @@ $assets = $content['site']['assets'];
     </section>
     <?php endif; ?>
 
+    <section class="process section-dark" id="process" aria-labelledby="process-heading">
+        <div class="container">
+            <div class="section-header section-header--dark reveal">
+                <div class="gold-divider" aria-hidden="true"></div>
+                <h2 id="process-heading" class="section-title section-title--light"><?= e($process['title']) ?></h2>
+            </div>
+            <ol class="process-steps">
+                <?php foreach ($process['steps'] as $index => $step): ?>
+                    <li class="process-step reveal" style="--reveal-delay: <?= $index * 100 ?>ms">
+                        <span class="process-step-number" aria-hidden="true"><?= $index + 1 ?></span>
+                        <div class="process-step-body">
+                            <h3 class="process-step-title"><?= e($step['title']) ?></h3>
+                            <p class="process-step-description"><?= e($step['description']) ?></p>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ol>
+        </div>
+    </section>
+
     <?php if (section_visible($content, 'team')): ?>
-    <section class="team section-cream" id="team" aria-labelledby="team-heading">
+    <section class="team section-light" id="team" aria-labelledby="team-heading">
         <div class="container">
             <div class="section-header reveal">
                 <div class="gold-divider" aria-hidden="true"></div>
@@ -161,7 +187,7 @@ $assets = $content['site']['assets'];
     <?php endif; ?>
 
     <?php if (section_visible($content, 'contact')): ?>
-    <section class="contact section-light" id="contact" aria-labelledby="contact-heading">
+    <section class="contact section-cream" id="contact" aria-labelledby="contact-heading">
         <div class="container">
             <div class="contact-intro reveal">
                 <div class="gold-divider" aria-hidden="true"></div>

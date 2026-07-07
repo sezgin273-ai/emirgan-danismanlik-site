@@ -106,7 +106,7 @@
       "passed": true
     },
     "team_card1_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.484375,
       "limit": "<= 1",
       "passed": true
     },
@@ -116,7 +116,7 @@
       "passed": true
     },
     "team_card2_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.484375,
       "limit": "<= 1",
       "passed": true
     },
@@ -126,7 +126,7 @@
       "passed": true
     },
     "team_card3_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.484375,
       "limit": "<= 1",
       "passed": true
     },
@@ -136,7 +136,7 @@
       "passed": true
     },
     "team_card4_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.484375,
       "limit": "<= 1",
       "passed": true
     },
@@ -146,7 +146,7 @@
       "passed": true
     },
     "team_card5_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.484375,
       "limit": "<= 1",
       "passed": true
     },
@@ -171,13 +171,13 @@
       "passed": true
     },
     "js_blocked_reveal_visible_count": {
-      "measured": 24,
-      "limit": "24/24",
+      "measured": "29/29",
+      "limit": "all visible",
       "passed": true
     },
     "js_blocked_reveal_total": {
-      "measured": 24,
-      "limit": "24",
+      "measured": 29,
+      "limit": "> 24",
       "passed": true
     }
   },
@@ -229,43 +229,43 @@
       {
         "index": 1,
         "left": 144,
-        "top": 224.640625,
+        "top": 224.15625,
         "right": 512,
-        "bottom": 601.265625
+        "bottom": 600.78125
       },
       {
         "index": 2,
         "left": 536,
-        "top": 224.640625,
+        "top": 224.15625,
         "right": 904,
-        "bottom": 601.265625
+        "bottom": 600.78125
       },
       {
         "index": 3,
         "left": 928,
-        "top": 224.640625,
+        "top": 224.15625,
         "right": 1296,
-        "bottom": 601.265625
+        "bottom": 600.78125
       },
       {
         "index": 4,
         "left": 340,
-        "top": 625.265625,
+        "top": 624.78125,
         "right": 708,
-        "bottom": 955.703125
+        "bottom": 955.21875
       },
       {
         "index": 5,
         "left": 732,
-        "top": 625.265625,
+        "top": 624.78125,
         "right": 1100,
-        "bottom": 955.703125
+        "bottom": 955.21875
       }
     ]
   },
   "reveal_desktop-1440": {
-    "total": 24,
-    "visible": 24
+    "total": 29,
+    "visible": 29
   },
   "hero_mobile-390": {
     "top": 544.828125,
@@ -279,12 +279,12 @@
     "aspect": 1
   },
   "reveal_mobile-390": {
-    "total": 24,
-    "visible": 24
+    "total": 29,
+    "visible": 29
   },
   "js_resilience": {
-    "total": 24,
-    "visible": 24,
+    "total": 29,
+    "visible": 29,
     "hasJsClass": false
   },
   "all_passed": true

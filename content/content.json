@@ -109,6 +109,27 @@
       }
     ]
   },
+  "process": {
+    "title": "Nasıl Çalışıyoruz",
+    "steps": [
+      {
+        "title": "Tanışma & İhtiyaç Analizi",
+        "description": "İş hedeflerinizi ve mevcut durumunuzu dinleyerek ihtiyaçlarınızı birlikte netleştiriyoruz."
+      },
+      {
+        "title": "Strateji & Yol Haritası",
+        "description": "Sektörünüze özel stratejik plan ve uygulanabilir bir yol haritası oluşturuyoruz."
+      },
+      {
+        "title": "Uygulama & Danışmanlık",
+        "description": "Belirlenen adımları uzman ekibimizle hayata geçiriyor, süreç boyunca yanınızda oluyoruz."
+      },
+      {
+        "title": "İzleme & Sürekli Destek",
+        "description": "Sonuçları ölçüyor, gelişmeleri takip ediyor ve sürdürülebilir büyüme için desteğimizi sürdürüyoruz."
+      }
+    ]
+  },
   "about": {
     "title": "Hakkımızda",
     "heading": "Emirgan Danışmanlık Ticaret Anonim Şirketi",

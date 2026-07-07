@@ -82,14 +82,15 @@ function initials(string $name): string
  */
 function service_icon(string $icon): string
 {
+    $attrs = 'viewBox="0 0 24 24" aria-hidden="true" focusable="false"';
     $icons = [
-        'strategy' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 7-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8h7v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        'legal' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v3M8 6h8M6 9h12v10H6zM9 13h6M9 16h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        'finance' => '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h2M15 14h2M12 10v4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        'feasibility' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18V6M4 18h16M8 14v-3M12 16V9M16 12V7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-        'realestate' => '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10l8-6 8 6v9H4z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M10 19v-5h4v5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-        'trade' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 12h18M12 4c2 2.5 2 11.5 0 16M12 4c-2 2.5-2 11.5 0 16" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
-        'governance' => '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M4 19c0-2.5 2-4 4-4s4 1.5 4 4M12 19c0-2.5 2-4 4-4s4 1.5 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        'strategy' => '<svg ' . $attrs . '><path d="M3 17l6-6 4 4 7-7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 8h7v7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        'legal' => '<svg ' . $attrs . '><path d="M12 2v4M8 6h8M5 9h14v12H5zM9 13h6M9 17h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        'finance' => '<svg ' . $attrs . '><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 10h2M15 14h2M12 9v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        'feasibility' => '<svg ' . $attrs . '><path d="M4 19V5M4 19h16M8 15v-4M12 17V9M16 13V7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        'realestate' => '<svg ' . $attrs . '><path d="M3 11l9-7 9 7v10H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 21v-6h6v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+        'trade' => '<svg ' . $attrs . '><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M2 12h20M12 3c2.2 2.8 2.2 13.2 0 18M12 3c-2.2 2.8-2.2 13.2 0 18" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>',
+        'governance' => '<svg ' . $attrs . '><circle cx="7" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="7" r="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 20c0-2.8 2.2-5 4.5-5s4.5 2.2 4.5 5M13 20c0-2.8 2.2-5 4.5-5s4.5 2.2 4.5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
     ];
 
     return $icons[$icon] ?? $icons['strategy'];

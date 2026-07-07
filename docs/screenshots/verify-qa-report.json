@@ -154,8 +154,8 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 578341,
-      "limit": "reported",
+      "measured": 584331,
+      "limit": "<= 650000",
       "passed": true
     },
     "team_label_after_sort": {
@@ -171,6 +171,76 @@
     "team_reorder_delete_list_unchanged": {
       "measured": 1,
       "limit": "unchanged",
+      "passed": true
+    },
+    "service_card_inline_svg_count": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "service_icon_unique_paths": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "service_card_hover_translate_y": {
+      "measured": -5.97679,
+      "limit": "<= -2px",
+      "passed": true
+    },
+    "service_card_hover_shadow_changed": {
+      "measured": 1,
+      "limit": "changed",
+      "passed": true
+    },
+    "hero_watermark_opacity": {
+      "measured": 0.05,
+      "limit": "0.03-0.08",
+      "passed": true
+    },
+    "hero_watermark_pointer_events": {
+      "measured": "none",
+      "limit": "none",
+      "passed": true
+    },
+    "hero_title_color_unchanged": {
+      "measured": "rgb(248, 244, 240)",
+      "limit": "rgb(248, 244, 240)",
+      "passed": true
+    },
+    "process_section_bg_color": {
+      "measured": "rgb(16, 24, 44)",
+      "limit": "rgb(16, 24, 44)",
+      "passed": true
+    },
+    "process_step_count": {
+      "measured": 4,
+      "limit": "4",
+      "passed": true
+    },
+    "process_section_contrast_ratio": {
+      "measured": 16.14,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "section_bg_no_consecutive_same": {
+      "measured": 1,
+      "limit": "no pairs",
+      "passed": true
+    },
+    "section_bg_unique_count": {
+      "measured": 3,
+      "limit": ">= 3",
+      "passed": true
+    },
+    "homepage_reveal_visible": {
+      "measured": "29/29",
+      "limit": "all visible",
+      "passed": true
+    },
+    "overflow_mobile_home_process": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
       "passed": true
     },
     "overflow_mobile_home": {
@@ -201,11 +271,6 @@
     "overflow_desktop_kvkk": {
       "measured": 1,
       "limit": "no horizontal overflow",
-      "passed": true
-    },
-    "homepage_reveal_visible": {
-      "measured": 24,
-      "limit": "24/24",
       "passed": true
     },
     "scope_unchanged_logo-full.png": {
@@ -243,6 +308,11 @@
       "limit": "unchanged",
       "passed": true
     },
+    "content_json_process_added": {
+      "measured": 1,
+      "limit": "process key with 4 steps",
+      "passed": true
+    },
     "content_json_site_url_added": {
       "measured": "https://emirgandanismanlik.com",
       "limit": "https://emirgandanismanlik.com",
@@ -269,6 +339,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 578341,
+  "homepage_total_resource_bytes": 584331,
   "all_passed": true
 }
