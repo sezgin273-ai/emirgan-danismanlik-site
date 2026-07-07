@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.39,
+      "measured": 1.76,
       "limit": ">= 1",
       "passed": true
     },
@@ -466,6 +466,106 @@
     "team_delete_ui_first_member_removed": {
       "measured": 1,
       "limit": "index 0 removed only",
+      "passed": true
+    },
+    "backup_delete_test_listed": {
+      "measured": 1,
+      "limit": "test backup visible",
+      "passed": true
+    },
+    "backup_delete_ui_removed": {
+      "measured": 1,
+      "limit": "file gone",
+      "passed": true
+    },
+    "backup_delete_others_preserved": {
+      "measured": 1,
+      "limit": "others exist",
+      "passed": true
+    },
+    "backup_delete_path_traversal_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "backup_label_saved": {
+      "measured": 1,
+      "limit": "sidecar label",
+      "passed": true
+    },
+    "backup_latest_badge_visible": {
+      "measured": 1,
+      "limit": "En güncel",
+      "passed": true
+    },
+    "backup_label_traversal_status": {
+      "measured": 422,
+      "limit": "422",
+      "passed": true
+    },
+    "team_photo_remove_upload_ready": {
+      "measured": 1,
+      "limit": "photo on disk",
+      "passed": true
+    },
+    "team_photo_remove_button_visible": {
+      "measured": 1,
+      "limit": ">= 1",
+      "passed": true
+    },
+    "team_photo_remove_reject_unchanged": {
+      "measured": 1,
+      "limit": "photo kept",
+      "passed": true
+    },
+    "team_photo_remove_cleared_json": {
+      "measured": 1,
+      "limit": "empty photo",
+      "passed": true
+    },
+    "team_photo_remove_file_deleted": {
+      "measured": 1,
+      "limit": "orphan removed",
+      "passed": true
+    },
+    "team_photo_remove_monogram_ui": {
+      "measured": 1,
+      "limit": "monogram",
+      "passed": true
+    },
+    "team_photo_remove_button_hidden": {
+      "measured": 1,
+      "limit": "no button",
+      "passed": true
+    },
+    "contact_phone_add_side_by_side": {
+      "measured": 1,
+      "limit": "top <=8px",
+      "passed": true
+    },
+    "contact_phone_tel_link": {
+      "measured": 1,
+      "limit": "tel:",
+      "passed": true
+    },
+    "contact_phone_delete_restored_count": {
+      "measured": 3,
+      "limit": "3",
+      "passed": true
+    },
+    "display_header_logo_large_height_px": {
+      "measured": 57.6,
+      "limit": ">= 55.0",
+      "passed": true
+    },
+    "display_header_logo_header_height_px": {
+      "measured": 72,
+      "limit": "<= 96",
+      "passed": true
+    },
+    "display_invalid_size_status": {
+      "measured": 422,
+      "limit": "422",
       "passed": true
     },
     "content_json_byte_restored": {

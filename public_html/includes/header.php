@@ -15,7 +15,7 @@ $home_href = $is_home ? '#hero' : '/#hero';
 <header class="site-header" id="site-header">
     <div class="container header-inner">
         <a class="brand" href="<?= e($home_href) ?>" aria-label="<?= e($site['title']) ?>">
-            <img src="<?= e($assets['logo_light']) ?>" alt="<?= e($site['title']) ?>" class="brand-logo">
+            <img src="<?= e($assets['logo_light']) ?>" alt="<?= e($site['title']) ?>" class="brand-logo <?= e(display_size_class($content, 'header_logo')) ?>">
         </a>
 
         <button

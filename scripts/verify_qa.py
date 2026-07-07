@@ -28,6 +28,8 @@ HTACCESS_PATH = ROOT / "public_html/.htaccess"
 BASE = "http://localhost:8080"
 TEST_PASSWORD = ".eE951623"
 CONTACT_SECTION_BASELINE_HEIGHT_PX = 956
+CONTACT_SECTION_MAX_HEIGHT_PX = 790
+CONTACT_RIGHT_COL_BASELINE_RATIO = 1 / 2.618
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
 
@@ -158,7 +160,27 @@ def assert_content_json_scope() -> bool:
         "/assets/img/og-image.png",
         og_ok,
     )
-    return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok
+
+    display_ok = current.get("display") == {
+        "header_logo": "medium",
+        "footer_logo": "medium",
+        "team_avatar": "medium",
+        "service_icon": "medium",
+        "hero_emblem": "medium",
+    }
+    assert_metric("content_json_display_added", 1 if display_ok else 0, "medium defaults", display_ok)
+
+    head_contact = head_cmp.get("contact", {})
+    info_items = current.get("contact", {}).get("info_items", [])
+    seeded_ok = (
+        len(info_items) >= 3
+        and info_items[0].get("value") == head_contact.get("addresses", [{}])[0].get("text")
+        and info_items[1].get("value") == head_contact.get("addresses", [{}, {}])[1].get("text")
+        and info_items[2].get("value") == head_contact.get("email")
+    )
+    assert_metric("content_json_info_items_seeded", 1 if seeded_ok else 0, "byte-identical seed", seeded_ok)
+
+    return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok and display_ok and seeded_ok
 
 
 def assert_scope_unchanged() -> bool:
@@ -634,12 +656,12 @@ def assert_visual_enrichment() -> bool:
 
 
 def assert_faz47_contact_layout() -> bool:
-    """Faz 4.7: kompakt iletişim yerleşimi ve Google Harita embed."""
+    """Faz 4.7/4.8: kompakt iletişim yerleşimi, genişletilmiş sağ sütun ve harita embed."""
     ok = True
     content = json.loads(CONTENT_PATH.read_text(encoding="utf-8"))
-    turkey_address = content["contact"]["addresses"][0]["text"]
+    info_items = content["contact"].get("info_items", [])
+    turkey_address = info_items[0]["value"] if info_items else content["contact"]["addresses"][0]["text"]
     encoded_address = quote(turkey_address, safe="")
-    max_height = int(CONTACT_SECTION_BASELINE_HEIGHT_PX * 0.8)
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -652,43 +674,57 @@ def assert_faz47_contact_layout() -> bool:
         height = page.evaluate(
             """() => Math.round(document.getElementById('contact').getBoundingClientRect().height)"""
         )
-        height_ok = height <= max_height
+        height_ok = height <= CONTACT_SECTION_MAX_HEIGHT_PX
         assert_metric("contact_section_height_baseline_px", CONTACT_SECTION_BASELINE_HEIGHT_PX, "baseline", True)
-        assert_metric("contact_section_height_px", height, f"<= {max_height}", height_ok)
+        assert_metric("contact_section_height_px", height, f"<= {CONTACT_SECTION_MAX_HEIGHT_PX}", height_ok)
         ok = ok and height_ok
 
         layout = page.evaluate(
-            """() => {
-              const cards = Array.from(document.querySelectorAll('.contact-info-addresses .address-card'));
+            f"""() => {{
+              const grid = document.querySelector('.contact-grid');
+              const info = document.querySelector('.contact-info');
+              const cards = Array.from(document.querySelectorAll('.contact-info-grid .address-card'));
               const r0 = cards[0].getBoundingClientRect();
               const r1 = cards[1].getBoundingClientRect();
               const topDiff = Math.abs(r0.top - r1.top);
               const sideBySide = r0.right <= r1.left || r1.right <= r0.left;
-              const addresses = document.querySelector('.contact-info-addresses').getBoundingClientRect();
-              const email = document.querySelector('.contact-info-email').getBoundingClientRect();
-              const addressesCenter = addresses.left + addresses.width / 2;
-              const emailCenter = email.left + email.width / 2;
-              const emailBelow = email.top >= Math.max(r0.bottom, r1.bottom) - 4;
-              const emailCenterDelta = Math.abs(emailCenter - addressesCenter);
+              const email = document.querySelector('.contact-info-email');
+              const emailRect = email ? email.getBoundingClientRect() : {{ top: 0, left: 0, width: 0 }};
+              const gridRect = grid.getBoundingClientRect();
+              const infoRect = info.getBoundingClientRect();
+              const rightRatio = infoRect.width / gridRect.width;
+              const baselineMin = {CONTACT_RIGHT_COL_BASELINE_RATIO} * 1.2;
+              const emailFullWidth = email ? Math.abs(emailRect.width - infoRect.width) <= 8 : false;
+              const emailBelow = email ? emailRect.top >= Math.max(r0.bottom, r1.bottom) - 4 : false;
               const iframe = document.querySelector('.contact-map-iframe');
-              const iframeRect = iframe ? iframe.getBoundingClientRect() : { height: 0 };
-              return {
+              const iframeRect = iframe ? iframe.getBoundingClientRect() : {{ height: 0 }};
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return {{
                 topDiff,
                 sideBySide,
-                emailCenterDelta,
+                rightRatio,
+                emailFullWidth,
                 emailBelow,
                 iframeHeight: iframeRect.height,
                 src: iframe ? iframe.getAttribute('src') || '' : '',
-              };
-            }"""
+                overflow,
+              }};
+            }}"""
         )
         cards_ok = layout["topDiff"] <= 8 and layout["sideBySide"]
+        right_ok = layout["rightRatio"] >= CONTACT_RIGHT_COL_BASELINE_RATIO * 1.2
         assert_metric("contact_address_cards_top_delta_px", round(layout["topDiff"], 2), "<= 8", layout["topDiff"] <= 8)
         assert_metric("contact_address_cards_side_by_side", 1 if layout["sideBySide"] else 0, "no horizontal overlap", layout["sideBySide"])
-        ok = ok and cards_ok
+        assert_metric(
+            "contact_right_column_width_ratio",
+            round(layout["rightRatio"], 4),
+            f">= {round(CONTACT_RIGHT_COL_BASELINE_RATIO * 1.2, 4)}",
+            right_ok,
+        )
+        ok = ok and cards_ok and right_ok
 
-        email_ok = layout["emailBelow"] and layout["emailCenterDelta"] <= 8
-        assert_metric("contact_email_center_delta_px", round(layout["emailCenterDelta"], 2), "<= 8", layout["emailCenterDelta"] <= 8)
+        email_ok = layout["emailBelow"] and layout["emailFullWidth"]
+        assert_metric("contact_email_full_width", 1 if layout["emailFullWidth"] else 0, "full column", layout["emailFullWidth"])
         assert_metric("contact_email_below_cards", 1 if layout["emailBelow"] else 0, "below cards", layout["emailBelow"])
         ok = ok and email_ok
 
@@ -702,7 +738,9 @@ def assert_faz47_contact_layout() -> bool:
         )
         assert_metric("contact_map_iframe_height_px", round(map_h, 2), "240-320", map_h_ok)
         assert_metric("contact_map_iframe_src", 1 if map_src_ok else 0, "encoded address + output=embed", map_src_ok)
-        ok = ok and map_h_ok and map_src_ok
+        overflow_ok = layout["overflow"]
+        assert_metric("contact_section_no_overflow", 1 if overflow_ok else 0, "no horizontal overflow", overflow_ok)
+        ok = ok and map_h_ok and map_src_ok and overflow_ok
 
         console_ok = len(errors) == 0
         assert_metric("contact_section_console_errors", len(errors), "0", console_ok)
@@ -713,10 +751,11 @@ def assert_faz47_contact_layout() -> bool:
         mobile.wait_for_timeout(400)
         mobile_layout = mobile.evaluate(
             """() => {
-              const cards = Array.from(document.querySelectorAll('.contact-info-addresses .address-card'));
-              const r0 = cards[0].getBoundingClientRect();
-              const r1 = cards[1].getBoundingClientRect();
-              const stacked = r1.top >= r0.bottom - 4;
+              const cards = Array.from(document.querySelectorAll('.contact-info-grid .address-card'));
+              let stacked = true;
+              for (let i = 1; i < cards.length; i++) {
+                if (cards[i].getBoundingClientRect().top < cards[i-1].getBoundingClientRect().bottom - 4) stacked = false;
+              }
               const overflow = document.documentElement.scrollWidth <= window.innerWidth;
               return { stacked, overflow };
             }"""

@@ -1,287 +1,311 @@
 {
-  "site": {
-    "title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-    "lang": "tr",
-    "url": "https://emirgandanismanlik.com",
-    "meta": {
-      "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
-      "og_title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-      "og_description": "Güvenilir çözüm ortağınız — stratejik yönetim, hukuki ve finansal danışmanlık.",
-      "og_image": "/assets/img/og-image.png"
+    "site": {
+        "title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+        "lang": "tr",
+        "url": "https:\/\/emirgandanismanlik.com",
+        "meta": {
+            "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
+            "og_title": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+            "og_description": "Güvenilir çözüm ortağınız — stratejik yönetim, hukuki ve finansal danışmanlık.",
+            "og_image": "\/assets\/img\/og-image.png"
+        },
+        "sections": {
+            "hero": {
+                "visible": true
+            },
+            "intro": {
+                "visible": true
+            },
+            "services": {
+                "visible": true
+            },
+            "about": {
+                "visible": true
+            },
+            "process": {
+                "visible": true
+            },
+            "team": {
+                "visible": true
+            },
+            "contact": {
+                "visible": true
+            }
+        },
+        "assets": {
+            "favicon": "\/assets\/img\/favicon.png",
+            "apple_touch_icon": "\/assets\/img\/apple-touch-icon.png",
+            "logo_light": "\/assets\/img\/logo-full.png",
+            "logo_dark": "\/assets\/img\/logo-full-dark.png",
+            "emblem": "\/assets\/img\/emblem-dark.png"
+        }
     },
-    "sections": {
-      "hero": {
-        "visible": true
-      },
-      "intro": {
-        "visible": true
-      },
-      "services": {
-        "visible": true
-      },
-      "about": {
-        "visible": true
-      },
-      "process": {
-        "visible": true
-      },
-      "team": {
-        "visible": true
-      },
-      "contact": {
-        "visible": true
-      }
+    "navigation": {
+        "items": [
+            {
+                "id": "hero",
+                "label": "Ana Sayfa",
+                "href": "#hero"
+            },
+            {
+                "id": "services",
+                "label": "Hizmetler",
+                "href": "#services"
+            },
+            {
+                "id": "about",
+                "label": "Hakkımızda",
+                "href": "#about"
+            },
+            {
+                "id": "team",
+                "label": "Ekibimiz",
+                "href": "#team"
+            },
+            {
+                "id": "contact",
+                "label": "İletişim",
+                "href": "#contact"
+            }
+        ],
+        "cta": {
+            "label": "Bize Ulaşın",
+            "href": "#contact"
+        }
     },
-    "assets": {
-      "favicon": "/assets/img/favicon.png",
-      "apple_touch_icon": "/assets/img/apple-touch-icon.png",
-      "logo_light": "/assets/img/logo-full.png",
-      "logo_dark": "/assets/img/logo-full-dark.png",
-      "emblem": "/assets/img/emblem-dark.png"
-    }
-  },
-  "navigation": {
-    "items": [
-      {
-        "id": "hero",
-        "label": "Ana Sayfa",
-        "href": "#hero"
-      },
-      {
-        "id": "services",
-        "label": "Hizmetler",
-        "href": "#services"
-      },
-      {
-        "id": "about",
-        "label": "Hakkımızda",
-        "href": "#about"
-      },
-      {
-        "id": "team",
-        "label": "Ekibimiz",
-        "href": "#team"
-      },
-      {
-        "id": "contact",
-        "label": "İletişim",
-        "href": "#contact"
-      }
-    ],
-    "cta": {
-      "label": "Bize Ulaşın",
-      "href": "#contact"
-    }
-  },
-  "ui": {
-    "skip_to_content": "İçeriğe geç",
-    "menu_open": "Menüyü aç",
-    "menu_close": "Menüyü kapat",
-    "hero_visual_label": "Kurumsal danışmanlık görsel kompozisyonu",
-    "email_label": "E-posta",
-    "back_home": "Ana Sayfa"
-  },
-  "hero": {
-    "company": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-    "tagline": "Güvenilir Çözüm Ortağınız",
-    "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
-    "watermark_enabled": true
-  },
-  "intro": {
-    "title": "Kısa Tanıtım",
-    "text": "Emirgan Danışmanlık Ticaret Anonim Şirketi, geniş faaliyet alanlarıyla müşterilerine bütüncül danışmanlık hizmeti sunan profesyonel bir firmadır. Enerji, gayrimenkul, ticaret, inşaat ve yatırım projelerinde uzman ekibimizle yanınızdayız.",
-    "badges": [
-      {
-        "icon": "energy",
-        "label": "Enerji"
-      },
-      {
-        "icon": "realestate",
-        "label": "Gayrimenkul"
-      },
-      {
-        "icon": "trade",
-        "label": "Ticaret"
-      },
-      {
-        "icon": "construction",
-        "label": "İnşaat"
-      },
-      {
-        "icon": "investment",
-        "label": "Yatırım"
-      }
-    ]
-  },
-  "process": {
-    "title": "Nasıl Çalışıyoruz",
-    "steps": [
-      {
-        "title": "Tanışma & İhtiyaç Analizi",
-        "description": "İş hedeflerinizi ve mevcut durumunuzu dinleyerek ihtiyaçlarınızı birlikte netleştiriyoruz."
-      },
-      {
-        "title": "Strateji & Yol Haritası",
-        "description": "Sektörünüze özel stratejik plan ve uygulanabilir bir yol haritası oluşturuyoruz."
-      },
-      {
-        "title": "Uygulama & Danışmanlık",
-        "description": "Belirlenen adımları uzman ekibimizle hayata geçiriyor, süreç boyunca yanınızda oluyoruz."
-      },
-      {
-        "title": "İzleme & Sürekli Destek",
-        "description": "Sonuçları ölçüyor, gelişmeleri takip ediyor ve sürdürülebilir büyüme için desteğimizi sürdürüyoruz."
-      }
-    ]
-  },
-  "about": {
-    "title": "Hakkımızda",
-    "heading": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-    "paragraphs": [
-      "Emirgan Danışmanlık Ticaret Anonim Şirketi, Türk Ticaret Kanunu hükümlerine göre kurulmuş, geniş yetki ve faaliyet alanına sahip profesyonel bir danışmanlık şirketidir.",
-      "Danışmanlık, iş geliştirme, hukuki takip, finansal planlama ve yatırım projeleri konularında müşterilerimize güvenilir ve yüksek kaliteli hizmet sunmaktayız. Geniş sektör tecrübemiz sayesinde enerji, gayrimenkul, tarım, ticaret, lojistik ve inşaat alanlarında bütüncül çözümler üretiyoruz."
-    ]
-  },
-  "vision": {
-    "title": "Vizyonumuz",
-    "text": "Müşterilerimizin sürdürülebilir büyümesine katkı sağlamak ve Türkiye'nin tercih edilen danışmanlık şirketlerinden biri olmak."
-  },
-  "mission": {
-    "title": "Misyonumuz",
-    "text": "Dürüstlük, gizlilik ve profesyonellik ilkeleriyle hareket ederek müşterilerimize en etkili ve güncel çözümleri sunmak."
-  },
-  "team": {
-    "title": "Ekibimiz",
-    "intro": "Emirgan Danışmanlık Ticaret Anonim Şirketi'nin başarısının arkasında, alanında uzman ve deneyimli ortaklardan oluşan güçlü kadromuz yer almaktadır.",
-    "members": [
-      {
-        "name": "Kim Can Yıldız",
-        "title": "Ortak – Yönetim Kurulu Başkanı",
-        "description": "Deneyimli iş insanı ve yönetici. Şirketin stratejik yöneliminden sorumlu olup, iş geliştirme ve kurumsal yönetim konularında uzun yıllara dayanan tecrübeye sahiptir.",
-        "photo": ""
-      },
-      {
-        "name": "Turan Öner",
-        "title": "Ortak – Hukukçu, Arabulucu ve Avukat",
-        "description": "Ticari hukuk, arabuluculuk ve sözleşme yönetimi alanlarında uzmanlaşmış olup, uyuşmazlık çözümü ve hukuki danışmanlık süreçlerinde müşterilerimize destek vermektedir.",
-        "photo": ""
-      },
-      {
-        "name": "Fatih Karaca",
-        "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Şirketler hukuku, ticari anlaşmazlıklar ve kurumsal danışmanlık konularında uzman avukat. Müşterilerimizin yasal süreçlerinde güvenilir çözüm ortağıdır.",
-        "photo": ""
-      },
-      {
-        "name": "Acar Baran Eyüpoğlu",
-        "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Hukuk alanında uzmanlaşmış, özellikle ticari sözleşmeler, şirket işlemleri ve yatırım projelerinde deneyimli danışman.",
-        "photo": ""
-      },
-      {
-        "name": "Ozan Öndeş",
-        "title": "Ortak – Hukukçu ve Avukat",
-        "description": "Ticari hukuk ve kurumsal danışmanlık alanlarında uzman. Müşterilerimize pratik ve çözüm odaklı hukuki destek sunmaktadır.",
-        "photo": ""
-      }
-    ]
-  },
-  "services": {
-    "title": "Hizmetlerimiz",
-    "items": [
-      {
-        "title": "Stratejik Yönetim ve İş Geliştirme Danışmanlığı",
-        "description": "Şirketinizin stratejik hedeflerini belirliyor, büyüme stratejileri geliştiriyor ve iş süreçlerinizi optimize ediyoruz.",
-        "icon": "strategy"
-      },
-      {
-        "title": "Hukuki ve Sözleşme Danışmanlığı",
-        "description": "Sözleşme hazırlığı, ticari uyuşmazlıklar, kurumsal yönetim ve yasal süreçlerde profesyonel hukuki destek sağlıyoruz.",
-        "icon": "legal"
-      },
-      {
-        "title": "Finansal Planlama ve Vergi Danışmanlığı",
-        "description": "Bütçe yönetimi, vergi optimizasyonu, finansal raporlama ve nakit akışı planlaması konularında destek veriyoruz.",
-        "icon": "finance"
-      },
-      {
-        "title": "Yatırım ve Fizibilite Raporları",
-        "description": "Potansiyel yatırımlarınız için ekonomik, teknik ve hukuki analiz içeren kapsamlı fizibilite raporları hazırlıyoruz.",
-        "icon": "feasibility"
-      },
-      {
-        "title": "Gayrimenkul ve Proje Geliştirme Danışmanlığı",
-        "description": "Gayrimenkul alım-satım, kiralama, proje geliştirme ve yatırım süreçlerinde danışmanlık hizmeti sunuyoruz.",
-        "icon": "realestate"
-      },
-      {
-        "title": "Ticaret ve İhracat Danışmanlığı",
-        "description": "İhracat süreçleri, pazar araştırması, distribütörlük ve uluslararası ticaret operasyonlarında yanınızdayız.",
-        "icon": "trade"
-      },
-      {
-        "title": "Kurumsal Yönetim ve Ortaklık Süreçleri",
-        "description": "Şirket birleşmeleri, ortaklık yapıları ve kurumsal yönetim danışmanlığı.",
-        "icon": "governance"
-      }
-    ]
-  },
-  "contact": {
-    "title": "İletişim",
-    "heading": "Bize Ulaşın",
-    "addresses": [
-      {
-        "label": "Türkiye Merkezi",
-        "text": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
-      },
-      {
-        "label": "İrtibat Ofisi",
-        "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
-      }
-    ],
-    "email": "info@emirgandanismanlik.com",
-    "form": {
-      "name": {
-        "label": "Ad Soyad",
-        "placeholder": "Adınız ve soyadınız"
-      },
-      "email": {
-        "label": "E-posta",
-        "placeholder": "ornek@email.com"
-      },
-      "phone": {
-        "label": "Telefon",
-        "placeholder": "+90 212 000 00 00"
-      },
-      "subject": {
-        "label": "Konu",
-        "placeholder": "Mesaj konusu"
-      },
-      "message": {
-        "label": "Mesaj",
-        "placeholder": "Mesajınızı yazın"
-      },
-      "submit": "Mesaj Gönder",
-      "success": "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
-      "error": "Lütfen zorunlu alanları doldurun."
-    }
-  },
-  "footer": {
-    "quick_links_title": "Hızlı Bağlantılar"
-  },
-  "kvkk": {
-    "title": "KVKK Aydınlatma Metni",
-    "intro": "Emirgan Danışmanlık Ticaret Anonim Şirketi olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") ve ilgili mevzuat kapsamında veri sorumlusu sıfatıyla, web sitemiz üzerinden elde ettiğimiz kişisel verilerinizi aşağıda belirtilen çerçevede işlemekteyiz.",
-    "sections": [
-      {
-        "heading": "1. Veri Sorumlusu",
-        "paragraphs": [
-          "Emirgan Danışmanlık Ticaret Anonim Şirketi",
-          "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul",
-          "İrtibat Ofisi: Hohe Bleichen 12, 20354 Hamburg, Germany"
+    "ui": {
+        "skip_to_content": "İçeriğe geç",
+        "menu_open": "Menüyü aç",
+        "menu_close": "Menüyü kapat",
+        "hero_visual_label": "Kurumsal danışmanlık görsel kompozisyonu",
+        "email_label": "E-posta",
+        "back_home": "Ana Sayfa"
+    },
+    "hero": {
+        "company": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+        "tagline": "Güvenilir Çözüm Ortağınız",
+        "description": "Stratejik yönetim, iş geliştirme, hukuki ve finansal danışmanlık hizmetleriyle şirketinizin büyümesine destek oluyoruz.",
+        "watermark_enabled": true
+    },
+    "intro": {
+        "title": "Kısa Tanıtım",
+        "text": "Emirgan Danışmanlık Ticaret Anonim Şirketi, geniş faaliyet alanlarıyla müşterilerine bütüncül danışmanlık hizmeti sunan profesyonel bir firmadır. Enerji, gayrimenkul, ticaret, inşaat ve yatırım projelerinde uzman ekibimizle yanınızdayız.",
+        "badges": [
+            {
+                "icon": "energy",
+                "label": "Enerji"
+            },
+            {
+                "icon": "realestate",
+                "label": "Gayrimenkul"
+            },
+            {
+                "icon": "trade",
+                "label": "Ticaret"
+            },
+            {
+                "icon": "construction",
+                "label": "İnşaat"
+            },
+            {
+                "icon": "investment",
+                "label": "Yatırım"
+            }
         ]
-      }
-    ],
-    "note": "Detaylı KVKK metni için önceki mesajı referans alın. Bu belge özetlenmiş haliyle hazırlanmıştır."
-  }
+    },
+    "process": {
+        "title": "Nasıl Çalışıyoruz",
+        "steps": [
+            {
+                "title": "Tanışma & İhtiyaç Analizi",
+                "description": "İş hedeflerinizi ve mevcut durumunuzu dinleyerek ihtiyaçlarınızı birlikte netleştiriyoruz."
+            },
+            {
+                "title": "Strateji & Yol Haritası",
+                "description": "Sektörünüze özel stratejik plan ve uygulanabilir bir yol haritası oluşturuyoruz."
+            },
+            {
+                "title": "Uygulama & Danışmanlık",
+                "description": "Belirlenen adımları uzman ekibimizle hayata geçiriyor, süreç boyunca yanınızda oluyoruz."
+            },
+            {
+                "title": "İzleme & Sürekli Destek",
+                "description": "Sonuçları ölçüyor, gelişmeleri takip ediyor ve sürdürülebilir büyüme için desteğimizi sürdürüyoruz."
+            }
+        ]
+    },
+    "about": {
+        "title": "Hakkımızda",
+        "heading": "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+        "paragraphs": [
+            "Emirgan Danışmanlık Ticaret Anonim Şirketi, Türk Ticaret Kanunu hükümlerine göre kurulmuş, geniş yetki ve faaliyet alanına sahip profesyonel bir danışmanlık şirketidir.",
+            "Danışmanlık, iş geliştirme, hukuki takip, finansal planlama ve yatırım projeleri konularında müşterilerimize güvenilir ve yüksek kaliteli hizmet sunmaktayız. Geniş sektör tecrübemiz sayesinde enerji, gayrimenkul, tarım, ticaret, lojistik ve inşaat alanlarında bütüncül çözümler üretiyoruz."
+        ]
+    },
+    "vision": {
+        "title": "Vizyonumuz",
+        "text": "Müşterilerimizin sürdürülebilir büyümesine katkı sağlamak ve Türkiye'nin tercih edilen danışmanlık şirketlerinden biri olmak."
+    },
+    "mission": {
+        "title": "Misyonumuz",
+        "text": "Dürüstlük, gizlilik ve profesyonellik ilkeleriyle hareket ederek müşterilerimize en etkili ve güncel çözümleri sunmak."
+    },
+    "team": {
+        "title": "Ekibimiz",
+        "intro": "Emirgan Danışmanlık Ticaret Anonim Şirketi'nin başarısının arkasında, alanında uzman ve deneyimli ortaklardan oluşan güçlü kadromuz yer almaktadır.",
+        "members": [
+            {
+                "name": "Kim Can Yıldız",
+                "title": "Ortak – Yönetim Kurulu Başkanı",
+                "description": "Deneyimli iş insanı ve yönetici. Şirketin stratejik yöneliminden sorumlu olup, iş geliştirme ve kurumsal yönetim konularında uzun yıllara dayanan tecrübeye sahiptir.",
+                "photo": ""
+            },
+            {
+                "name": "Turan Öner",
+                "title": "Ortak – Hukukçu, Arabulucu ve Avukat",
+                "description": "Ticari hukuk, arabuluculuk ve sözleşme yönetimi alanlarında uzmanlaşmış olup, uyuşmazlık çözümü ve hukuki danışmanlık süreçlerinde müşterilerimize destek vermektedir.",
+                "photo": ""
+            },
+            {
+                "name": "Fatih Karaca",
+                "title": "Ortak – Hukukçu ve Avukat",
+                "description": "Şirketler hukuku, ticari anlaşmazlıklar ve kurumsal danışmanlık konularında uzman avukat. Müşterilerimizin yasal süreçlerinde güvenilir çözüm ortağıdır.",
+                "photo": ""
+            },
+            {
+                "name": "Acar Baran Eyüpoğlu",
+                "title": "Ortak – Hukukçu ve Avukat",
+                "description": "Hukuk alanında uzmanlaşmış, özellikle ticari sözleşmeler, şirket işlemleri ve yatırım projelerinde deneyimli danışman.",
+                "photo": ""
+            },
+            {
+                "name": "Ozan Öndeş",
+                "title": "Ortak – Hukukçu ve Avukat",
+                "description": "Ticari hukuk ve kurumsal danışmanlık alanlarında uzman. Müşterilerimize pratik ve çözüm odaklı hukuki destek sunmaktadır.",
+                "photo": ""
+            }
+        ]
+    },
+    "services": {
+        "title": "Hizmetlerimiz",
+        "items": [
+            {
+                "title": "Stratejik Yönetim ve İş Geliştirme Danışmanlığı",
+                "description": "Şirketinizin stratejik hedeflerini belirliyor, büyüme stratejileri geliştiriyor ve iş süreçlerinizi optimize ediyoruz.",
+                "icon": "strategy"
+            },
+            {
+                "title": "Hukuki ve Sözleşme Danışmanlığı",
+                "description": "Sözleşme hazırlığı, ticari uyuşmazlıklar, kurumsal yönetim ve yasal süreçlerde profesyonel hukuki destek sağlıyoruz.",
+                "icon": "legal"
+            },
+            {
+                "title": "Finansal Planlama ve Vergi Danışmanlığı",
+                "description": "Bütçe yönetimi, vergi optimizasyonu, finansal raporlama ve nakit akışı planlaması konularında destek veriyoruz.",
+                "icon": "finance"
+            },
+            {
+                "title": "Yatırım ve Fizibilite Raporları",
+                "description": "Potansiyel yatırımlarınız için ekonomik, teknik ve hukuki analiz içeren kapsamlı fizibilite raporları hazırlıyoruz.",
+                "icon": "feasibility"
+            },
+            {
+                "title": "Gayrimenkul ve Proje Geliştirme Danışmanlığı",
+                "description": "Gayrimenkul alım-satım, kiralama, proje geliştirme ve yatırım süreçlerinde danışmanlık hizmeti sunuyoruz.",
+                "icon": "realestate"
+            },
+            {
+                "title": "Ticaret ve İhracat Danışmanlığı",
+                "description": "İhracat süreçleri, pazar araştırması, distribütörlük ve uluslararası ticaret operasyonlarında yanınızdayız.",
+                "icon": "trade"
+            },
+            {
+                "title": "Kurumsal Yönetim ve Ortaklık Süreçleri",
+                "description": "Şirket birleşmeleri, ortaklık yapıları ve kurumsal yönetim danışmanlığı.",
+                "icon": "governance"
+            }
+        ]
+    },
+    "contact": {
+        "title": "İletişim",
+        "heading": "Bize Ulaşın",
+        "addresses": [
+            {
+                "label": "Türkiye Merkezi",
+                "text": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "label": "İrtibat Ofisi",
+                "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            }
+        ],
+        "email": "info@emirgandanismanlik.com",
+        "info_items": [
+            {
+                "type": "address",
+                "title": "Türkiye Merkezi",
+                "value": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "type": "address",
+                "title": "İrtibat Ofisi",
+                "value": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            },
+            {
+                "type": "email",
+                "title": "E-posta",
+                "value": "info@emirgandanismanlik.com"
+            }
+        ],
+        "form": {
+            "name": {
+                "label": "Ad Soyad",
+                "placeholder": "Adınız ve soyadınız"
+            },
+            "email": {
+                "label": "E-posta",
+                "placeholder": "ornek@email.com"
+            },
+            "phone": {
+                "label": "Telefon",
+                "placeholder": "+90 212 000 00 00"
+            },
+            "subject": {
+                "label": "Konu",
+                "placeholder": "Mesaj konusu"
+            },
+            "message": {
+                "label": "Mesaj",
+                "placeholder": "Mesajınızı yazın"
+            },
+            "submit": "Mesaj Gönder",
+            "success": "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
+            "error": "Lütfen zorunlu alanları doldurun."
+        }
+    },
+    "display": {
+        "header_logo": "medium",
+        "footer_logo": "medium",
+        "team_avatar": "medium",
+        "service_icon": "medium",
+        "hero_emblem": "medium"
+    },
+    "footer": {
+        "quick_links_title": "Hızlı Bağlantılar"
+    },
+    "kvkk": {
+        "title": "KVKK Aydınlatma Metni",
+        "intro": "Emirgan Danışmanlık Ticaret Anonim Şirketi olarak, 6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") ve ilgili mevzuat kapsamında veri sorumlusu sıfatıyla, web sitemiz üzerinden elde ettiğimiz kişisel verilerinizi aşağıda belirtilen çerçevede işlemekteyiz.",
+        "sections": [
+            {
+                "heading": "1. Veri Sorumlusu",
+                "paragraphs": [
+                    "Emirgan Danışmanlık Ticaret Anonim Şirketi",
+                    "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul",
+                    "İrtibat Ofisi: Hohe Bleichen 12, 20354 Hamburg, Germany"
+                ]
+            }
+        ],
+        "note": "Detaylı KVKK metni için önceki mesajı referans alın. Bu belge özetlenmiş haliyle hazırlanmıştır."
+    }
 }

@@ -8,7 +8,7 @@ admin_require_login();
 
 $content = load_content();
 $csrf = admin_csrf_token();
-$backups = list_content_backups();
+$backups = list_content_backups_with_labels();
 $flash = null;
 
 admin_start_session();
@@ -20,6 +20,26 @@ if (!empty($_SESSION['admin_flash'])) {
 $serviceIcons = service_icon_names();
 $badgeIcons = ['energy', 'realestate', 'trade', 'construction', 'investment'];
 $processSteps = $content['process']['steps'] ?? [];
+$contactInfoItems = $content['contact']['info_items'] ?? [];
+$displayGroups = [
+    'header_logo' => 'Üst menü logosu',
+    'footer_logo' => 'Footer logosu',
+    'team_avatar' => 'Ekip fotoğraf/monogram',
+    'service_icon' => 'Hizmet kartı ikonları',
+    'hero_emblem' => 'Hero amblem kompozisyonu',
+];
+$displaySizes = [
+    'small' => 'Küçük',
+    'medium' => 'Orta',
+    'large' => 'Büyük',
+];
+$contactInfoTypes = [
+    'address' => 'Adres',
+    'phone' => 'Telefon',
+    'fax' => 'Faks',
+    'email' => 'E-posta',
+    'other' => 'Diğer',
+];
 $sectionLabels = [
     'hero' => 'Ana Sayfa (Hero)',
     'intro' => 'Kısa Tanıtım',
@@ -67,6 +87,7 @@ $sectionLabels = [
         <a href="#contact">İletişim</a>
         <a href="#kvkk">KVKK</a>
         <a href="#media">Görseller</a>
+        <a href="#display">Boyutlar</a>
         <a href="#backups">Yedekler</a>
         <a href="/" target="_blank" rel="noopener">Siteyi aç</a>
     </nav>
@@ -261,6 +282,12 @@ $sectionLabels = [
                         <textarea name="content[team][members][<?= $i ?>][description]"><?= e($member['description']) ?></textarea>
                         <?php if (!empty($member['photo'])): ?>
                             <img src="<?= e($member['photo']) ?>" alt="" class="admin-photo-preview">
+                            <button
+                                type="button"
+                                class="admin-btn admin-btn--danger"
+                                data-remove-team-photo
+                                data-member-index="<?= $i ?>"
+                            >Fotoğrafı Kaldır</button>
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
@@ -274,8 +301,46 @@ $sectionLabels = [
             <input type="text" id="contact-title" name="content[contact][title]" value="<?= e($content['contact']['title']) ?>">
             <label for="contact-heading">Alt başlık</label>
             <input type="text" id="contact-heading" name="content[contact][heading]" value="<?= e($content['contact']['heading']) ?>">
-            <label for="contact-email">E-posta</label>
+            <label for="contact-email">E-posta (eski anahtar)</label>
             <input type="email" id="contact-email" name="content[contact][email]" value="<?= e($content['contact']['email']) ?>">
+            <h3>İletişim bilgileri (ön yüz)</h3>
+            <input type="hidden" name="content[contact][info_items_present]" value="1">
+            <div id="contact-info-list" data-sortable-prefix="content[contact][info_items]" data-label-prefix="Bilgi">
+                <?php foreach ($contactInfoItems as $i => $infoItem): ?>
+                    <div class="admin-list-item" data-sortable-item>
+                        <div class="admin-list-item__head">
+                            <strong data-item-label>Bilgi <?= $i + 1 ?></strong>
+                            <div class="admin-actions-row">
+                                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn--danger"
+                                    data-delete-contact-info
+                                    data-info-index="<?= $i ?>"
+                                >Sil</button>
+                            </div>
+                        </div>
+                        <div class="admin-grid-2">
+                            <div>
+                                <label>Tip</label>
+                                <select name="content[contact][info_items][<?= $i ?>][type]">
+                                    <?php foreach ($contactInfoTypes as $typeKey => $typeLabel): ?>
+                                        <option value="<?= e($typeKey) ?>" <?= ($infoItem['type'] ?? '') === $typeKey ? 'selected' : '' ?>><?= e($typeLabel) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label>Başlık</label>
+                                <input type="text" name="content[contact][info_items][<?= $i ?>][title]" value="<?= e($infoItem['title'] ?? '') ?>">
+                            </div>
+                        </div>
+                        <label>Değer</label>
+                        <textarea name="content[contact][info_items][<?= $i ?>][value]"><?= e($infoItem['value'] ?? '') ?></textarea>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="admin-btn admin-btn--gold" data-add-contact-info>İletişim Bilgisi Ekle</button>
             <input type="hidden" name="content[contact][addresses_present]" value="1">
             <?php foreach ($content['contact']['addresses'] as $i => $address): ?>
                 <h3>Adres <?= $i + 1 ?></h3>
@@ -314,6 +379,19 @@ $sectionLabels = [
             <textarea id="kvkk-note" name="content[kvkk][note]"><?= e($content['kvkk']['note'] ?? '') ?></textarea>
         </section>
 
+        <section class="admin-card" id="display">
+            <h2>Görsel Boyutları</h2>
+            <p class="admin-muted">Varsayılan Orta, bugünkü ölçülerle aynıdır.</p>
+            <?php foreach ($displayGroups as $groupKey => $groupLabel): ?>
+                <label for="display-<?= e($groupKey) ?>"><?= e($groupLabel) ?></label>
+                <select id="display-<?= e($groupKey) ?>" name="content[display][<?= e($groupKey) ?>]">
+                    <?php foreach ($displaySizes as $sizeKey => $sizeLabel): ?>
+                        <option value="<?= e($sizeKey) ?>" <?= display_size_value($content, $groupKey) === $sizeKey ? 'selected' : '' ?>><?= e($sizeLabel) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            <?php endforeach; ?>
+        </section>
+
         <section class="admin-card" id="footer">
             <h2>Footer ve UI</h2>
             <label>Footer hızlı bağlantılar başlığı</label>
@@ -346,16 +424,16 @@ $sectionLabels = [
                     <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
                     <div class="admin-actions-row">
                         <button type="submit" class="admin-btn admin-btn--gold">Fotoğraf Yükle</button>
+                        <?php if (!empty($member['photo'])): ?>
+                            <button
+                                type="button"
+                                class="admin-btn admin-btn--danger"
+                                data-remove-team-photo
+                                data-member-index="<?= $i ?>"
+                            >Fotoğrafı Kaldır</button>
+                        <?php endif; ?>
                     </div>
                 </form>
-                <?php if (!empty($member['photo'])): ?>
-                    <form method="post" action="/admin/actions.php">
-                        <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
-                        <input type="hidden" name="action" value="remove_team_photo">
-                        <input type="hidden" name="member_index" value="<?= $i ?>">
-                        <button type="submit" class="admin-btn admin-btn--danger">Fotoğrafı Kaldır</button>
-                    </form>
-                <?php endif; ?>
             </div>
         <?php endforeach; ?>
 
@@ -393,20 +471,72 @@ $sectionLabels = [
         <?php else: ?>
             <ul class="admin-backup-list">
                 <?php foreach ($backups as $backup): ?>
-                    <li>
-                        <span><?= e($backup['name']) ?> — <?= date('d.m.Y H:i', $backup['mtime']) ?></span>
-                        <form method="post" action="/admin/actions.php">
-                            <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
-                            <input type="hidden" name="action" value="restore_backup">
-                            <input type="hidden" name="backup_name" value="<?= e($backup['name']) ?>">
-                            <button type="submit" class="admin-btn">Geri Yükle</button>
-                        </form>
+                    <li class="admin-backup-item">
+                        <div class="admin-backup-item__meta">
+                            <?php if ($backup['is_latest']): ?>
+                                <span class="admin-badge admin-badge--gold">En güncel</span>
+                            <?php endif; ?>
+                            <span><?= e($backup['name']) ?> — <?= date('d.m.Y H:i', $backup['mtime']) ?></span>
+                            <?php if (!empty($backup['label'])): ?>
+                                <span class="admin-muted">(<?= e($backup['label']) ?>)</span>
+                            <?php endif; ?>
+                        </div>
+                        <div class="admin-backup-item__actions">
+                            <form method="post" action="/admin/actions.php" class="admin-form admin-form--inline">
+                                <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+                                <input type="hidden" name="action" value="label_backup">
+                                <input type="hidden" name="backup_name" value="<?= e($backup['name']) ?>">
+                                <input type="text" name="backup_label" value="<?= e($backup['label']) ?>" maxlength="50" placeholder="Etiket">
+                                <button type="submit" class="admin-btn">Etiket Kaydet</button>
+                            </form>
+                            <form method="post" action="/admin/actions.php" class="admin-form admin-form--inline">
+                                <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
+                                <input type="hidden" name="action" value="restore_backup">
+                                <input type="hidden" name="backup_name" value="<?= e($backup['name']) ?>">
+                                <button type="submit" class="admin-btn">Geri Yükle</button>
+                            </form>
+                            <button
+                                type="button"
+                                class="admin-btn admin-btn--danger"
+                                data-delete-backup
+                                data-backup-name="<?= e($backup['name']) ?>"
+                            >Sil</button>
+                        </div>
                     </li>
                 <?php endforeach; ?>
             </ul>
         <?php endif; ?>
     </section>
 </div>
+
+<template id="contact-info-template">
+    <div class="admin-list-item" data-sortable-item>
+        <div class="admin-list-item__head">
+            <strong data-item-label>Yeni bilgi</strong>
+            <div class="admin-actions-row">
+                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                <button type="button" class="admin-btn admin-btn--danger" data-delete-contact-info data-info-index="__INDEX__">Sil</button>
+            </div>
+        </div>
+        <div class="admin-grid-2">
+            <div>
+                <label>Tip</label>
+                <select name="content[contact][info_items][__INDEX__][type]">
+                    <?php foreach ($contactInfoTypes as $typeKey => $typeLabel): ?>
+                        <option value="<?= e($typeKey) ?>"><?= e($typeLabel) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label>Başlık</label>
+                <input type="text" name="content[contact][info_items][__INDEX__][title]" placeholder="Başlık">
+            </div>
+        </div>
+        <label>Değer</label>
+        <textarea name="content[contact][info_items][__INDEX__][value]" placeholder="Değer"></textarea>
+    </div>
+</template>
 
 <template id="service-item-template">
     <div class="admin-list-item" data-sortable-item>

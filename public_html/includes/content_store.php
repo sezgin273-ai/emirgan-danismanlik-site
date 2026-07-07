@@ -70,7 +70,7 @@ function list_content_backups(): array
 
 function restore_content_backup(string $name): bool
 {
-    if (!preg_match('/^content-[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}\.json$/', $name)) {
+    if (!is_valid_backup_name($name)) {
         return false;
     }
 
@@ -136,4 +136,106 @@ function save_content(array $data, bool $backup = true): bool
 function section_visible(array $content, string $sectionId): bool
 {
     return ($content['site']['sections'][$sectionId]['visible'] ?? true) === true;
+}
+
+function is_valid_backup_name(string $name): bool
+{
+    if (str_contains($name, '..') || str_contains($name, '/') || str_contains($name, '\\')) {
+        return false;
+    }
+
+    return (bool) preg_match('/^content-[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}\.json$/', $name);
+}
+
+function backup_labels_path(): string
+{
+    return content_backup_dir() . '/.labels.json';
+}
+
+function load_backup_labels(): array
+{
+    $path = backup_labels_path();
+    if (!is_readable($path)) {
+        return [];
+    }
+    $data = json_decode((string) file_get_contents($path), true);
+
+    return is_array($data) ? $data : [];
+}
+
+function save_backup_labels(array $labels): bool
+{
+    $dir = content_backup_dir();
+    if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+        return false;
+    }
+    $json = json_encode($labels, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+    return file_put_contents(backup_labels_path(), $json . "\n", LOCK_EX) !== false;
+}
+
+function sanitize_backup_label(string $label): ?string
+{
+    $label = str_replace(["\r", "\n", "\0"], '', trim($label));
+    $len = function_exists('mb_strlen') ? mb_strlen($label, 'UTF-8') : strlen($label);
+    if ($label === '' || $len > 50) {
+        return null;
+    }
+    if (!preg_match('/^[\p{L}\p{N}\s\-_]+$/u', $label)) {
+        return null;
+    }
+
+    return $label;
+}
+
+function delete_content_backup(string $name): bool
+{
+    if (!is_valid_backup_name($name)) {
+        return false;
+    }
+    $path = content_backup_dir() . '/' . $name;
+    if (!is_file($path)) {
+        return false;
+    }
+    if (!unlink($path)) {
+        return false;
+    }
+    $labels = load_backup_labels();
+    if (isset($labels[$name])) {
+        unset($labels[$name]);
+        save_backup_labels($labels);
+    }
+
+    return true;
+}
+
+function set_backup_label(string $name, string $label): bool
+{
+    if (!is_valid_backup_name($name)) {
+        return false;
+    }
+    $path = content_backup_dir() . '/' . $name;
+    if (!is_file($path)) {
+        return false;
+    }
+    $clean = sanitize_backup_label($label);
+    if ($clean === null) {
+        return false;
+    }
+    $labels = load_backup_labels();
+    $labels[$name] = $clean;
+
+    return save_backup_labels($labels);
+}
+
+function list_content_backups_with_labels(): array
+{
+    $backups = list_content_backups();
+    $labels = load_backup_labels();
+    foreach ($backups as $i => $backup) {
+        $backups[$i]['label'] = $labels[$backup['name']] ?? '';
+        $backups[$i]['is_latest'] = $i === 0;
+    }
+
+    return $backups;
 }

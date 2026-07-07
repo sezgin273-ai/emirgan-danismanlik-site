@@ -24,7 +24,7 @@ $assets = $content['site']['assets'];
 <!DOCTYPE html>
 <html lang="<?= e($content['site']['lang']) ?>">
 <?php require __DIR__ . '/includes/head.php'; ?>
-<body class="page-home">
+<body class="page-home <?= e(display_body_classes($content)) ?>">
 <?php require __DIR__ . '/includes/header.php'; ?>
 
 <main id="main-content">
@@ -52,7 +52,7 @@ $assets = $content['site']['assets'];
 
             <div class="hero-visual reveal" aria-label="<?= e($ui['hero_visual_label']) ?>">
                 <div class="hero-visual-card">
-                    <div class="hero-medallion" aria-hidden="true">
+                    <div class="hero-medallion <?= e(display_size_class($content, 'hero_emblem')) ?>" aria-hidden="true">
                         <span class="hero-medallion-ring hero-medallion-ring--outer"></span>
                         <span class="hero-medallion-ring hero-medallion-ring--inner"></span>
                         <img src="<?= e($assets['emblem']) ?>" alt="" class="hero-emblem">
@@ -103,7 +103,7 @@ $assets = $content['site']['assets'];
             <div class="services-grid">
                 <?php foreach ($services['items'] as $index => $service): ?>
                     <article class="service-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
-                        <div class="service-icon"><?= service_icon($service['icon']) ?></div>
+                        <div class="service-icon <?= e(display_size_class($content, 'service_icon')) ?>"><?= service_icon($service['icon']) ?></div>
                         <h3 class="service-title"><?= e($service['title']) ?></h3>
                         <p class="service-description"><?= e($service['description']) ?></p>
                     </article>
@@ -173,7 +173,7 @@ $assets = $content['site']['assets'];
             <div class="team-grid">
                 <?php foreach ($team['members'] as $index => $member): ?>
                     <article class="team-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
-                        <div class="team-avatar" aria-hidden="true">
+                        <div class="team-avatar <?= e(display_size_class($content, 'team_avatar')) ?>" aria-hidden="true">
                             <?php if (!empty($member['photo'])): ?>
                                 <img src="<?= e($member['photo']) ?>" alt="" class="team-photo">
                             <?php else: ?>
@@ -261,20 +261,30 @@ $assets = $content['site']['assets'];
                 </form>
 
                 <div class="contact-info reveal">
-                    <div class="contact-info-addresses">
-                        <?php foreach ($contact['addresses'] as $address): ?>
-                            <article class="address-card">
-                                <h3><?= e($address['label']) ?></h3>
-                                <address><?= e($address['text']) ?></address>
+                    <div class="contact-info-grid">
+                        <?php foreach (contact_info_items($content) as $item): ?>
+                            <?php
+                            $type = (string) ($item['type'] ?? '');
+                            $cardClass = 'address-card';
+                            if ($type === 'email') {
+                                $cardClass .= ' contact-info-email';
+                            }
+                            ?>
+                            <article class="<?= e($cardClass) ?>">
+                                <h3><?= e($item['title'] ?? '') ?></h3>
+                                <?php if ($type === 'address'): ?>
+                                    <address><?= e($item['value'] ?? '') ?></address>
+                                <?php elseif ($type === 'phone' || $type === 'fax'): ?>
+                                    <?php $tel = preg_replace('/\s+/', '', (string) ($item['value'] ?? '')); ?>
+                                    <p><a href="tel:<?= e($tel) ?>"><?= e($item['value'] ?? '') ?></a></p>
+                                <?php elseif ($type === 'email'): ?>
+                                    <p><a href="mailto:<?= e($item['value'] ?? '') ?>"><?= e($item['value'] ?? '') ?></a></p>
+                                <?php else: ?>
+                                    <p><?= e($item['value'] ?? '') ?></p>
+                                <?php endif; ?>
                             </article>
                         <?php endforeach; ?>
                     </div>
-                    <article class="address-card contact-info-email">
-                        <h3><?= e($ui['email_label']) ?></h3>
-                        <p>
-                            <a href="mailto:<?= e($contact['email']) ?>"><?= e($contact['email']) ?></a>
-                        </p>
-                    </article>
                     <?php $mapEmbedUrl = contact_turkey_map_embed_url($content); ?>
                     <?php if ($mapEmbedUrl !== ''): ?>
                         <article class="address-card contact-map-card">

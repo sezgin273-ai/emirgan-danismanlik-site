@@ -13,7 +13,7 @@ $assets = $site['assets'];
 <footer class="site-footer">
     <div class="container footer-grid">
         <div class="footer-brand">
-            <img src="<?= e($assets['logo_dark']) ?>" alt="<?= e($site['title']) ?>" class="footer-logo">
+            <img src="<?= e($assets['logo_dark']) ?>" alt="<?= e($site['title']) ?>" class="footer-logo <?= e(display_size_class($content, 'footer_logo')) ?>">
             <p class="footer-tagline"><?= e($content['hero']['tagline']) ?></p>
         </div>
 

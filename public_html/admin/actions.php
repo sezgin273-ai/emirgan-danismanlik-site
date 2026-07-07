@@ -37,6 +37,15 @@ function admin_abort_with_status(int $statusCode, string $message): never
     exit;
 }
 
+function admin_text_length(string $text): int
+{
+    if (function_exists('mb_strlen')) {
+        return mb_strlen($text, 'UTF-8');
+    }
+
+    return strlen($text);
+}
+
 function admin_normalize_content(array $posted, array $current): array
 {
     $content = $current;
@@ -194,10 +203,54 @@ function admin_normalize_content(array $posted, array $current): array
         }
     }
 
+    if (isset($posted['display']) && is_array($posted['display'])) {
+        if (!isset($content['display']) || !is_array($content['display'])) {
+            $content['display'] = [];
+        }
+        foreach (display_size_groups() as $group) {
+            if (!array_key_exists($group, $posted['display'])) {
+                continue;
+            }
+            $size = trim((string) $posted['display'][$group]);
+            if (!is_valid_display_size($size)) {
+                admin_abort_with_status(422, 'Geçersiz görsel boyutu.');
+            }
+            $content['display'][$group] = $size;
+        }
+    }
+
     if (isset($posted['contact']) && is_array($posted['contact'])) {
         $content['contact']['title'] = trim((string) ($posted['contact']['title'] ?? $content['contact']['title']));
         $content['contact']['heading'] = trim((string) ($posted['contact']['heading'] ?? $content['contact']['heading']));
         $content['contact']['email'] = trim((string) ($posted['contact']['email'] ?? $content['contact']['email']));
+        if (isset($posted['contact']['info_items_present'])) {
+            $infoItems = [];
+            if (isset($posted['contact']['info_items']) && is_array($posted['contact']['info_items'])) {
+                foreach ($posted['contact']['info_items'] as $item) {
+                    if (!is_array($item)) {
+                        continue;
+                    }
+                    $type = trim((string) ($item['type'] ?? ''));
+                    if (!is_valid_contact_info_type($type)) {
+                        admin_abort_with_status(422, 'Geçersiz iletişim bilgisi tipi.');
+                    }
+                    $title = str_replace(["\r", "\n", "\0"], '', trim((string) ($item['title'] ?? '')));
+                    $value = str_replace(["\r", "\n", "\0"], '', trim((string) ($item['value'] ?? '')));
+                    if ($title === '' || $value === '') {
+                        continue;
+                    }
+                    if (admin_text_length($title) > 80 || admin_text_length($value) > 500) {
+                        admin_abort_with_status(422, 'İletişim bilgisi alanı çok uzun.');
+                    }
+                    $infoItems[] = [
+                        'type' => $type,
+                        'title' => $title,
+                        'value' => $value,
+                    ];
+                }
+            }
+            $content['contact']['info_items'] = $infoItems;
+        }
         if (isset($posted['contact']['addresses_present'])) {
             $addresses = [];
             if (isset($posted['contact']['addresses']) && is_array($posted['contact']['addresses'])) {
@@ -326,14 +379,37 @@ match ($action) {
         admin_redirect('/admin/dashboard.php#team', 'ok', 'Ekip fotoğrafı yüklendi.');
     })(),
     'remove_team_photo' => (function () use ($current) {
-        $index = (int) ($_POST['member_index'] ?? -1);
-        if ($index < 0 || !isset($current['team']['members'][$index])) {
-            admin_redirect('/admin/dashboard.php#team', 'error', 'Geçersiz ekip üyesi.');
+        $rawIndex = $_POST['member_index'] ?? null;
+        $index = filter_var($rawIndex, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if ($index === false || !isset($current['team']['members'][$index])) {
+            admin_abort_with_status(422, 'Geçersiz ekip üyesi index değeri.');
         }
-        delete_uploaded_file($current['team']['members'][$index]['photo'] ?? '');
+
+        $postedName = str_replace(["\r", "\n", "\0"], '', trim((string) ($_POST['member_name'] ?? '')));
+        $serverName = trim((string) ($current['team']['members'][$index]['name'] ?? ''));
+        if ($postedName === '' || $postedName !== $serverName) {
+            admin_abort_with_status(409, 'Ekip üyesi sırası değişmiş olabilir. Önce kaydedin veya sayfayı yenileyin.');
+        }
+
+        $photoPath = trim((string) ($current['team']['members'][$index]['photo'] ?? ''));
         $current['team']['members'][$index]['photo'] = '';
+
+        $canDeletePhoto = $photoPath !== '' && str_starts_with($photoPath, uploads_url_prefix() . '/');
+        if ($canDeletePhoto) {
+            foreach ($current['team']['members'] as $member) {
+                if (($member['photo'] ?? '') === $photoPath) {
+                    $canDeletePhoto = false;
+                    break;
+                }
+            }
+        }
+
         if (!save_content($current)) {
             admin_redirect('/admin/dashboard.php#team', 'error', 'Fotoğraf kaldırılamadı.');
+        }
+
+        if ($canDeletePhoto) {
+            delete_uploaded_file($photoPath);
         }
         admin_redirect('/admin/dashboard.php#team', 'ok', 'Fotoğraf kaldırıldı.');
     })(),
@@ -428,6 +504,49 @@ match ($action) {
             admin_redirect('/admin/dashboard.php#backups', 'error', 'Yedek geri yüklenemedi.');
         }
         admin_redirect('/admin/dashboard.php', 'ok', 'Yedek geri yüklendi.');
+    })(),
+    'delete_backup' => (function () {
+        $name = (string) ($_POST['backup_name'] ?? '');
+        if (!is_valid_backup_name($name)) {
+            admin_abort_with_status(422, 'Geçersiz yedek dosya adı.');
+        }
+        if (!delete_content_backup($name)) {
+            admin_redirect('/admin/dashboard.php#backups', 'error', 'Yedek silinemedi.');
+        }
+        admin_redirect('/admin/dashboard.php#backups', 'ok', 'Yedek silindi.');
+    })(),
+    'label_backup' => (function () {
+        $name = (string) ($_POST['backup_name'] ?? '');
+        if (!is_valid_backup_name($name)) {
+            admin_abort_with_status(422, 'Geçersiz yedek dosya adı.');
+        }
+        $label = (string) ($_POST['backup_label'] ?? '');
+        if (!set_backup_label($name, $label)) {
+            admin_abort_with_status(422, 'Geçersiz yedek etiketi.');
+        }
+        admin_redirect('/admin/dashboard.php#backups', 'ok', 'Yedek etiketi kaydedildi.');
+    })(),
+    'delete_contact_info_item' => (function () use ($current) {
+        $rawIndex = $_POST['info_index'] ?? null;
+        $index = filter_var($rawIndex, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        $items = $current['contact']['info_items'] ?? [];
+        if ($index === false || !isset($items[$index])) {
+            admin_abort_with_status(422, 'Geçersiz iletişim bilgisi index değeri.');
+        }
+
+        $postedTitle = str_replace(["\r", "\n", "\0"], '', trim((string) ($_POST['info_title'] ?? '')));
+        $serverTitle = trim((string) ($items[$index]['title'] ?? ''));
+        if ($postedTitle === '' || $postedTitle !== $serverTitle) {
+            admin_abort_with_status(409, 'İletişim bilgisi sırası değişmiş olabilir. Önce kaydedin veya sayfayı yenileyin.');
+        }
+
+        unset($items[$index]);
+        $current['contact']['info_items'] = array_values($items);
+
+        if (!save_content($current)) {
+            admin_redirect('/admin/dashboard.php#contact', 'error', 'İletişim bilgisi silinemedi.');
+        }
+        admin_redirect('/admin/dashboard.php#contact', 'ok', 'İletişim bilgisi silindi.');
     })(),
     default => admin_redirect('/admin/dashboard.php', 'error', 'Bilinmeyen işlem.'),
 };

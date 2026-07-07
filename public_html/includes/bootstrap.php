@@ -118,29 +118,99 @@ function hero_watermark_enabled(array $content): bool
 }
 
 /**
- * İletişim — Türkiye Merkezi (ilk adres) metni.
+ * İletişim bilgi öğeleri (info_items).
+ *
+ * @return list<array{type:string,title:string,value:string}>
  */
-function contact_turkey_address_text(array $content): string
+function contact_info_items(array $content): array
 {
-    $addresses = $content['contact']['addresses'] ?? [];
-    if (!is_array($addresses) || $addresses === []) {
-        return '';
+    $items = $content['contact']['info_items'] ?? [];
+    if (!is_array($items)) {
+        return [];
     }
 
-    return trim((string) ($addresses[0]['text'] ?? ''));
+    return array_values(array_filter($items, static fn($item) => is_array($item)));
 }
 
 /**
- * Google Haritalar embed URL (API anahtarsız; ilk adres kaydından dinamik).
+ * İletişim — ilk address tipli öğenin değeri (harita için).
+ */
+function contact_first_address_text(array $content): string
+{
+    foreach (contact_info_items($content) as $item) {
+        if (($item['type'] ?? '') === 'address') {
+            $value = trim((string) ($item['value'] ?? ''));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+    }
+
+    return '';
+}
+
+/**
+ * Google Haritalar embed URL (API anahtarsız; info_items ilk address kaydından).
  */
 function contact_turkey_map_embed_url(array $content): string
 {
-    $text = contact_turkey_address_text($content);
+    $text = contact_first_address_text($content);
     if ($text === '') {
         return '';
     }
 
     return 'https://www.google.com/maps?q=' . rawurlencode($text) . '&output=embed';
+}
+
+/** @return list<string> */
+function display_size_options(): array
+{
+    return ['small', 'medium', 'large'];
+}
+
+function is_valid_display_size(string $size): bool
+{
+    return in_array($size, display_size_options(), true);
+}
+
+/** @return list<string> */
+function display_size_groups(): array
+{
+    return ['header_logo', 'footer_logo', 'team_avatar', 'service_icon', 'hero_emblem'];
+}
+
+function is_valid_display_group(string $group): bool
+{
+    return in_array($group, display_size_groups(), true);
+}
+
+function display_size_value(array $content, string $group): string
+{
+    $size = (string) ($content['display'][$group] ?? 'medium');
+
+    return is_valid_display_size($size) ? $size : 'medium';
+}
+
+function display_size_class(array $content, string $group): string
+{
+    $size = display_size_value($content, $group);
+
+    return 'display-' . str_replace('_', '-', $group) . '-' . $size;
+}
+
+function display_body_classes(array $content): string
+{
+    $classes = [];
+    foreach (display_size_groups() as $group) {
+        $classes[] = display_size_class($content, $group);
+    }
+
+    return implode(' ', $classes);
+}
+
+function is_valid_contact_info_type(string $type): bool
+{
+    return in_array($type, ['address', 'phone', 'fax', 'email', 'other'], true);
 }
 
 /**

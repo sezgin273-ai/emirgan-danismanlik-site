@@ -7,6 +7,7 @@ import json
 import re
 import subprocess
 import sys
+import shutil
 import time
 from io import BytesIO
 from pathlib import Path
@@ -255,7 +256,10 @@ def playwright_admin_login(page, test_password: str) -> None:
 
 def click_save_all_content(page) -> None:
     page.locator(SAVE_ALL_BTN, has_text="Tüm İçeriği Kaydet").click()
-    page.wait_for_url("**/admin/dashboard.php")
+    try:
+        page.wait_for_url("**/admin/dashboard.php", timeout=15000)
+    except Exception:
+        page.wait_for_load_state("networkidle", timeout=5000)
 
 
 def set_section_visible_checkbox(page, section_id: str, visible: bool) -> None:
@@ -398,7 +402,8 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
 def assert_contact_map_roundtrip(test_password: str) -> bool:
     ok = True
     content = load_content()
-    original_text = content["contact"]["addresses"][0]["text"]
+    info_items = content["contact"].get("info_items", [])
+    original_text = info_items[0]["value"] if info_items else content["contact"]["addresses"][0]["text"]
     marked_text = original_text + " " + CONTACT_MAP_MARKER
 
     with sync_playwright() as p:
@@ -406,7 +411,7 @@ def assert_contact_map_roundtrip(test_password: str) -> bool:
         page = browser.new_page(viewport={"width": 1280, "height": 900})
         playwright_admin_login(page, test_password)
         page.locator('a[href="#contact"]').click()
-        page.locator('textarea[name="content[contact][addresses][0][text]"]').fill(marked_text)
+        page.locator('textarea[name="content[contact][info_items][0][value]"]').fill(marked_text)
         click_save_all_content(page)
         page.goto(BASE + "/", wait_until="networkidle")
         src = page.locator(".contact-map-iframe").get_attribute("src") or ""
@@ -417,7 +422,7 @@ def assert_contact_map_roundtrip(test_password: str) -> bool:
 
         page.goto(f"{BASE}/admin/dashboard.php", wait_until="networkidle")
         page.locator('a[href="#contact"]').click()
-        page.locator('textarea[name="content[contact][addresses][0][text]"]').fill(original_text)
+        page.locator('textarea[name="content[contact][info_items][0][value]"]').fill(original_text)
         click_save_all_content(page)
         page.goto(BASE + "/", wait_until="networkidle")
         src_restored = page.locator(".contact-map-iframe").get_attribute("src") or ""
@@ -425,6 +430,261 @@ def assert_contact_map_roundtrip(test_password: str) -> bool:
         restored_ok = encoded_orig in src_restored and CONTACT_MAP_MARKER not in src_restored
         assert_metric("contact_map_address_restore", 1 if restored_ok else 0, "original src", restored_ok)
         ok = ok and restored_ok
+        browser.close()
+
+    return ok
+
+
+def snapshot_backups() -> dict[str, bytes]:
+    snap: dict[str, bytes] = {}
+    backup_dir = ROOT / "content/backups"
+    if not backup_dir.is_dir():
+        return snap
+    for path in backup_dir.iterdir():
+        if path.is_file():
+            snap[path.name] = path.read_bytes()
+    return snap
+
+
+def restore_backups(snap: dict[str, bytes]) -> None:
+    backup_dir = ROOT / "content/backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    keep = set(snap.keys())
+    for path in backup_dir.iterdir():
+        if path.is_file() and path.name not in keep:
+            path.unlink()
+    for name, data in snap.items():
+        (backup_dir / name).write_bytes(data)
+
+
+DISPLAY_GROUPS = [
+    ("header_logo", ".brand-logo", "height"),
+    ("footer_logo", ".footer-logo", "height"),
+    ("team_avatar", ".team-avatar", "width"),
+    ("service_icon", ".service-icon", "width"),
+    ("hero_emblem", ".hero-medallion", "width"),
+]
+
+
+def assert_faz48_admin(test_password: str) -> bool:
+    ok = True
+    backup_dir = ROOT / "content/backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    content_before = CONTENT_PATH.read_bytes()
+    http = AdminClient()
+    login_html = http.request("GET", "/admin/login.php")[1]
+    login_csrf = extract_csrf(login_html)
+    http.request(
+        "POST",
+        "/admin/login.php",
+        data={"csrf_token": login_csrf, "password": test_password},
+        allow_redirects=True,
+    )
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        playwright_admin_login(page, test_password)
+
+        test_name = "content-2099-01-01_120000.json"
+        test_backup = backup_dir / test_name
+        source_backup = next(iter(sorted(backup_dir.glob("content-*.json"), key=lambda p: p.stat().st_mtime)), None)
+        if source_backup is not None:
+            shutil.copy2(source_backup, test_backup)
+        else:
+            test_backup.write_text(CONTENT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+        page.goto(f"{BASE}/admin/dashboard.php#backups", wait_until="networkidle")
+        page.reload(wait_until="networkidle")
+        listed = test_name in page.content()
+        delete_btn = page.locator(f'[data-delete-backup][data-backup-name="{test_name}"]')
+        assert_metric("backup_delete_test_listed", 1 if listed else 0, "test backup visible", listed)
+        ok = ok and listed
+        if listed:
+            other_backups = [b.name for b in backup_dir.glob("content-*.json") if b.name != test_backup.name]
+            page.once("dialog", lambda d: d.accept())
+            delete_btn.click()
+            page.wait_for_timeout(800)
+            deleted_ok = not test_backup.exists()
+            others_ok = all((backup_dir / name).exists() for name in other_backups[:3])
+            assert_metric("backup_delete_ui_removed", 1 if deleted_ok else 0, "file gone", deleted_ok)
+            assert_metric("backup_delete_others_preserved", 1 if others_ok else 0, "others exist", others_ok)
+            ok = ok and deleted_ok and others_ok
+        else:
+            assert_metric("backup_delete_ui_removed", 0, "file gone", False)
+            ok = False
+
+        _, dash, _ = http.request("GET", "/admin/dashboard.php")
+        csrf = extract_csrf(dash)
+        trav_status, _, _ = http.request(
+            "POST",
+            "/admin/actions.php",
+            data={"csrf_token": csrf, "action": "delete_backup", "backup_name": "../../content/content.json"},
+            allow_redirects=False,
+        )
+        trav_ok = trav_status == 422 and CONTENT_PATH.read_bytes() == content_before
+        assert_metric("backup_delete_path_traversal_status", trav_status, "422", trav_status == 422)
+        ok = ok and trav_ok
+
+        backups = sorted(backup_dir.glob("content-*.json"), key=lambda x: x.stat().st_mtime, reverse=True)
+        if backups:
+            target = backups[0].name
+            page.goto(f"{BASE}/admin/dashboard.php#backups", wait_until="networkidle")
+            row = page.locator(f'.admin-backup-item:has(input[name="backup_name"][value="{target}"])')
+            row.locator('input[name="backup_label"]').fill("Verify Etiket")
+            row.locator('button:has-text("Etiket Kaydet")').click()
+            page.wait_for_url("**/admin/dashboard.php**")
+            labels_path = backup_dir / ".labels.json"
+            label_ok = labels_path.is_file() and "Verify Etiket" in labels_path.read_text(encoding="utf-8")
+            badge_ok = "En güncel" in page.content()
+            assert_metric("backup_label_saved", 1 if label_ok else 0, "sidecar label", label_ok)
+            assert_metric("backup_latest_badge_visible", 1 if badge_ok else 0, "En güncel", badge_ok)
+            ok = ok and label_ok and badge_ok
+
+            _, dash, _ = http.request("GET", "/admin/dashboard.php")
+            csrf = extract_csrf(dash)
+            bad_label_status, _, _ = http.request(
+                "POST",
+                "/admin/actions.php",
+                data={"csrf_token": csrf, "action": "label_backup", "backup_name": target, "backup_label": "../evil"},
+                allow_redirects=False,
+            )
+            bad_label_ok = bad_label_status == 422
+            assert_metric("backup_label_traversal_status", bad_label_status, "422", bad_label_ok)
+            ok = ok and bad_label_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php#media", wait_until="networkidle")
+        png = make_test_png(400)
+        _, dash, _ = http.request("GET", "/admin/dashboard.php")
+        csrf = extract_csrf(dash)
+        http.request(
+            "POST",
+            "/admin/actions.php",
+            data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0"},
+            files={"photo": ("faz48-remove.png", png, "image/png")},
+            allow_redirects=True,
+        )
+        content_after_upload = load_content()
+        photo_path = content_after_upload["team"]["members"][0].get("photo", "")
+        photo_file = ROOT / "public_html" / photo_path.lstrip("/") if photo_path else None
+        uploaded_ok = bool(photo_path) and bool(photo_file and photo_file.is_file())
+        assert_metric("team_photo_remove_upload_ready", 1 if uploaded_ok else 0, "photo on disk", uploaded_ok)
+        ok = ok and uploaded_ok
+        page.goto(f"{BASE}/admin/dashboard.php#team", wait_until="networkidle")
+        page.reload(wait_until="networkidle")
+        remove_count = page.locator("#team-list [data-remove-team-photo]").count()
+        assert_metric("team_photo_remove_button_visible", remove_count, ">= 1", remove_count >= 1)
+        ok = ok and remove_count >= 1
+        if remove_count == 0:
+            browser.close()
+            return ok
+        page.once("dialog", lambda d: d.dismiss())
+        if page.locator("#team-list [data-remove-team-photo]").count() > 0:
+            page.locator("#team-list [data-remove-team-photo]").first.click()
+            page.wait_for_timeout(500)
+        reject_photo = load_content()["team"]["members"][0].get("photo", "")
+        reject_ok = reject_photo == photo_path
+        assert_metric("team_photo_remove_reject_unchanged", 1 if reject_ok else 0, "photo kept", reject_ok)
+        ok = ok and reject_ok
+
+        page.once("dialog", lambda d: d.accept())
+        page.locator("#team-list [data-remove-team-photo]").first.click()
+        for _ in range(30):
+            if load_content()["team"]["members"][0].get("photo", "") == "":
+                break
+            page.wait_for_timeout(200)
+        photo_cleared = load_content()["team"]["members"][0].get("photo", "") == ""
+        file_gone = bool(photo_file) and not photo_file.exists()
+        page.goto(BASE + "/#team", wait_until="networkidle")
+        monogram_ok = page.locator(".team-card").first.locator(".team-monogram").count() == 1
+        assert_metric("team_photo_remove_cleared_json", 1 if photo_cleared else 0, "empty photo", photo_cleared)
+        assert_metric("team_photo_remove_file_deleted", 1 if file_gone else 0, "orphan removed", file_gone)
+        assert_metric("team_photo_remove_monogram_ui", 1 if monogram_ok else 0, "monogram", monogram_ok)
+        ok = ok and photo_cleared and file_gone and monogram_ok
+
+        no_photo_btn = page.locator("#team-list [data-remove-team-photo]").count() == 0
+        assert_metric("team_photo_remove_button_hidden", 1 if no_photo_btn else 0, "no button", no_photo_btn)
+        ok = ok and no_photo_btn
+
+        page.goto(f"{BASE}/admin/dashboard.php#contact", wait_until="networkidle")
+        page.locator("[data-add-contact-info]").click()
+        idx = page.locator("#contact-info-list [data-sortable-item]").count() - 1
+        page.locator(f'select[name="content[contact][info_items][{idx}][type]"]').select_option("phone")
+        page.locator(f'input[name="content[contact][info_items][{idx}][title]"]').fill("Telefon")
+        page.locator(f'textarea[name="content[contact][info_items][{idx}][value]"]').fill("+90 212 555 0101")
+        click_save_all_content(page)
+        page.goto(BASE + "/#contact", wait_until="networkidle")
+        phone_layout = page.evaluate(
+            """() => {
+              const email = document.querySelector('.contact-info-email');
+              const phone = Array.from(document.querySelectorAll('.contact-info-grid .address-card a[href^="tel:"]')).pop();
+              if (!email || !phone) return { ok: false };
+              const er = email.getBoundingClientRect();
+              const pr = phone.closest('.address-card').getBoundingClientRect();
+              const sideBySide = Math.abs(er.top - pr.top) <= 8;
+              const href = phone.getAttribute('href') || '';
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return { ok: sideBySide && href.includes('tel:') && overflow, sideBySide, href };
+            }"""
+        )
+        phone_ok = phone_layout.get("ok")
+        assert_metric("contact_phone_add_side_by_side", 1 if phone_layout.get("sideBySide") else 0, "top <=8px", phone_layout.get("sideBySide"))
+        assert_metric("contact_phone_tel_link", 1 if "tel:" in str(phone_layout.get("href", "")) else 0, "tel:", "tel:" in str(phone_layout.get("href", "")))
+        ok = ok and phone_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php#contact", wait_until="networkidle")
+        page.once("dialog", lambda d: d.accept())
+        page.locator("#contact-info-list [data-delete-contact-info]").last.click()
+        page.wait_for_timeout(800)
+        restored_items = len(load_content()["contact"]["info_items"])
+        assert_metric("contact_phone_delete_restored_count", restored_items, "3", restored_items == 3)
+        ok = ok and restored_items == 3
+
+        page.goto(BASE + "/", wait_until="networkidle")
+        medium_sizes = page.evaluate("""() => document.querySelector('.brand-logo').getBoundingClientRect().height""")
+        page.goto(f"{BASE}/admin/dashboard.php#display", wait_until="networkidle")
+        page.select_option("#display-header_logo", "large")
+        click_save_all_content(page)
+        page.goto(BASE + "/", wait_until="networkidle")
+        sizes = page.evaluate(
+            """() => {
+              const logo = document.querySelector('.brand-logo');
+              const rect = logo.getBoundingClientRect();
+              const header = document.querySelector('.site-header');
+              const headerOverflow = header ? header.scrollWidth <= header.clientWidth + 1 : true;
+              return { logoH: rect.height, headerH: header.getBoundingClientRect().height, overflow: headerOverflow };
+            }"""
+        )
+        page.goto(f"{BASE}/admin/dashboard.php#display", wait_until="networkidle")
+        page.select_option("#display-header_logo", "medium")
+        click_save_all_content(page)
+        logo_large_ok = sizes["logoH"] >= medium_sizes * 1.25
+        header_ok = sizes["headerH"] <= 96
+        large_ok = logo_large_ok and header_ok
+        assert_metric(
+            "display_header_logo_large_height_px",
+            round(sizes["logoH"], 1),
+            f">= {round(medium_sizes * 1.25, 1)}",
+            logo_large_ok,
+        )
+        assert_metric("display_header_logo_header_height_px", round(sizes["headerH"], 1), "<= 96", header_ok)
+        ok = ok and large_ok
+
+        _, dash, _ = http.request("GET", "/admin/dashboard.php")
+        csrf = extract_csrf(dash)
+        invalid_display = http.request(
+            "POST",
+            "/admin/actions.php",
+            data={
+                "csrf_token": csrf,
+                "action": "save_content",
+                "content[display][header_logo]": "huge",
+            },
+            allow_redirects=False,
+        )
+        invalid_ok = invalid_display[0] == 422
+        assert_metric("display_invalid_size_status", invalid_display[0], "422", invalid_ok)
+        ok = ok and invalid_ok
+
         browser.close()
 
     return ok
@@ -1129,10 +1389,16 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
 
     status, dash, _ = client.request("GET", "/admin/dashboard.php")
     csrf = extract_csrf(dash)
+    member0_name = load_content()["team"]["members"][0]["name"]
     client.request(
         "POST",
         "/admin/actions.php",
-        data={"csrf_token": csrf, "action": "remove_team_photo", "member_index": "0"},
+        data={
+            "csrf_token": csrf,
+            "action": "remove_team_photo",
+            "member_index": "0",
+            "member_name": member0_name,
+        },
         allow_redirects=True,
     )
     status, home, _ = client.request("GET", "/")
@@ -1174,6 +1440,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = assert_faz46b_checkbox_and_lists(TEST_PASSWORD, original_content) and ok
     ok = assert_contact_map_roundtrip(TEST_PASSWORD) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
+    ok = assert_faz48_admin(TEST_PASSWORD) and ok
 
     return ok
 
@@ -1185,6 +1452,7 @@ def main() -> int:
 
     content_bytes = CONTENT_PATH.read_bytes()
     uploads_snap = snapshot_uploads()
+    backups_snap = snapshot_backups()
     original_content = json.loads(content_bytes.decode("utf-8"))
     expected_tagline = original_tagline_543df4a()
 
@@ -1228,6 +1496,7 @@ def main() -> int:
     finally:
         CONTENT_PATH.write_bytes(content_bytes)
         restore_uploads(uploads_snap)
+        restore_backups(backups_snap)
 
     restored_bytes = CONTENT_PATH.read_bytes()
     byte_ok = restored_bytes == content_bytes

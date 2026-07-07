@@ -12,10 +12,30 @@
       item.querySelectorAll('[data-member-index]').forEach(function (el) {
         el.setAttribute('data-member-index', String(index));
       });
+      item.querySelectorAll('[data-info-index]').forEach(function (el) {
+        el.setAttribute('data-info-index', String(index));
+      });
       item.querySelectorAll('[data-step-index]').forEach(function (el) {
         el.setAttribute('data-step-index', String(index));
       });
     });
+  }
+
+  function submitAdminAction(fields) {
+    var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
+    var csrf = csrfEl ? csrfEl.value : '';
+    var form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/admin/actions.php';
+    [{ name: 'csrf_token', value: csrf }].concat(fields).forEach(function (field) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = field.name;
+      input.value = field.value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
   }
 
   document.querySelectorAll('[data-sort-up]').forEach(function (btn) {
@@ -155,25 +175,79 @@
       var item = btn.closest('[data-sortable-item]');
       var nameInput = item ? item.querySelector('input[name*="[name]"]') : null;
       var memberName = nameInput ? nameInput.value : '';
-      var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
-      var csrf = csrfEl ? csrfEl.value : '';
-      var form = document.createElement('form');
-      form.method = 'post';
-      form.action = '/admin/actions.php';
-      [
-        { name: 'csrf_token', value: csrf },
+      submitAdminAction([
         { name: 'action', value: 'delete_team_member' },
         { name: 'member_index', value: index },
         { name: 'member_name', value: memberName },
-      ].forEach(function (field) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = field.name;
-        input.value = field.value;
-        form.appendChild(input);
+      ]);
+    });
+  });
+
+  document.querySelectorAll('[data-remove-team-photo]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu ekip üyesinin fotoğrafını kaldırmak istediğinize emin misiniz?')) {
+        return;
+      }
+      var index = btn.getAttribute('data-member-index');
+      var card = btn.closest('[data-sortable-item]') || btn.closest('.admin-list-item');
+      var nameInput = card ? card.querySelector('input[name*="[name]"]') : null;
+      var memberName = nameInput ? nameInput.value : '';
+      if (!memberName && card) {
+        var strong = card.querySelector('strong');
+        memberName = strong ? strong.textContent.trim() : '';
+      }
+      submitAdminAction([
+        { name: 'action', value: 'remove_team_photo' },
+        { name: 'member_index', value: index },
+        { name: 'member_name', value: memberName },
+      ]);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-contact-info]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu iletişim bilgisini silmek istediğinize emin misiniz?')) {
+        return;
+      }
+      var index = btn.getAttribute('data-info-index');
+      var item = btn.closest('[data-sortable-item]');
+      var titleInput = item ? item.querySelector('input[name*="[title]"]') : null;
+      var infoTitle = titleInput ? titleInput.value : '';
+      submitAdminAction([
+        { name: 'action', value: 'delete_contact_info_item' },
+        { name: 'info_index', value: index },
+        { name: 'info_title', value: infoTitle },
+      ]);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-backup]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu yedeği silmek istediğinize emin misiniz?')) {
+        return;
+      }
+      var backupName = btn.getAttribute('data-backup-name') || '';
+      submitAdminAction([
+        { name: 'action', value: 'delete_backup' },
+        { name: 'backup_name', value: backupName },
+      ]);
+    });
+  });
+
+  document.querySelectorAll('[data-add-contact-info]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var container = document.getElementById('contact-info-list');
+      var index = container.querySelectorAll('[data-sortable-item]').length;
+      var tpl = document.getElementById('contact-info-template');
+      if (!tpl || !container) return;
+      var clone = tpl.content.cloneNode(true);
+      clone.querySelectorAll('[name]').forEach(function (el) {
+        el.name = el.name.replace(/__INDEX__/g, String(index));
       });
-      document.body.appendChild(form);
-      form.submit();
+      clone.querySelectorAll('[data-info-index]').forEach(function (el) {
+        el.setAttribute('data-info-index', String(index));
+      });
+      container.appendChild(clone);
     });
   });
 

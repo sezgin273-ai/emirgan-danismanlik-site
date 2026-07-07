@@ -299,12 +299,18 @@ section {
   justify-content: space-between;
   height: var(--header-height);
   gap: var(--space-lg);
+  min-width: 0;
+}
+
+.brand {
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .brand-logo {
   height: 2.75rem;
   width: auto;
-  max-width: none;
+  max-width: 100%;
   object-fit: contain;
 }
 
@@ -1079,7 +1085,7 @@ section {
   margin: 0;
 }
 
-.contact-info-addresses {
+.contact-info-grid {
   display: grid;
   gap: var(--space-md);
 }
@@ -1200,7 +1206,7 @@ section {
 
 @media (min-width: 900px) {
   .contact-grid {
-    grid-template-columns: 1.618fr 1fr;
+    grid-template-columns: 1.1fr 1fr;
     align-items: start;
   }
 
@@ -1216,17 +1222,21 @@ section {
     grid-column: 1 / -1;
   }
 
-  .contact-info-addresses {
+  .contact-info-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .contact-info-grid > .address-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 768px) {
-  .contact-info-addresses {
+  .contact-info-grid {
     grid-template-columns: 1fr;
   }
 
-  .contact-info-email,
+  .contact-info-grid > .address-card,
   .contact-map-card {
     width: 100%;
   }
@@ -1375,4 +1385,115 @@ section {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* Görsel boyut grupları (Faz 4.8) — Orta = mevcut ölçüler */
+.brand-logo.display-header-logo-medium,
+body.display-header-logo-medium .brand-logo {
+  height: 2.75rem;
+}
+
+.brand-logo.display-header-logo-small,
+body.display-header-logo-small .brand-logo {
+  height: 2.125rem;
+}
+
+.brand-logo.display-header-logo-large,
+body.display-header-logo-large .brand-logo {
+  height: 3.6rem;
+  max-width: min(11rem, 36vw);
+}
+
+.footer-logo.display-footer-logo-medium,
+body.display-footer-logo-medium .footer-logo {
+  height: 2.75rem;
+}
+
+.footer-logo.display-footer-logo-small,
+body.display-footer-logo-small .footer-logo {
+  height: 2.125rem;
+}
+
+.footer-logo.display-footer-logo-large,
+body.display-footer-logo-large .footer-logo {
+  height: 3.6rem;
+}
+
+.team-avatar.display-team-avatar-medium,
+body.display-team-avatar-medium .team-avatar {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.team-avatar.display-team-avatar-small,
+body.display-team-avatar-small .team-avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.team-avatar.display-team-avatar-large,
+body.display-team-avatar-large .team-avatar {
+  width: 5.625rem;
+  height: 5.625rem;
+}
+
+.team-avatar.display-team-avatar-small .team-monogram,
+body.display-team-avatar-small .team-monogram {
+  font-size: 1.125rem;
+}
+
+.team-avatar.display-team-avatar-large .team-monogram,
+body.display-team-avatar-large .team-monogram {
+  font-size: 1.625rem;
+}
+
+.service-icon.display-service-icon-medium,
+body.display-service-icon-medium .service-icon {
+  width: 3rem;
+  height: 3rem;
+}
+
+.service-icon.display-service-icon-medium svg,
+body.display-service-icon-medium .service-icon svg {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.service-icon.display-service-icon-small,
+body.display-service-icon-small .service-icon {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.service-icon.display-service-icon-small svg,
+body.display-service-icon-small .service-icon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.service-icon.display-service-icon-large,
+body.display-service-icon-large .service-icon {
+  width: 3.75rem;
+  height: 3.75rem;
+}
+
+.service-icon.display-service-icon-large svg,
+body.display-service-icon-large .service-icon svg {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.hero-medallion.display-hero-emblem-medium,
+body.display-hero-emblem-medium .hero-medallion {
+  width: min(16rem, 72vw);
+}
+
+.hero-medallion.display-hero-emblem-small,
+body.display-hero-emblem-small .hero-medallion {
+  width: min(12.5rem, 60vw);
+}
+
+.hero-medallion.display-hero-emblem-large,
+body.display-hero-emblem-large .hero-medallion {
+  width: min(20rem, 85vw);
 }

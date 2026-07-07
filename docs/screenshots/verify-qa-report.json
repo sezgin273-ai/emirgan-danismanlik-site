@@ -154,7 +154,7 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 586113,
+      "measured": 589701,
       "limit": "<= 650000",
       "passed": true
     },
@@ -184,7 +184,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.92888,
+      "measured": -5.90209,
       "limit": "<= -2px",
       "passed": true
     },
@@ -249,8 +249,8 @@
       "passed": true
     },
     "contact_section_height_px": {
-      "measured": 750,
-      "limit": "<= 764",
+      "measured": 702,
+      "limit": "<= 790",
       "passed": true
     },
     "contact_address_cards_top_delta_px": {
@@ -263,9 +263,14 @@
       "limit": "no horizontal overlap",
       "passed": true
     },
-    "contact_email_center_delta_px": {
-      "measured": 0,
-      "limit": "<= 8",
+    "contact_right_column_width_ratio": {
+      "measured": 0.4696,
+      "limit": ">= 0.4584",
+      "passed": true
+    },
+    "contact_email_full_width": {
+      "measured": 1,
+      "limit": "full column",
       "passed": true
     },
     "contact_email_below_cards": {
@@ -281,6 +286,11 @@
     "contact_map_iframe_src": {
       "measured": 1,
       "limit": "encoded address + output=embed",
+      "passed": true
+    },
+    "contact_section_no_overflow": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
       "passed": true
     },
     "contact_section_console_errors": {
@@ -388,6 +398,16 @@
       "limit": "/assets/img/og-image.png",
       "passed": true
     },
+    "content_json_display_added": {
+      "measured": 1,
+      "limit": "medium defaults",
+      "passed": true
+    },
+    "content_json_info_items_seeded": {
+      "measured": 1,
+      "limit": "byte-identical seed",
+      "passed": true
+    },
     "verify_admin_all_passed": {
       "measured": 0,
       "limit": "0",
@@ -404,6 +424,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 586113,
+  "homepage_total_resource_bytes": 589701,
   "all_passed": true
 }
