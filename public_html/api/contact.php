@@ -66,6 +66,74 @@ function contact_load_config(): array
     return is_array($config) ? $config : [];
 }
 
+function contact_send_via_smtp(
+    array $config,
+    string $mailTo,
+    string $replyEmail,
+    string $mimeSubject,
+    string $body,
+    string $fromEmail,
+    string $fromName
+): bool {
+    $libDir = __DIR__ . '/lib/phpmailer';
+    require_once $libDir . '/Exception.php';
+    require_once $libDir . '/SMTP.php';
+    require_once $libDir . '/PHPMailer.php';
+
+    $host = contact_strip_crlf(trim((string) ($config['smtp_host'] ?? '')));
+    $port = (int) ($config['smtp_port'] ?? 0);
+    $secure = contact_strip_crlf(trim((string) ($config['smtp_secure'] ?? '')));
+    $user = contact_strip_crlf(trim((string) ($config['smtp_user'] ?? '')));
+    $pass = (string) ($config['smtp_pass'] ?? '');
+
+    if ($host === '' || $port <= 0 || $user === '') {
+        return false;
+    }
+
+    if ($secure !== '' && !in_array($secure, ['ssl', 'tls'], true)) {
+        return false;
+    }
+
+    try {
+        $mailer = new PHPMailer\PHPMailer\PHPMailer(true);
+        $mailer->CharSet = PHPMailer\PHPMailer\PHPMailer::CHARSET_UTF8;
+        $mailer->isSMTP();
+        $mailer->Host = $host;
+        $mailer->Port = $port;
+        $mailer->SMTPDebug = 0;
+        $mailer->Debugoutput = static function (): void {
+        };
+
+        if ($secure === 'ssl') {
+            $mailer->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
+        } elseif ($secure === 'tls') {
+            $mailer->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        } else {
+            $mailer->SMTPSecure = '';
+            $mailer->SMTPAutoTLS = false;
+        }
+
+        if ($pass !== '') {
+            $mailer->SMTPAuth = true;
+            $mailer->Username = $user;
+            $mailer->Password = $pass;
+        } else {
+            $mailer->SMTPAuth = false;
+        }
+
+        $mailer->setFrom($fromEmail, $fromName);
+        $mailer->addAddress($mailTo);
+        $mailer->addReplyTo($replyEmail);
+        $mailer->Subject = $mimeSubject;
+        $mailer->Body = $body;
+        $mailer->isHTML(false);
+
+        return $mailer->send();
+    } catch (Throwable) {
+        return false;
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if (contact_wants_json()) {
         http_response_code(405);
@@ -181,15 +249,15 @@ $payload = [
     'ip' => contact_strip_crlf((string) ($_SERVER['REMOTE_ADDR'] ?? '')),
 ];
 
-if ($mailMode === 'mail') {
-    $encodedSubject = $subject !== '' ? $subject : 'İletişim formu mesajı';
-    $mimeSubject = contact_encode_mime_header($encodedSubject);
-    $body = "Ad Soyad: {$name}\n"
-        . "E-posta: {$email}\n"
-        . "Telefon: {$phone}\n"
-        . "Konu: {$subject}\n\n"
-        . $message;
+$encodedSubject = $subject !== '' ? $subject : 'İletişim formu mesajı';
+$mimeSubject = contact_encode_mime_header($encodedSubject);
+$body = "Ad Soyad: {$name}\n"
+    . "E-posta: {$email}\n"
+    . "Telefon: {$phone}\n"
+    . "Konu: {$subject}\n\n"
+    . $message;
 
+if ($mailMode === 'mail') {
     $headers = [
         'MIME-Version: 1.0',
         'Content-Type: text/plain; charset=UTF-8',
@@ -198,6 +266,32 @@ if ($mailMode === 'mail') {
     ];
 
     $sent = @mail($mailTo, $mimeSubject, $body, implode("\r\n", $headers), '-f' . $mailTo);
+    if (!$sent) {
+        if (contact_wants_json()) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['ok' => false, 'message' => $errorMessage], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        $_SESSION['contact_flash'] = ['ok' => false, 'message' => $errorMessage];
+        header('Location: /#contact', true, 303);
+        exit;
+    }
+} elseif ($mailMode === 'smtp') {
+    $smtpUser = contact_strip_crlf(trim((string) ($config['smtp_user'] ?? '')));
+    $fromEmail = ($smtpUser !== '' && filter_var($smtpUser, FILTER_VALIDATE_EMAIL))
+        ? $smtpUser
+        : $mailTo;
+    $sent = contact_send_via_smtp(
+        $config,
+        $mailTo,
+        $email,
+        $encodedSubject,
+        $body,
+        $fromEmail,
+        'Emirgan Danışmanlık'
+    );
     if (!$sent) {
         if (contact_wants_json()) {
             http_response_code(500);
