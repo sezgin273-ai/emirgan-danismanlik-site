@@ -1,0 +1,37 @@
+{
+  "base": "https://emirgandanismanlik.com",
+  "acceptance": {
+    "live_home_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "live_home_hero_tagline": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "live_content_private_content_content.json": {
+      "measured": 404,
+      "limit": "403 or 404",
+      "passed": true
+    },
+    "live_content_private_content": {
+      "measured": 404,
+      "limit": "403 or 404",
+      "passed": true
+    },
+    "live_contact_hours_column_delta_px": {
+      "measured": 0,
+      "limit": "<= 16",
+      "passed": true
+    },
+    "live_contact_hours_card_visible": {
+      "measured": 1,
+      "limit": "title + 2 rows",
+      "passed": true
+    }
+  },
+  "mail_test_subject": "",
+  "all_passed": true
+}
