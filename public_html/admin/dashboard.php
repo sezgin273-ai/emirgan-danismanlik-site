@@ -21,6 +21,10 @@ $serviceIcons = service_icon_names();
 $badgeIcons = ['energy', 'realestate', 'trade', 'construction', 'investment'];
 $processSteps = $content['process']['steps'] ?? [];
 $contactInfoItems = $content['contact']['info_items'] ?? [];
+$contactHoursRows = $content['contact']['hours']['rows'] ?? [];
+if (!is_array($contactHoursRows)) {
+    $contactHoursRows = [];
+}
 $displayGroups = [
     'header_logo' => 'Üst menü logosu',
     'footer_logo' => 'Footer logosu',
@@ -359,6 +363,40 @@ $sectionLabels = [
             <input type="text" name="content[contact][form][success]" value="<?= e($content['contact']['form']['success']) ?>">
             <label>Hata mesajı</label>
             <input type="text" name="content[contact][form][error]" value="<?= e($content['contact']['form']['error']) ?>">
+            <h3>Çalışma Saatleri</h3>
+            <input type="hidden" name="content[contact][hours_present]" value="1">
+            <label for="contact-hours-title">Kart başlığı</label>
+            <input type="text" id="contact-hours-title" name="content[contact][hours][title]" value="<?= e($content['contact']['hours']['title'] ?? '') ?>">
+            <div id="contact-hours-list" data-sortable-prefix="content[contact][hours][rows]" data-label-prefix="Satır">
+                <?php foreach ($contactHoursRows as $i => $hoursRow): ?>
+                    <div class="admin-list-item" data-sortable-item>
+                        <div class="admin-list-item__head">
+                            <strong data-item-label>Satır <?= $i + 1 ?></strong>
+                            <div class="admin-actions-row">
+                                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                                <button
+                                    type="button"
+                                    class="admin-btn admin-btn--danger"
+                                    data-delete-contact-hours
+                                    data-hours-index="<?= $i ?>"
+                                >Sil</button>
+                            </div>
+                        </div>
+                        <div class="admin-grid-2">
+                            <div>
+                                <label>Etiket</label>
+                                <input type="text" name="content[contact][hours][rows][<?= $i ?>][label]" value="<?= e($hoursRow['label'] ?? '') ?>">
+                            </div>
+                            <div>
+                                <label>Değer</label>
+                                <input type="text" name="content[contact][hours][rows][<?= $i ?>][value]" value="<?= e($hoursRow['value'] ?? '') ?>">
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="admin-btn admin-btn--gold" data-add-contact-hours>Satır Ekle</button>
         </section>
 
         <section class="admin-card" id="kvkk">
@@ -535,6 +573,29 @@ $sectionLabels = [
         </div>
         <label>Değer</label>
         <textarea name="content[contact][info_items][__INDEX__][value]" placeholder="Değer"></textarea>
+    </div>
+</template>
+
+<template id="contact-hours-template">
+    <div class="admin-list-item" data-sortable-item>
+        <div class="admin-list-item__head">
+            <strong data-item-label>Yeni satır</strong>
+            <div class="admin-actions-row">
+                <button type="button" class="admin-btn" data-sort-up>↑</button>
+                <button type="button" class="admin-btn" data-sort-down>↓</button>
+                <button type="button" class="admin-btn admin-btn--danger" data-delete-contact-hours data-hours-index="__INDEX__">Sil</button>
+            </div>
+        </div>
+        <div class="admin-grid-2">
+            <div>
+                <label>Etiket</label>
+                <input type="text" name="content[contact][hours][rows][__INDEX__][label]" placeholder="Etiket">
+            </div>
+            <div>
+                <label>Değer</label>
+                <input type="text" name="content[contact][hours][rows][__INDEX__][value]" placeholder="Değer">
+            </div>
+        </div>
     </div>
 </template>
 

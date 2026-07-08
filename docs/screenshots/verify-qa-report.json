@@ -108,6 +108,76 @@
       "limit": "0",
       "passed": true
     },
+    "smtp_test_config_mail_mode": {
+      "measured": 1,
+      "limit": "smtp + debug port",
+      "passed": true
+    },
+    "smtp_debug_server_ready": {
+      "measured": 1,
+      "limit": "port open",
+      "passed": true
+    },
+    "smtp_php_server_ready": {
+      "measured": 1,
+      "limit": "HTTP 200",
+      "passed": true
+    },
+    "smtp_mode_valid_post_status": {
+      "measured": 200,
+      "limit": "200",
+      "passed": true
+    },
+    "smtp_mode_debug_file_count": {
+      "measured": 1,
+      "limit": "1",
+      "passed": true
+    },
+    "smtp_mode_valid_post_ok": {
+      "measured": 1,
+      "limit": "true",
+      "passed": true
+    },
+    "smtp_mode_captured_to": {
+      "measured": "info@emirgandanismanlik.com",
+      "limit": "info@emirgandanismanlik.com",
+      "passed": true
+    },
+    "smtp_mode_captured_reply_to": {
+      "measured": "stub.sender@example.com",
+      "limit": "stub.sender@example.com",
+      "passed": true
+    },
+    "smtp_mode_captured_subject": {
+      "measured": "UTF-8 konu: SMTP testi",
+      "limit": "UTF-8 konu: SMTP testi",
+      "passed": true
+    },
+    "smtp_mode_captured_body": {
+      "measured": 1,
+      "limit": "name+message present",
+      "passed": true
+    },
+    "smtp_fail_php_server_ready": {
+      "measured": 1,
+      "limit": "HTTP 200",
+      "passed": true
+    },
+    "smtp_mode_debug_off_status": {
+      "measured": 500,
+      "limit": "500",
+      "passed": true
+    },
+    "smtp_mode_debug_off_no_log": {
+      "measured": 1,
+      "limit": "no new mail-log",
+      "passed": true
+    },
+    "smtp_mode_debug_off_no_leak": {
+      "measured": 1,
+      "limit": "no exception/stack",
+      "passed": true
+    },
     "security_config_not_tracked": {
       "measured": 1,
       "limit": "absent from git ls-files",
@@ -118,7 +188,7 @@
       "limit": "listed",
       "passed": true
     },
-    "security_no_credential_keys_in_repo": {
+    "security_no_credential_values_in_repo": {
       "measured": 0,
       "limit": "0",
       "passed": true
@@ -229,7 +299,7 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 589701,
+      "measured": 591791,
       "limit": "<= 650000",
       "passed": true
     },
@@ -259,7 +329,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.92898,
+      "measured": -6,
       "limit": "<= -2px",
       "passed": true
     },
@@ -324,7 +394,7 @@
       "passed": true
     },
     "contact_section_height_px": {
-      "measured": 726,
+      "measured": 730,
       "limit": "<= 790",
       "passed": true
     },
@@ -381,6 +451,51 @@
     "contact_mobile_no_overflow": {
       "measured": 1,
       "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "contact_hours_column_bottom_delta_px": {
+      "measured": 0,
+      "limit": "<= 16",
+      "passed": true
+    },
+    "contact_hours_section_height_px": {
+      "measured": 730,
+      "limit": "<= 734",
+      "passed": true
+    },
+    "contact_hours_card_visible": {
+      "measured": 1,
+      "limit": "title + 2 rows",
+      "passed": true
+    },
+    "contact_hours_card_left_align_px": {
+      "measured": 0,
+      "limit": "<= 2",
+      "passed": true
+    },
+    "contact_hours_card_right_align_px": {
+      "measured": 0,
+      "limit": "<= 2",
+      "passed": true
+    },
+    "contact_hours_desktop_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "contact_hours_mobile_below_form": {
+      "measured": 1,
+      "limit": "below form",
+      "passed": true
+    },
+    "contact_hours_mobile_full_width": {
+      "measured": 1,
+      "limit": "full width",
+      "passed": true
+    },
+    "contact_hours_mobile_no_overflow": {
+      "measured": 1,
+      "limit": "no overflow",
       "passed": true
     },
     "overflow_mobile_home": {
@@ -448,9 +563,14 @@
       "limit": "unchanged",
       "passed": true
     },
-    "scope_unchanged_css_main.css": {
+    "scope_main_css_changed_faz54": {
       "measured": 1,
-      "limit": "unchanged",
+      "limit": "changed from HEAD",
+      "passed": true
+    },
+    "content_json_contact_hours_added": {
+      "measured": 1,
+      "limit": "hours seed only",
       "passed": true
     },
     "content_json_existing_values_unchanged": {
@@ -509,6 +629,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 589701,
+  "homepage_total_resource_bytes": 591791,
   "all_passed": true
 }

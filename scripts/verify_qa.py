@@ -31,11 +31,27 @@ MAIL_TEST_BASE = "http://localhost:8081"
 MAIL_TEST_PORT = 8081
 CONFIG_PATH = ROOT / "public_html/config.php"
 STUB_SCRIPT = ROOT / "scripts/mail_capture_stub.py"
+SMTP_DEBUG_SCRIPT = ROOT / "scripts/smtp_debug_server.py"
+SMTP_DEBUG_HOST = "127.0.0.1"
 CSS_DIR = ROOT / "public_html/assets/css"
 CREDENTIAL_PATTERNS = ("smtp_pass", "mail_password", "smtp_user", "smtp_password")
+CREDENTIAL_VALUE_RE = re.compile(
+    r"'(?:smtp_pass|mail_password|smtp_password)'\s*=>\s*'([^']+)'",
+    re.IGNORECASE,
+)
 TEST_PASSWORD = ".eE951623"
 CONTACT_SECTION_BASELINE_HEIGHT_PX = 956
 CONTACT_SECTION_MAX_HEIGHT_PX = 790
+CONTACT_SECTION_PRE_HOURS_HEIGHT_PX = 726
+CONTACT_HOURS_COLUMN_ALIGN_MAX_PX = 16
+CONTACT_HOURS_CARD_EDGE_MAX_PX = 2
+CONTACT_HOURS_EXPECTED = {
+    "title": "Çalışma Saatleri",
+    "rows": [
+        {"label": "Pazartesi – Cuma", "value": "09:00 – 18:00"},
+        {"label": "Cumartesi – Pazar", "value": "Kapalı"},
+    ],
+}
 CONTACT_RIGHT_COL_BASELINE_RATIO = 1 / 2.618
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
@@ -77,15 +93,16 @@ def php_cmd(*args: str) -> list[str]:
 
 
 def setup_admin_config() -> None:
-    subprocess.run(
+    proc = subprocess.run(
         php_cmd(str(ROOT / "scripts/create_admin_config.php"), f"--password={TEST_PASSWORD}"),
         cwd=ROOT,
-        check=True,
         capture_output=True,
         text=True,
         encoding="utf-8",
         errors="replace",
     )
+    if proc.returncode != 0:
+        raise RuntimeError(proc.stderr or proc.stdout or "create_admin_config failed")
 
 
 def load_content() -> dict:
@@ -137,7 +154,10 @@ def assert_content_json_scope() -> bool:
             cmp_obj["site"].pop("url", None)
             if "meta" in cmp_obj["site"]:
                 cmp_obj["site"]["meta"].pop("og_image", None)
+    hours_added = current_cmp.get("contact", {}).pop("hours", None)
     ok, reason = deep_equal_except_allowed(head_cmp, current_cmp)
+    hours_ok = hours_added == CONTACT_HOURS_EXPECTED
+    assert_metric("content_json_contact_hours_added", 1 if hours_ok else 0, "hours seed only", hours_ok)
     assert_metric("content_json_existing_values_unchanged", 1 if ok else 0, "unchanged", ok)
     if not ok:
         print(f"content diff: {reason}", file=sys.stderr)
@@ -187,7 +207,7 @@ def assert_content_json_scope() -> bool:
     )
     assert_metric("content_json_info_items_seeded", 1 if seeded_ok else 0, "byte-identical seed", seeded_ok)
 
-    return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok and display_ok and seeded_ok
+    return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok and display_ok and seeded_ok and hours_ok
 
 
 def assert_scope_unchanged() -> bool:
@@ -386,6 +406,190 @@ def parse_mail_file(path: Path) -> dict[str, str]:
     }
 
 
+def pick_free_port(host: str = SMTP_DEBUG_HOST) -> int:
+    import socket
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind((host, 0))
+        return int(sock.getsockname()[1])
+
+
+def write_smtp_test_config(stub_dir: Path, smtp_port: int) -> None:
+    if not CONFIG_PATH.is_file() or "admin_password_hash" not in CONFIG_PATH.read_text(encoding="utf-8"):
+        setup_admin_config()
+    text = CONFIG_PATH.read_text(encoding="utf-8")
+    replacements = [
+        (r"'mail_mode'\s*=>\s*'[^']*'", "'mail_mode' => 'smtp'"),
+        (r"'smtp_host'\s*=>\s*'[^']*'", f"'smtp_host' => '{SMTP_DEBUG_HOST}'"),
+        (r"'smtp_port'\s*=>\s*\d+", f"'smtp_port' => {smtp_port}"),
+        (r"'smtp_secure'\s*=>\s*'[^']*'", "'smtp_secure' => ''"),
+    ]
+    for pattern, repl in replacements:
+        text, count = re.subn(pattern, repl, text, count=1)
+        if count == 0 and pattern.startswith("'smtp_host'"):
+            text = text.replace(
+                "'smtp_user' => 'info@emirgandanismanlik.com',",
+                "'smtp_host' => '127.0.0.1',\n    'smtp_port' => "
+                + str(smtp_port)
+                + ",\n    'smtp_secure' => '',\n    'smtp_user' => 'info@emirgandanismanlik.com',",
+                1,
+            )
+    if re.search(r"'smtp_pass'\s*=>", text):
+        text = re.sub(r"'smtp_pass'\s*=>\s*'[^']*'", "'smtp_pass' => ''", text, count=1)
+    else:
+        text = text.replace(
+            "'smtp_user' => 'info@emirgandanismanlik.com',",
+            "'smtp_user' => 'info@emirgandanismanlik.com',\n    'smtp_pass' => '',",
+            1,
+        )
+    CONFIG_PATH.write_text(text, encoding="utf-8")
+    (stub_dir / "config.php").write_bytes(CONFIG_PATH.read_bytes())
+
+
+def start_smtp_debug_server(stub_dir: Path, smtp_port: int) -> subprocess.Popen:
+    return subprocess.Popen(
+        [
+            sys.executable,
+            str(SMTP_DEBUG_SCRIPT),
+            "--host",
+            SMTP_DEBUG_HOST,
+            "--port",
+            str(smtp_port),
+            "--out-dir",
+            str(stub_dir / "captured"),
+        ],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
+def wait_smtp_ready(port: int, timeout: float = 8.0) -> bool:
+    import socket
+
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection((SMTP_DEBUG_HOST, port), timeout=1):
+                return True
+        except OSError:
+            time.sleep(0.2)
+    return False
+
+
+def assert_faz53_contact_smtp() -> bool:
+    ok = True
+    config_before = snapshot_config()
+    server: subprocess.Popen | None = None
+    php_server: subprocess.Popen | None = None
+
+    try:
+        with tempfile.TemporaryDirectory(prefix="smtp-stub-") as tmp:
+            stub_dir = Path(tmp)
+            smtp_port = pick_free_port()
+            write_smtp_test_config(stub_dir, smtp_port)
+            config_text = CONFIG_PATH.read_text(encoding="utf-8")
+            smtp_mode_ok = bool(re.search(r"'mail_mode'\s*=>\s*'smtp'", config_text)) and bool(
+                re.search(rf"'smtp_port'\s*=>\s*{smtp_port}\b", config_text)
+            )
+            assert_metric("smtp_test_config_mail_mode", 1 if smtp_mode_ok else 0, "smtp + debug port", smtp_mode_ok)
+            ok = ok and smtp_mode_ok
+            if not smtp_mode_ok:
+                return ok
+
+            server = start_smtp_debug_server(stub_dir, smtp_port)
+            smtp_ready = wait_smtp_ready(smtp_port)
+            time.sleep(0.5)
+            assert_metric("smtp_debug_server_ready", 1 if smtp_ready else 0, "port open", smtp_ready)
+            ok = ok and smtp_ready
+            if not smtp_ready:
+                return ok
+
+            php_server = start_mail_test_server(stub_dir, fail=False)
+            ready = wait_http_ready(MAIL_TEST_BASE)
+            assert_metric("smtp_php_server_ready", 1 if ready else 0, "HTTP 200", ready)
+            ok = ok and ready
+            if not ready:
+                return ok
+
+            payload = {
+                "name": "SMTP Stub QA",
+                "email": "stub.sender@example.com",
+                "phone": "5550001122",
+                "subject": "UTF-8 konu: SMTP testi",
+                "message": "SMTP stub gövde doğrulama metni.",
+            }
+            session = requests.Session()
+            resp = session.post(
+                MAIL_TEST_BASE + "/api/contact.php",
+                data=payload,
+                headers={"Accept": "application/json"},
+                timeout=30,
+            )
+            body = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+            captured = sorted((stub_dir / "captured").glob("mail-*.eml"))
+            count_ok = len(captured) == 1
+            assert_metric("smtp_mode_valid_post_status", resp.status_code, "200", resp.status_code == 200)
+            assert_metric("smtp_mode_debug_file_count", len(captured), "1", count_ok)
+            assert_metric("smtp_mode_valid_post_ok", 1 if body.get("ok") else 0, "true", bool(body.get("ok")))
+            ok = ok and resp.status_code == 200 and count_ok and bool(body.get("ok"))
+
+            if captured:
+                mail = parse_mail_file(captured[0])
+                to_ok = "info@emirgandanismanlik.com" in mail["to"]
+                reply_ok = mail["reply_to"] == payload["email"]
+                subject_ok = mail["subject"] == payload["subject"]
+                body_ok = payload["name"] in mail["body"] and payload["message"] in mail["body"]
+                assert_metric("smtp_mode_captured_to", mail["to"], "info@emirgandanismanlik.com", to_ok)
+                assert_metric("smtp_mode_captured_reply_to", mail["reply_to"], payload["email"], reply_ok)
+                assert_metric("smtp_mode_captured_subject", mail["subject"], payload["subject"], subject_ok)
+                assert_metric("smtp_mode_captured_body", 1 if body_ok else 0, "name+message present", body_ok)
+                ok = ok and to_ok and reply_ok and subject_ok and body_ok
+
+            stop_server(php_server)
+            php_server = None
+            stop_server(server)
+            server = None
+            time.sleep(0.5)
+
+            closed_port = pick_free_port()
+            write_smtp_test_config(stub_dir, closed_port)
+            CONFIG_PATH.write_bytes((stub_dir / "config.php").read_bytes())
+            php_server = start_mail_test_server(stub_dir, fail=False)
+            fail_ready = wait_http_ready(MAIL_TEST_BASE)
+            assert_metric("smtp_fail_php_server_ready", 1 if fail_ready else 0, "HTTP 200", fail_ready)
+            ok = ok and fail_ready
+            if fail_ready:
+                logs_before = snapshot_mail_log()
+                fail_session = requests.Session()
+                fail_resp = fail_session.post(
+                    MAIL_TEST_BASE + "/api/contact.php",
+                    data={
+                        "name": "Fail SMTP",
+                        "email": "fail.smtp@example.com",
+                        "subject": "Fail",
+                        "message": "SMTP fail senaryosu.",
+                    },
+                    headers={"Accept": "application/json"},
+                    timeout=30,
+                )
+                logs_after = snapshot_mail_log()
+                fail_text = fail_resp.text.lower()
+                status_ok = fail_resp.status_code == 500
+                no_log_ok = logs_after == logs_before
+                no_leak_ok = "exception" not in fail_text and "stack" not in fail_text and "phpmailer" not in fail_text
+                assert_metric("smtp_mode_debug_off_status", fail_resp.status_code, "500", status_ok)
+                assert_metric("smtp_mode_debug_off_no_log", 1 if no_log_ok else 0, "no new mail-log", no_log_ok)
+                assert_metric("smtp_mode_debug_off_no_leak", 1 if no_leak_ok else 0, "no exception/stack", no_leak_ok)
+                ok = ok and status_ok and no_log_ok and no_leak_ok
+    finally:
+        stop_server(php_server)
+        stop_server(server)
+        restore_config(config_before)
+
+    return ok
+
+
 def assert_faz51_contact_mail() -> bool:
     ok = True
     config_before = snapshot_config()
@@ -496,28 +700,31 @@ def assert_mail_security() -> bool:
 
     credential_hits = 0
     for rel in tracked:
-        if rel.replace("\\", "/") == "scripts/verify_qa.py":
+        rel_posix = rel.replace("\\", "/")
+        if rel_posix == "scripts/verify_qa.py":
+            continue
+        if "api/lib/phpmailer/" in rel_posix.lower():
             continue
         path = ROOT / rel
         if not path.is_file():
             continue
         try:
-            text = path.read_text(encoding="utf-8", errors="ignore").lower()
+            text = path.read_text(encoding="utf-8", errors="ignore")
         except OSError:
             continue
-        for pattern in CREDENTIAL_PATTERNS:
-            if pattern in text:
+        for match in CREDENTIAL_VALUE_RE.finditer(text):
+            if match.group(1).strip():
                 credential_hits += 1
                 break
     cred_ok = credential_hits == 0
-    assert_metric("security_no_credential_keys_in_repo", credential_hits, "0", cred_ok)
+    assert_metric("security_no_credential_values_in_repo", credential_hits, "0", cred_ok)
     ok = ok and cred_ok
     return ok
 
 
 def assert_faz51_scope_css() -> bool:
     ok = True
-    for name in ("tokens.css", "main.css"):
+    for name in ("tokens.css",):
         path = CSS_DIR / name
         rel = path.relative_to(ROOT).as_posix()
         head = subprocess.run(["git", "show", f"HEAD:{rel}"], cwd=ROOT, capture_output=True)
@@ -528,6 +735,17 @@ def assert_faz51_scope_css() -> bool:
         passed = hashlib.sha256(head.stdout).hexdigest() == hashlib.sha256(path.read_bytes()).hexdigest()
         assert_metric(f"scope_unchanged_css_{name}", 1 if passed else 0, "unchanged", passed)
         ok = ok and passed
+
+    main_path = CSS_DIR / "main.css"
+    main_rel = main_path.relative_to(ROOT).as_posix()
+    main_head = subprocess.run(["git", "show", f"HEAD:{main_rel}"], cwd=ROOT, capture_output=True)
+    if main_head.returncode != 0:
+        assert_metric("scope_main_css_changed_faz54", 0, "changed from HEAD", False)
+        ok = False
+    else:
+        main_changed = hashlib.sha256(main_head.stdout).hexdigest() != hashlib.sha256(main_path.read_bytes()).hexdigest()
+        assert_metric("scope_main_css_changed_faz54", 1 if main_changed else 0, "changed from HEAD", main_changed)
+        ok = ok and main_changed
     return ok
 
 
@@ -1022,6 +1240,93 @@ def assert_faz47_contact_layout() -> bool:
     return ok
 
 
+def assert_faz54_contact_hours() -> bool:
+    """Faz 5.4: çalışma saatleri kartı ve sütun alt hizası."""
+    ok = True
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        errors: list[str] = []
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.goto(BASE + "/#contact", wait_until="networkidle")
+        page.wait_for_timeout(600)
+
+        layout = page.evaluate(
+            """() => {
+              const leftCol = document.querySelector('.contact-form-col');
+              const info = document.querySelector('.contact-info');
+              const form = document.querySelector('.contact-form');
+              const hours = document.querySelector('.contact-hours-card');
+              const section = document.getElementById('contact');
+              if (!leftCol || !info || !section) return null;
+              const lr = leftCol.getBoundingClientRect();
+              const ir = info.getBoundingClientRect();
+              const fr = form.getBoundingClientRect();
+              const hr = hours ? hours.getBoundingClientRect() : null;
+              return {
+                columnDelta: Math.round(Math.abs(lr.bottom - ir.bottom)),
+                sectionHeight: Math.round(section.getBoundingClientRect().height),
+                hoursVisible: !!hours,
+                hoursTitle: hours ? (hours.querySelector('h3')?.textContent || '').trim() : '',
+                rowCount: hours ? hours.querySelectorAll('.contact-hours-row').length : 0,
+                cardLeftDelta: hr ? Math.abs(hr.left - fr.left) : 999,
+                cardRightDelta: hr ? Math.abs(hr.right - fr.right) : 999,
+              };
+            }"""
+        )
+        if layout is None:
+            assert_metric("contact_hours_layout_present", 0, "1", False)
+            return False
+
+        delta_ok = layout["columnDelta"] <= CONTACT_HOURS_COLUMN_ALIGN_MAX_PX
+        height_ok = layout["sectionHeight"] <= CONTACT_SECTION_PRE_HOURS_HEIGHT_PX + 8
+        visible_ok = layout["hoursVisible"] and layout["hoursTitle"] == "Çalışma Saatleri" and layout["rowCount"] == 2
+        left_ok = layout["cardLeftDelta"] <= CONTACT_HOURS_CARD_EDGE_MAX_PX
+        right_ok = layout["cardRightDelta"] <= CONTACT_HOURS_CARD_EDGE_MAX_PX
+        assert_metric("contact_hours_column_bottom_delta_px", layout["columnDelta"], f"<= {CONTACT_HOURS_COLUMN_ALIGN_MAX_PX}", delta_ok)
+        assert_metric(
+            "contact_hours_section_height_px",
+            layout["sectionHeight"],
+            f"<= {CONTACT_SECTION_PRE_HOURS_HEIGHT_PX + 8}",
+            height_ok,
+        )
+        assert_metric("contact_hours_card_visible", 1 if visible_ok else 0, "title + 2 rows", visible_ok)
+        assert_metric("contact_hours_card_left_align_px", round(layout["cardLeftDelta"], 2), f"<= {CONTACT_HOURS_CARD_EDGE_MAX_PX}", left_ok)
+        assert_metric("contact_hours_card_right_align_px", round(layout["cardRightDelta"], 2), f"<= {CONTACT_HOURS_CARD_EDGE_MAX_PX}", right_ok)
+        ok = ok and delta_ok and height_ok and visible_ok and left_ok and right_ok
+
+        console_ok = len(errors) == 0
+        assert_metric("contact_hours_desktop_console_errors", len(errors), "0", console_ok)
+        ok = ok and console_ok
+        page.close()
+
+        mobile = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile.goto(BASE + "/#contact", wait_until="networkidle")
+        mobile.wait_for_timeout(400)
+        mobile_layout = mobile.evaluate(
+            """() => {
+              const hours = document.querySelector('.contact-hours-card');
+              const formCol = document.querySelector('.contact-form-col');
+              const form = document.querySelector('.contact-form');
+              const hr = hours ? hours.getBoundingClientRect() : null;
+              const fr = form.getBoundingClientRect();
+              const below = hr ? hr.top >= fr.bottom - 4 : false;
+              const full = hr ? Math.abs(hr.width - formCol.getBoundingClientRect().width) <= 8 : false;
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return { below, full, overflow, hasHours: !!hours };
+            }"""
+        )
+        mobile_ok = mobile_layout["hasHours"] and mobile_layout["below"] and mobile_layout["full"] and mobile_layout["overflow"]
+        assert_metric("contact_hours_mobile_below_form", 1 if mobile_layout["below"] else 0, "below form", mobile_layout["below"])
+        assert_metric("contact_hours_mobile_full_width", 1 if mobile_layout["full"] else 0, "full width", mobile_layout["full"])
+        assert_metric("contact_hours_mobile_no_overflow", 1 if mobile_layout["overflow"] else 0, "no overflow", mobile_layout["overflow"])
+        ok = ok and mobile_ok
+        mobile.close()
+        browser.close()
+
+    return ok
+
+
 def assert_viewport_qa() -> tuple[bool, list[str]]:
     ok = True
     shots: list[str] = []
@@ -1091,6 +1396,7 @@ def main() -> int:
         set_config_mail_mode("log")
         ok = assert_contact_api() and ok
         ok = assert_faz51_contact_mail() and ok
+        ok = assert_faz53_contact_smtp() and ok
         ok = assert_mail_security() and ok
         ok = assert_seo_files() and ok
         ok = assert_page_health() and ok
@@ -1101,6 +1407,7 @@ def main() -> int:
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
+        ok = assert_faz54_contact_hours() and ok
         viewport_ok, shots = assert_viewport_qa()
         ok = viewport_ok and ok
         results["screenshots"] = shots

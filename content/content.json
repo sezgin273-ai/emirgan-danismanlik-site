@@ -281,6 +281,19 @@
             "submit": "Mesaj Gönder",
             "success": "Mesajınız alındı. En kısa sürede size dönüş yapacağız.",
             "error": "Lütfen zorunlu alanları doldurun."
+        },
+        "hours": {
+            "title": "Çalışma Saatleri",
+            "rows": [
+                {
+                    "label": "Pazartesi – Cuma",
+                    "value": "09:00 – 18:00"
+                },
+                {
+                    "label": "Cumartesi – Pazar",
+                    "value": "Kapalı"
+                }
+            ]
         }
     },
     "display": {

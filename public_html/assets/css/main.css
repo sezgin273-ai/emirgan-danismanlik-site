@@ -1073,10 +1073,65 @@ section {
   align-items: start;
 }
 
+.contact-form-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin: 0;
+}
+
 .contact-form {
   display: grid;
   gap: var(--space-sm);
   margin: 0;
+}
+
+.contact-hours-card {
+  margin-top: 0;
+}
+
+.contact-hours-card h3 {
+  text-align: center;
+}
+
+.contact-hours-list {
+  margin: 0;
+  padding: 0;
+}
+
+.contact-hours-row {
+  text-align: center;
+  padding-block: 0.4rem;
+  border-bottom: 1px solid rgba(184, 148, 80, 0.15);
+}
+
+.contact-hours-row:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.contact-hours-row dt,
+.contact-hours-row dd {
+  display: inline;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.contact-hours-row dt {
+  font-weight: 500;
+  color: var(--color-navy);
+}
+
+.contact-hours-row dt::after {
+  content: " / ";
+  font-weight: 400;
+  color: rgba(38, 52, 74, 0.4);
+}
+
+.contact-hours-row dd {
+  color: var(--color-text-muted);
+  font-weight: 400;
 }
 
 .contact-info {
@@ -1207,7 +1262,15 @@ section {
 @media (min-width: 900px) {
   .contact-grid {
     grid-template-columns: 1.1fr 1fr;
-    align-items: start;
+    align-items: stretch;
+  }
+
+  .contact-form-col {
+    height: 100%;
+  }
+
+  .contact-hours-card {
+    margin-top: auto;
   }
 
   .contact-form {
@@ -1232,6 +1295,10 @@ section {
 }
 
 @media (max-width: 768px) {
+  .contact-hours-card {
+    width: 100%;
+  }
+
   .contact-info-grid {
     grid-template-columns: 1fr;
   }

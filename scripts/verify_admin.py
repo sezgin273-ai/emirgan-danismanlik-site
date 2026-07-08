@@ -399,6 +399,81 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
     return ok
 
 
+def assert_contact_hours_admin(test_password: str) -> bool:
+    ok = True
+    content = load_content()
+    hours_rows = content.get("contact", {}).get("hours", {}).get("rows", [])
+    if len(hours_rows) < 1:
+        assert_metric("contact_hours_admin_seed", 0, ">=1 row", False)
+        return False
+    original_value = hours_rows[0]["value"]
+    marked_value = original_value + " (QA)"
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        playwright_admin_login(page, test_password)
+
+        page.locator('a[href="#contact"]').click()
+        page.locator('input[name="content[contact][hours][rows][0][value]"]').fill(marked_value)
+        click_save_all_content(page)
+        page.goto(BASE + "/#contact", wait_until="networkidle")
+        shown = page.locator(".contact-hours-row").first.locator("dd").inner_text()
+        round_ok = marked_value in shown
+        assert_metric("contact_hours_value_roundtrip", 1 if round_ok else 0, "marked on frontend", round_ok)
+        ok = ok and round_ok
+
+        page.goto(f"{BASE}/admin/dashboard.php#contact", wait_until="networkidle")
+        page.locator('a[href="#contact"]').click()
+        page.locator('input[name="content[contact][hours][rows][0][value]"]').fill(original_value)
+        click_save_all_content(page)
+        restore_ok = page.locator('input[name="content[contact][hours][rows][0][value]"]').input_value() == original_value
+        assert_metric("contact_hours_value_restore", 1 if restore_ok else 0, "original value", restore_ok)
+        ok = ok and restore_ok
+
+        page.locator("[data-add-contact-hours]").click()
+        idx = page.locator("#contact-hours-list [data-sortable-item]").count() - 1
+        page.locator(f'input[name="content[contact][hours][rows][{idx}][label]"]').fill("Test Gün")
+        page.locator(f'input[name="content[contact][hours][rows][{idx}][value]"]').fill("10:00 – 12:00")
+        click_save_all_content(page)
+        page.goto(BASE + "/#contact", wait_until="networkidle")
+        count3 = page.locator(".contact-hours-row").count()
+        assert_metric("contact_hours_add_row_count", count3, "3", count3 == 3)
+        ok = ok and count3 == 3
+
+        page.goto(f"{BASE}/admin/dashboard.php#contact", wait_until="networkidle")
+        page.locator('a[href="#contact"]').click()
+        dialog_seen = False
+
+        def accept_dialog(dialog) -> None:
+            nonlocal dialog_seen
+            dialog_seen = True
+            dialog.accept()
+
+        page.once("dialog", accept_dialog)
+        page.locator("[data-delete-contact-hours]").last.click()
+        page.wait_for_timeout(800)
+        count2 = len(load_content()["contact"]["hours"]["rows"])
+        assert_metric("contact_hours_delete_row_count", count2, "2", count2 == 2)
+        assert_metric("contact_hours_delete_confirm", 1 if dialog_seen else 0, "confirm shown", dialog_seen)
+        ok = ok and count2 == 2 and dialog_seen
+
+        page.locator("#contact-hours-list [data-sort-down]").first.click()
+        page.wait_for_timeout(200)
+        page.once("dialog", lambda d: d.accept())
+        with page.expect_response(lambda r: "/admin/actions.php" in r.url) as resp_info:
+            page.locator("[data-delete-contact-hours]").first.click()
+        status = resp_info.value.status
+        rows_unchanged = len(load_content()["contact"]["hours"]["rows"]) == 2
+        assert_metric("contact_hours_unsaved_delete_status", status, "409", status == 409)
+        assert_metric("contact_hours_unsaved_delete_unchanged", 1 if rows_unchanged else 0, "unchanged", rows_unchanged)
+        ok = ok and status == 409 and rows_unchanged
+
+        browser.close()
+
+    return ok
+
+
 def assert_contact_map_roundtrip(test_password: str) -> bool:
     ok = True
     content = load_content()
@@ -1438,6 +1513,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     baseline_members = load_content()["team"]["members"]
     ok = assert_faz46_admin(client, TEST_PASSWORD, original_content) and ok
     ok = assert_faz46b_checkbox_and_lists(TEST_PASSWORD, original_content) and ok
+    ok = assert_contact_hours_admin(TEST_PASSWORD) and ok
     ok = assert_contact_map_roundtrip(TEST_PASSWORD) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
     ok = assert_faz48_admin(TEST_PASSWORD) and ok

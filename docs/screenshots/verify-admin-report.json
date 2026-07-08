@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.29,
+      "measured": 2.44,
       "limit": ">= 1",
       "passed": true
     },
@@ -441,6 +441,41 @@
     "process_steps_empty_frontend": {
       "measured": 1,
       "limit": "absent + no PHP noise",
+      "passed": true
+    },
+    "contact_hours_value_roundtrip": {
+      "measured": 1,
+      "limit": "marked on frontend",
+      "passed": true
+    },
+    "contact_hours_value_restore": {
+      "measured": 1,
+      "limit": "original value",
+      "passed": true
+    },
+    "contact_hours_add_row_count": {
+      "measured": 3,
+      "limit": "3",
+      "passed": true
+    },
+    "contact_hours_delete_row_count": {
+      "measured": 2,
+      "limit": "2",
+      "passed": true
+    },
+    "contact_hours_delete_confirm": {
+      "measured": 1,
+      "limit": "confirm shown",
+      "passed": true
+    },
+    "contact_hours_unsaved_delete_status": {
+      "measured": 409,
+      "limit": "409",
+      "passed": true
+    },
+    "contact_hours_unsaved_delete_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
       "passed": true
     },
     "contact_map_address_roundtrip": {

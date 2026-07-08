@@ -164,8 +164,8 @@ def measure_about(page) -> dict | None:
 def measure_contact(page) -> dict | None:
     return page.evaluate(
         """() => {
-          const formRow = document.querySelector('#contact-form .form-row');
-          const card = document.querySelector('.address-card');
+          const formRow = document.querySelector('#contact-form .form-row:not(.visually-hidden)');
+          const card = document.querySelector('.contact-info-grid .address-card');
           if (!formRow || !card) return null;
           const fr = formRow.getBoundingClientRect();
           const cr = card.getBoundingClientRect();

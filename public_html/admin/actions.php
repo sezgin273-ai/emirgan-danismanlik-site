@@ -282,6 +282,40 @@ function admin_normalize_content(array $posted, array $current): array
                 }
             }
         }
+        if (isset($posted['contact']['hours_present'])) {
+            $hoursTitle = str_replace(["\r", "\n", "\0"], '', trim((string) ($posted['contact']['hours']['title'] ?? '')));
+            $hoursRows = [];
+            if (isset($posted['contact']['hours']['rows']) && is_array($posted['contact']['hours']['rows'])) {
+                foreach ($posted['contact']['hours']['rows'] as $row) {
+                    if (!is_array($row)) {
+                        continue;
+                    }
+                    $label = str_replace(["\r", "\n", "\0"], '', trim((string) ($row['label'] ?? '')));
+                    $value = str_replace(["\r", "\n", "\0"], '', trim((string) ($row['value'] ?? '')));
+                    if ($label === '' || $value === '') {
+                        continue;
+                    }
+                    if (admin_text_length($label) > 80 || admin_text_length($value) > 80) {
+                        admin_abort_with_status(422, 'Çalışma saatleri alanı çok uzun.');
+                    }
+                    $hoursRows[] = [
+                        'label' => $label,
+                        'value' => $value,
+                    ];
+                }
+            }
+            if ($hoursTitle === '' || count($hoursRows) === 0) {
+                unset($content['contact']['hours']);
+            } else {
+                if (admin_text_length($hoursTitle) > 80) {
+                    admin_abort_with_status(422, 'Çalışma saatleri başlığı çok uzun.');
+                }
+                $content['contact']['hours'] = [
+                    'title' => $hoursTitle,
+                    'rows' => $hoursRows,
+                ];
+            }
+        }
     }
 
     if (isset($posted['navigation']) && is_array($posted['navigation'])) {
@@ -547,6 +581,35 @@ match ($action) {
             admin_redirect('/admin/dashboard.php#contact', 'error', 'İletişim bilgisi silinemedi.');
         }
         admin_redirect('/admin/dashboard.php#contact', 'ok', 'İletişim bilgisi silindi.');
+    })(),
+    'delete_contact_hours_row' => (function () use ($current) {
+        $rawIndex = $_POST['hours_index'] ?? null;
+        $index = filter_var($rawIndex, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        $hours = $current['contact']['hours'] ?? [];
+        $rows = is_array($hours['rows'] ?? null) ? $hours['rows'] : [];
+        if ($index === false || !isset($rows[$index])) {
+            admin_abort_with_status(422, 'Geçersiz çalışma saatleri index değeri.');
+        }
+
+        $postedLabel = str_replace(["\r", "\n", "\0"], '', trim((string) ($_POST['hours_label'] ?? '')));
+        $serverLabel = trim((string) ($rows[$index]['label'] ?? ''));
+        if ($postedLabel === '' || $postedLabel !== $serverLabel) {
+            admin_abort_with_status(409, 'Çalışma saatleri sırası değişmiş olabilir. Önce kaydedin veya sayfayı yenileyin.');
+        }
+
+        unset($rows[$index]);
+        $rows = array_values($rows);
+        $title = trim((string) ($hours['title'] ?? ''));
+        if ($title === '' || count($rows) === 0) {
+            unset($current['contact']['hours']);
+        } else {
+            $current['contact']['hours']['rows'] = $rows;
+        }
+
+        if (!save_content($current)) {
+            admin_redirect('/admin/dashboard.php#contact', 'error', 'Çalışma saati satırı silinemedi.');
+        }
+        admin_redirect('/admin/dashboard.php#contact', 'ok', 'Çalışma saati satırı silindi.');
     })(),
     default => admin_redirect('/admin/dashboard.php', 'error', 'Bilinmeyen işlem.'),
 };

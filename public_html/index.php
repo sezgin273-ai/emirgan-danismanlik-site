@@ -20,6 +20,39 @@ $process = $content['process'] ?? ['title' => '', 'steps' => []];
 $contact = $content['contact'];
 $ui = $content['ui'];
 $assets = $content['site']['assets'];
+
+/** @return list<array{label:string,value:string}> */
+function index_contact_hours_rows(array $contactBlock): array
+{
+    if (!isset($contactBlock['hours']) || !is_array($contactBlock['hours'])) {
+        return [];
+    }
+    $title = trim((string) ($contactBlock['hours']['title'] ?? ''));
+    if ($title === '') {
+        return [];
+    }
+    $rows = $contactBlock['hours']['rows'] ?? [];
+    if (!is_array($rows) || count($rows) === 0) {
+        return [];
+    }
+    $valid = [];
+    foreach ($rows as $row) {
+        if (!is_array($row)) {
+            continue;
+        }
+        $label = trim((string) ($row['label'] ?? ''));
+        $value = trim((string) ($row['value'] ?? ''));
+        if ($label === '' || $value === '') {
+            continue;
+        }
+        $valid[] = ['label' => $label, 'value' => $value];
+    }
+
+    return $valid;
+}
+
+$contactHoursRows = index_contact_hours_rows($contact);
+$contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']['title'] ?? '')) : '';
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($content['site']['lang']) ?>">
@@ -199,7 +232,8 @@ $assets = $content['site']['assets'];
                 <p class="section-subtitle"><?= e($contact['heading']) ?></p>
             </div>
             <div class="contact-grid">
-                <form class="contact-form reveal" id="contact-form" action="/api/contact.php" method="post" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
+                <div class="contact-form-col reveal">
+                <form class="contact-form" id="contact-form" action="/api/contact.php" method="post" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
                     <div class="form-row visually-hidden" aria-hidden="true">
                         <label for="contact-website">Website</label>
                         <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off">
@@ -259,6 +293,20 @@ $assets = $content['site']['assets'];
                     <p class="form-feedback" id="form-feedback" role="status" aria-live="polite" hidden></p>
                     <button type="submit" class="btn btn-navy"><?= e($contact['form']['submit']) ?></button>
                 </form>
+                <?php if ($contactHoursRows !== [] && $contactHoursTitle !== ''): ?>
+                    <article class="address-card contact-hours-card">
+                        <h3><?= e($contactHoursTitle) ?></h3>
+                        <dl class="contact-hours-list">
+                            <?php foreach ($contactHoursRows as $hoursRow): ?>
+                                <div class="contact-hours-row">
+                                    <dt><?= e($hoursRow['label']) ?></dt>
+                                    <dd><?= e($hoursRow['value']) ?></dd>
+                                </div>
+                            <?php endforeach; ?>
+                        </dl>
+                    </article>
+                <?php endif; ?>
+                </div>
 
                 <div class="contact-info reveal">
                     <div class="contact-info-grid">

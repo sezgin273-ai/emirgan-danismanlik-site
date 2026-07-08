@@ -18,6 +18,9 @@
       item.querySelectorAll('[data-step-index]').forEach(function (el) {
         el.setAttribute('data-step-index', String(index));
       });
+      item.querySelectorAll('[data-hours-index]').forEach(function (el) {
+        el.setAttribute('data-hours-index', String(index));
+      });
     });
   }
 
@@ -218,6 +221,40 @@
         { name: 'info_index', value: index },
         { name: 'info_title', value: infoTitle },
       ]);
+    });
+  });
+
+  document.querySelectorAll('[data-delete-contact-hours]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      if (!confirm('Bu çalışma saati satırını silmek istediğinize emin misiniz?')) {
+        return;
+      }
+      var index = btn.getAttribute('data-hours-index');
+      var item = btn.closest('[data-sortable-item]');
+      var labelInput = item ? item.querySelector('input[name*="[label]"]') : null;
+      var hoursLabel = labelInput ? labelInput.value : '';
+      submitAdminAction([
+        { name: 'action', value: 'delete_contact_hours_row' },
+        { name: 'hours_index', value: index },
+        { name: 'hours_label', value: hoursLabel },
+      ]);
+    });
+  });
+
+  document.querySelectorAll('[data-add-contact-hours]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var container = document.getElementById('contact-hours-list');
+      var index = container.querySelectorAll('[data-sortable-item]').length;
+      var tpl = document.getElementById('contact-hours-template');
+      if (!tpl || !container) return;
+      var clone = tpl.content.cloneNode(true);
+      clone.querySelectorAll('[name]').forEach(function (el) {
+        el.name = el.name.replace(/__INDEX__/g, String(index));
+      });
+      clone.querySelectorAll('[data-hours-index]').forEach(function (el) {
+        el.setAttribute('data-hours-index', String(index));
+      });
+      container.appendChild(clone);
     });
   });
 
