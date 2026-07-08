@@ -56,7 +56,7 @@ $contactHoursRows = index_contact_hours_rows($contact);
 $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']['title'] ?? '')) : '';
 ?>
 <!DOCTYPE html>
-<html lang="<?= e($content['site']['lang']) ?>">
+<html lang="<?= e($content['site']['lang']) ?>" dir="<?= e(site_html_dir($currentLang)) ?>">
 <?php require __DIR__ . '/includes/head.php'; ?>
 <body class="page-home <?= e(display_body_classes($content)) ?>">
 <?php require __DIR__ . '/includes/header.php'; ?>

@@ -3,12 +3,18 @@
     "docs/screenshots/qa/qa-home-tr-mobile-360x740.png",
     "docs/screenshots/qa/qa-home-en-mobile-360x740.png",
     "docs/screenshots/qa/qa-home-de-mobile-360x740.png",
+    "docs/screenshots/qa/qa-home-ru-mobile-360x740.png",
+    "docs/screenshots/qa/qa-home-fa-mobile-360x740.png",
     "docs/screenshots/qa/qa-home-tr-tablet-768x1024.png",
     "docs/screenshots/qa/qa-home-en-tablet-768x1024.png",
     "docs/screenshots/qa/qa-home-de-tablet-768x1024.png",
+    "docs/screenshots/qa/qa-home-ru-tablet-768x1024.png",
+    "docs/screenshots/qa/qa-home-fa-tablet-768x1024.png",
     "docs/screenshots/qa/qa-home-tr-desktop-1440x900.png",
     "docs/screenshots/qa/qa-home-en-desktop-1440x900.png",
-    "docs/screenshots/qa/qa-home-de-desktop-1440x900.png"
+    "docs/screenshots/qa/qa-home-de-desktop-1440x900.png",
+    "docs/screenshots/qa/qa-home-ru-desktop-1440x900.png",
+    "docs/screenshots/qa/qa-home-fa-desktop-1440x900.png"
   ],
   "acceptance": {
     "contact_valid_post_status": {
@@ -226,6 +232,36 @@
       "limit": "0",
       "passed": true
     },
+    "lang_ru_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "lang_ru_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "lang_ru_empty_strings": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "lang_fa_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "lang_fa_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "lang_fa_empty_strings": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
     "lang_header_height_baseline_px": {
       "measured": 72,
       "limit": "baseline",
@@ -252,8 +288,8 @@
       "passed": true
     },
     "lang_hreflang_total": {
-      "measured": 4,
-      "limit": "4",
+      "measured": 6,
+      "limit": "6",
       "passed": true
     },
     "lang_cookie_persist_en": {
@@ -289,6 +325,66 @@
     "lang_de_og_locale": {
       "measured": "de_DE",
       "limit": "de_DE",
+      "passed": true
+    },
+    "lang_ru_hero_exact": {
+      "measured": 1,
+      "limit": "exact",
+      "passed": true
+    },
+    "lang_ru_html_lang": {
+      "measured": "ru",
+      "limit": "ru",
+      "passed": true
+    },
+    "lang_ru_html_dir": {
+      "measured": "ltr",
+      "limit": "ltr",
+      "passed": true
+    },
+    "lang_ru_og_locale": {
+      "measured": "ru_RU",
+      "limit": "ru_RU",
+      "passed": true
+    },
+    "lang_fa_hero_exact": {
+      "measured": 1,
+      "limit": "exact",
+      "passed": true
+    },
+    "lang_fa_html_lang": {
+      "measured": "fa",
+      "limit": "fa",
+      "passed": true
+    },
+    "lang_fa_html_dir": {
+      "measured": "rtl",
+      "limit": "rtl",
+      "passed": true
+    },
+    "lang_fa_og_locale": {
+      "measured": "fa_IR",
+      "limit": "fa_IR",
+      "passed": true
+    },
+    "lang_fa_hero_text_align": {
+      "measured": "right",
+      "limit": "right",
+      "passed": true
+    },
+    "lang_fa_overflow_mobile": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "lang_fa_overflow_tablet": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "lang_fa_overflow_desktop": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
       "passed": true
     },
     "lang_tr_return_hero_exact": {
@@ -331,9 +427,44 @@
       "limit": "<= 8",
       "passed": true
     },
+    "lang_ru_header_height_px": {
+      "measured": 72,
+      "limit": "<= 96",
+      "passed": true
+    },
+    "lang_ru_header_growth_px": {
+      "measured": 0,
+      "limit": "<= 8",
+      "passed": true
+    },
+    "lang_fa_header_height_px": {
+      "measured": 72,
+      "limit": "<= 96",
+      "passed": true
+    },
+    "lang_fa_header_growth_px": {
+      "measured": 0,
+      "limit": "<= 8",
+      "passed": true
+    },
     "lang_kvkk_en_heading": {
       "measured": 1,
       "limit": "exact",
+      "passed": true
+    },
+    "lang_kvkk_ru_heading": {
+      "measured": 1,
+      "limit": "exact",
+      "passed": true
+    },
+    "lang_kvkk_fa_heading": {
+      "measured": 1,
+      "limit": "exact",
+      "passed": true
+    },
+    "lang_kvkk_fa_dir": {
+      "measured": "rtl",
+      "limit": "rtl",
       "passed": true
     },
     "lang_mobile_switch_en_html_lang": {
@@ -347,17 +478,27 @@
       "passed": true
     },
     "homepage_total_resource_bytes_tr": {
-      "measured": 587703,
+      "measured": 590714,
       "limit": "<= 650000",
       "passed": true
     },
     "homepage_total_resource_bytes_en": {
-      "measured": 587326,
+      "measured": 590337,
       "limit": "<= 650000",
       "passed": true
     },
     "homepage_total_resource_bytes_de": {
-      "measured": 588033,
+      "measured": 591044,
+      "limit": "<= 650000",
+      "passed": true
+    },
+    "homepage_total_resource_bytes_ru": {
+      "measured": 595021,
+      "limit": "<= 650000",
+      "passed": true
+    },
+    "homepage_total_resource_bytes_fa": {
+      "measured": 592516,
       "limit": "<= 650000",
       "passed": true
     },
@@ -407,13 +548,13 @@
       "passed": true
     },
     "homepage_hreflang_count": {
-      "measured": 4,
-      "limit": "4",
+      "measured": 6,
+      "limit": "6",
       "passed": true
     },
     "homepage_hreflang_set": {
       "measured": 1,
-      "limit": "tr,en,de,x-default",
+      "limit": "tr,en,de,ru,fa,x-default",
       "passed": true
     },
     "homepage_en_og_locale": {
@@ -507,7 +648,7 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 587703,
+      "measured": 590714,
       "limit": "<= 650000",
       "passed": true
     },
@@ -537,7 +678,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.97676,
+      "measured": -5.92876,
       "limit": "<= -2px",
       "passed": true
     },
@@ -721,6 +862,16 @@
       "limit": "no horizontal overflow",
       "passed": true
     },
+    "overflow_mobile_home-ru": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_mobile_home-fa": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
     "overflow_tablet_home-tr": {
       "measured": 1,
       "limit": "no horizontal overflow",
@@ -736,6 +887,16 @@
       "limit": "no horizontal overflow",
       "passed": true
     },
+    "overflow_tablet_home-ru": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_tablet_home-fa": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
     "overflow_desktop_home-tr": {
       "measured": 1,
       "limit": "no horizontal overflow",
@@ -747,6 +908,16 @@
       "passed": true
     },
     "overflow_desktop_home-de": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_desktop_home-ru": {
+      "measured": 1,
+      "limit": "no horizontal overflow",
+      "passed": true
+    },
+    "overflow_desktop_home-fa": {
       "measured": 1,
       "limit": "no horizontal overflow",
       "passed": true
@@ -852,6 +1023,6 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 587703,
+  "homepage_total_resource_bytes": 590714,
   "all_passed": true
 }

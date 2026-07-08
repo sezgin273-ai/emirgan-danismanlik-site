@@ -23,6 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTENT_PATH = ROOT / "content/content.json"
 CONTENT_EN_PATH = ROOT / "content/content.en.json"
 CONTENT_DE_PATH = ROOT / "content/content.de.json"
+CONTENT_RU_PATH = ROOT / "content/content.ru.json"
+CONTENT_FA_PATH = ROOT / "content/content.fa.json"
 MAIL_LOG_DIR = ROOT / "content/mail-log"
 SHOT_DIR = ROOT / "docs/screenshots"
 QA_SHOT_DIR = SHOT_DIR / "qa"
@@ -72,7 +74,13 @@ VIEWPORTS = [
     ("tablet", 768, 1024),
     ("desktop", 1440, 900),
 ]
-SITE_LANGS = ("tr", "en", "de")
+SITE_LANGS = ("tr", "en", "de", "ru", "fa")
+LANG_CONTENT_PATHS = {
+    "en": CONTENT_EN_PATH,
+    "de": CONTENT_DE_PATH,
+    "ru": CONTENT_RU_PATH,
+    "fa": CONTENT_FA_PATH,
+}
 
 ACCEPTANCE: dict[str, dict] = {}
 
@@ -266,7 +274,7 @@ def assert_lang_content_parity() -> bool:
     ok = True
     tr_content = load_content()
     tr_paths = collect_paths(tr_content)
-    for lang, path in (("en", CONTENT_EN_PATH), ("de", CONTENT_DE_PATH)):
+    for lang, path in LANG_CONTENT_PATHS.items():
         lang_content = load_lang_content(path)
         lang_paths = collect_paths(lang_content)
         missing = len(tr_paths - lang_paths)
@@ -283,13 +291,19 @@ def assert_faz55_multilang_frontend() -> bool:
     ok = True
     en_content = load_lang_content(CONTENT_EN_PATH)
     de_content = load_lang_content(CONTENT_DE_PATH)
+    ru_content = load_lang_content(CONTENT_RU_PATH)
+    fa_content = load_lang_content(CONTENT_FA_PATH)
     tr_content = load_content()
     hero_expected = {
         "tr": tr_content["hero"]["tagline"],
         "en": en_content["hero"]["tagline"],
         "de": de_content["hero"]["tagline"],
+        "ru": ru_content["hero"]["tagline"],
+        "fa": fa_content["hero"]["tagline"],
     }
     kvkk_en_title = en_content["kvkk"]["title"]
+    kvkk_ru_title = ru_content["kvkk"]["title"]
+    kvkk_fa_title = fa_content["kvkk"]["title"]
     en_title_expected = en_content["site"]["title"]
     locale_map = {"tr": "tr_TR", "en": "en_US", "de": "de_DE"}
 
@@ -319,8 +333,8 @@ def assert_faz55_multilang_frontend() -> bool:
         ok = ok and en_hero == hero_expected["en"] and en_lang_attr == "en" and en_og_locale == "en_US" and en_title == en_title_expected
 
         hreflang_count = page.locator('link[rel="alternate"][hreflang]').count()
-        assert_metric("lang_hreflang_total", hreflang_count, "4", hreflang_count == 4)
-        ok = ok and hreflang_count == 4
+        assert_metric("lang_hreflang_total", hreflang_count, "6", hreflang_count == 6)
+        ok = ok and hreflang_count == 6
 
         # Cookie persistence
         page.goto(BASE + "/", wait_until="networkidle")
@@ -350,6 +364,59 @@ def assert_faz55_multilang_frontend() -> bool:
         assert_metric("lang_de_og_locale", de_og_locale, "de_DE", de_og_locale == "de_DE")
         ok = ok and de_hero == hero_expected["de"] and de_lang_attr == "de" and de_og_locale == "de_DE"
 
+        page.click('.lang-switcher a[href*="lang=ru"]')
+        page.wait_for_load_state("networkidle")
+        ru_hero = page.locator(".hero-title-accent").inner_text().strip()
+        ru_lang_attr = page.locator("html").get_attribute("lang") or ""
+        ru_dir_attr = page.locator("html").get_attribute("dir") or ""
+        ru_og_locale = page.locator('meta[property="og:locale"]').get_attribute("content") or ""
+        assert_metric("lang_ru_hero_exact", 1 if ru_hero == hero_expected["ru"] else 0, "exact", ru_hero == hero_expected["ru"])
+        assert_metric("lang_ru_html_lang", ru_lang_attr, "ru", ru_lang_attr == "ru")
+        assert_metric("lang_ru_html_dir", ru_dir_attr, "ltr", ru_dir_attr == "ltr")
+        assert_metric("lang_ru_og_locale", ru_og_locale, "ru_RU", ru_og_locale == "ru_RU")
+        ok = ok and ru_hero == hero_expected["ru"] and ru_lang_attr == "ru" and ru_dir_attr == "ltr" and ru_og_locale == "ru_RU"
+
+        page.click('.lang-switcher a[href*="lang=fa"]')
+        page.wait_for_load_state("networkidle")
+        fa_hero = page.locator(".hero-title-accent").inner_text().strip()
+        fa_lang_attr = page.locator("html").get_attribute("lang") or ""
+        fa_dir_attr = page.locator("html").get_attribute("dir") or ""
+        fa_og_locale = page.locator('meta[property="og:locale"]').get_attribute("content") or ""
+        fa_hero_align = page.evaluate(
+            """() => {
+              const el = document.querySelector('.hero-content');
+              return el ? getComputedStyle(el).textAlign : '';
+            }"""
+        )
+        assert_metric("lang_fa_hero_exact", 1 if fa_hero == hero_expected["fa"] else 0, "exact", fa_hero == hero_expected["fa"])
+        assert_metric("lang_fa_html_lang", fa_lang_attr, "fa", fa_lang_attr == "fa")
+        assert_metric("lang_fa_html_dir", fa_dir_attr, "rtl", fa_dir_attr == "rtl")
+        assert_metric("lang_fa_og_locale", fa_og_locale, "fa_IR", fa_og_locale == "fa_IR")
+        assert_metric("lang_fa_hero_text_align", fa_hero_align, "right", fa_hero_align == "right")
+        ok = (
+            ok
+            and fa_hero == hero_expected["fa"]
+            and fa_lang_attr == "fa"
+            and fa_dir_attr == "rtl"
+            and fa_og_locale == "fa_IR"
+            and fa_hero_align == "right"
+        )
+
+        for vp_name, vp_w, vp_h in VIEWPORTS:
+            vp_page = browser.new_page(viewport={"width": vp_w, "height": vp_h})
+            vp_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+            fa_overflow = vp_page.evaluate(
+                "() => document.documentElement.scrollWidth <= window.innerWidth"
+            )
+            assert_metric(
+                f"lang_fa_overflow_{vp_name}",
+                1 if fa_overflow else 0,
+                "no horizontal overflow",
+                fa_overflow,
+            )
+            ok = ok and fa_overflow
+            vp_page.close()
+
         page.click('.lang-switcher a[href*="lang=tr"]')
         page.wait_for_load_state("networkidle")
         tr_hero = page.locator(".hero-title-accent").inner_text().strip()
@@ -374,6 +441,18 @@ def assert_faz55_multilang_frontend() -> bool:
         kvkk_h1 = page.locator("#kvkk-heading").inner_text().strip()
         assert_metric("lang_kvkk_en_heading", 1 if kvkk_h1 == kvkk_en_title else 0, "exact", kvkk_h1 == kvkk_en_title)
         ok = ok and kvkk_h1 == kvkk_en_title
+
+        page.goto(BASE + "/kvkk.php?lang=ru", wait_until="networkidle")
+        kvkk_ru_h1 = page.locator("#kvkk-heading").inner_text().strip()
+        assert_metric("lang_kvkk_ru_heading", 1 if kvkk_ru_h1 == kvkk_ru_title else 0, "exact", kvkk_ru_h1 == kvkk_ru_title)
+        ok = ok and kvkk_ru_h1 == kvkk_ru_title
+
+        page.goto(BASE + "/kvkk.php?lang=fa", wait_until="networkidle")
+        kvkk_fa_h1 = page.locator("#kvkk-heading").inner_text().strip()
+        kvkk_fa_dir = page.locator("html").get_attribute("dir") or ""
+        assert_metric("lang_kvkk_fa_heading", 1 if kvkk_fa_h1 == kvkk_fa_title else 0, "exact", kvkk_fa_h1 == kvkk_fa_title)
+        assert_metric("lang_kvkk_fa_dir", kvkk_fa_dir, "rtl", kvkk_fa_dir == "rtl")
+        ok = ok and kvkk_fa_h1 == kvkk_fa_title and kvkk_fa_dir == "rtl"
 
         # Mobile selector real click
         mobile = browser.new_page(viewport={"width": 360, "height": 740})
@@ -976,9 +1055,9 @@ def assert_seo_files() -> bool:
         ok = ok and passed
 
     hreflang_tags = re.findall(r'rel="alternate"\s+hreflang="([^"]+)"', home)
-    hreflang_ok = set(hreflang_tags) == {"tr", "en", "de", "x-default"}
-    assert_metric("homepage_hreflang_count", len(hreflang_tags), "4", len(hreflang_tags) == 4)
-    assert_metric("homepage_hreflang_set", 1 if hreflang_ok else 0, "tr,en,de,x-default", hreflang_ok)
+    hreflang_ok = set(hreflang_tags) == {"tr", "en", "de", "ru", "fa", "x-default"}
+    assert_metric("homepage_hreflang_count", len(hreflang_tags), "6", len(hreflang_tags) == 6)
+    assert_metric("homepage_hreflang_set", 1 if hreflang_ok else 0, "tr,en,de,ru,fa,x-default", hreflang_ok)
     ok = ok and hreflang_ok
 
     home_en = requests.get(BASE + "/?lang=en", timeout=30).text

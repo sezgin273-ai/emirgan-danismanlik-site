@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/content_store.php';
 
 const SITE_LANG_DEFAULT = 'tr';
-const SITE_LANGS = ['tr', 'en', 'de'];
+const SITE_LANGS = ['tr', 'en', 'de', 'ru', 'fa'];
 
 /**
  * Dil kodu whitelist doğrulaması.
@@ -89,8 +89,18 @@ function site_og_locale(string $lang): string
     return match ($lang) {
         'en' => 'en_US',
         'de' => 'de_DE',
+        'ru' => 'ru_RU',
+        'fa' => 'fa_IR',
         default => 'tr_TR',
     };
+}
+
+/**
+ * HTML belge yönü (Farsça RTL).
+ */
+function site_html_dir(string $lang): string
+{
+    return $lang === 'fa' ? 'rtl' : 'ltr';
 }
 
 /**

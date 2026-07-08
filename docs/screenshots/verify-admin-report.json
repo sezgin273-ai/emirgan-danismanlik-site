@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.66,
+      "measured": 1.67,
       "limit": ">= 1",
       "passed": true
     },
@@ -613,7 +613,17 @@
       "limit": "DE hero tagline",
       "passed": true
     },
-    "admin_lang_de_structural_controls": {
+    "admin_lang_switch_ru_editor": {
+      "measured": 1,
+      "limit": "RU hero tagline",
+      "passed": true
+    },
+    "admin_lang_switch_fa_editor": {
+      "measured": 1,
+      "limit": "FA hero tagline",
+      "passed": true
+    },
+    "admin_lang_fa_structural_controls": {
       "measured": 0,
       "limit": "0",
       "passed": true
@@ -633,6 +643,16 @@
       "limit": "unchanged",
       "passed": true
     },
+    "admin_en_roundtrip_ru_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_en_roundtrip_fa_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
     "admin_en_roundtrip_frontend": {
       "measured": 1,
       "limit": "visible",
@@ -643,9 +663,94 @@
       "limit": "VERIFY_ADMIN_DE_ROUNDTRIP_MARKER",
       "passed": true
     },
+    "admin_de_roundtrip_tr_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_de_roundtrip_en_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_de_roundtrip_ru_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_de_roundtrip_fa_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
     "admin_de_roundtrip_frontend": {
       "measured": 1,
       "limit": "visible",
+      "passed": true
+    },
+    "admin_ru_roundtrip_json": {
+      "measured": 1,
+      "limit": "VERIFY_ADMIN_RU_ROUNDTRIP_MARKER",
+      "passed": true
+    },
+    "admin_ru_roundtrip_tr_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_ru_roundtrip_en_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_ru_roundtrip_de_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_ru_roundtrip_fa_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_ru_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_fa_roundtrip_json": {
+      "measured": 1,
+      "limit": "VERIFY_ADMIN_FA_ROUNDTRIP_MARKER",
+      "passed": true
+    },
+    "admin_fa_roundtrip_tr_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_fa_roundtrip_en_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_fa_roundtrip_de_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_fa_roundtrip_ru_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_fa_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_fa_roundtrip_dir": {
+      "measured": "rtl",
+      "limit": "rtl",
       "passed": true
     },
     "admin_tr_structure_add_service_count": {
@@ -673,6 +778,26 @@
       "limit": "0",
       "passed": true
     },
+    "admin_lang_ru_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_ru_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_fa_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_fa_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
     "admin_tr_structure_seed_en": {
       "measured": 1,
       "limit": "TR seeded",
@@ -681,6 +806,26 @@
     "admin_tr_structure_seed_de": {
       "measured": 1,
       "limit": "TR seeded",
+      "passed": true
+    },
+    "admin_tr_structure_seed_ru": {
+      "measured": 1,
+      "limit": "TR seeded",
+      "passed": true
+    },
+    "admin_tr_structure_seed_fa": {
+      "measured": 1,
+      "limit": "TR seeded",
+      "passed": true
+    },
+    "admin_tr_structure_ru_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_tr_structure_fa_frontend": {
+      "measured": 1,
+      "limit": "visible",
       "passed": true
     },
     "admin_tr_structure_en_frontend": {
@@ -694,6 +839,16 @@
       "passed": true
     },
     "admin_lang_independent_match_de": {
+      "measured": 1,
+      "limit": "byte-identical fields",
+      "passed": true
+    },
+    "admin_lang_independent_match_ru": {
+      "measured": 1,
+      "limit": "byte-identical fields",
+      "passed": true
+    },
+    "admin_lang_independent_match_fa": {
       "measured": 1,
       "limit": "byte-identical fields",
       "passed": true

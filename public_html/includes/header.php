@@ -10,7 +10,7 @@ $ui = $content['ui'];
 $assets = $site['assets'];
 $home_href = $is_home ? '#hero' : site_lang_url('/#hero');
 $currentLang = current_site_lang();
-$langLabels = ['tr' => 'TR', 'en' => 'EN', 'de' => 'DE'];
+$langLabels = ['tr' => 'TR', 'en' => 'EN', 'de' => 'DE', 'ru' => 'RU', 'fa' => 'FA'];
 ?>
 <a class="skip-link" href="#main-content"><?= e($ui['skip_to_content']) ?></a>
 

@@ -4,7 +4,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/content_store.php';
 
 /**
- * Admin panel etkin dil (yalnız tr|en|de).
+ * Admin panel etkin dil (tr|en|de|ru|fa).
  */
 function admin_resolve_lang(): string
 {
@@ -194,7 +194,7 @@ function admin_apply_lang_independent_from_tr(array $target, array $tr): array
 }
 
 /**
- * TR yapısını EN/DE'ye yansıt; yeni öğeler TR metniyle tohumlanır.
+ * TR yapısını tüm çeviri dillere yansıt; yeni öğeler TR metniyle tohumlanır.
  */
 function admin_sync_structure_from_tr(array $tr, array $localized): array
 {
@@ -433,37 +433,51 @@ function admin_sync_kvkk_sections(array $trList, array $locList): array
 }
 
 /**
- * TR yapısal kayıt: TR + EN/DE yapı senkronu.
+ * TR yapısal kayıt: TR + tüm çeviri dillerinde yapı senkronu.
  */
 function admin_save_tr_with_structure_sync(array $trContent): bool
 {
     $all = admin_load_all_lang_files();
     $all['tr'] = $trContent;
     $all['tr']['site']['lang'] = SITE_LANG_DEFAULT;
-    $all['en'] = admin_sync_structure_from_tr($all['tr'], $all['en']);
-    $all['en']['site']['lang'] = 'en';
-    $all['de'] = admin_sync_structure_from_tr($all['tr'], $all['de']);
-    $all['de']['site']['lang'] = 'de';
+
+    foreach (SITE_LANGS as $lang) {
+        if ($lang === SITE_LANG_DEFAULT) {
+            continue;
+        }
+        $all[$lang] = admin_sync_structure_from_tr($all['tr'], $all[$lang]);
+        $all[$lang]['site']['lang'] = $lang;
+    }
 
     if (!save_content_for_lang('tr', $all['tr'], true)) {
         return false;
     }
-    if (!save_content_for_lang('en', $all['en'], false)) {
-        return false;
+
+    foreach (SITE_LANGS as $lang) {
+        if ($lang === SITE_LANG_DEFAULT) {
+            continue;
+        }
+        if (!save_content_for_lang($lang, $all[$lang], false)) {
+            return false;
+        }
     }
 
-    return save_content_for_lang('de', $all['de'], false);
+    return true;
 }
 
 /**
- * Dil-bağımsız alan güncellemesi (medya vb.) — 3 dosyada senkron.
+ * Dil-bağımsız alan güncellemesi (medya vb.) — tüm dil dosyalarında senkron.
  */
 function admin_save_tr_lang_independent_sync(array $trContent): bool
 {
     $all = admin_load_all_lang_files();
     $all['tr'] = $trContent;
     $all['tr']['site']['lang'] = SITE_LANG_DEFAULT;
-    foreach (['en', 'de'] as $lang) {
+
+    foreach (SITE_LANGS as $lang) {
+        if ($lang === SITE_LANG_DEFAULT) {
+            continue;
+        }
         $all[$lang] = admin_apply_lang_independent_from_tr($all[$lang], $all['tr']);
         $all[$lang]['site']['lang'] = $lang;
     }
@@ -471,11 +485,17 @@ function admin_save_tr_lang_independent_sync(array $trContent): bool
     if (!save_content_for_lang('tr', $all['tr'], true)) {
         return false;
     }
-    if (!save_content_for_lang('en', $all['en'], false)) {
-        return false;
+
+    foreach (SITE_LANGS as $lang) {
+        if ($lang === SITE_LANG_DEFAULT) {
+            continue;
+        }
+        if (!save_content_for_lang($lang, $all[$lang], false)) {
+            return false;
+        }
     }
 
-    return save_content_for_lang('de', $all['de'], false);
+    return true;
 }
 
 /**

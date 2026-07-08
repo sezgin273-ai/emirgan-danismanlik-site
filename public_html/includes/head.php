@@ -34,7 +34,7 @@ $locale = site_og_locale($current_lang);
     <meta property="og:title" content="<?= e($og_title) ?>">
     <meta property="og:description" content="<?= e($og_description) ?>">
     <meta property="og:locale" content="<?= e($locale) ?>">
-    <?php foreach (['tr', 'en', 'de'] as $langCode): ?>
+    <?php foreach (SITE_LANGS as $langCode): ?>
     <?php $altUrl = $site_url . site_lang_url($canonical_path, $langCode); ?>
     <link rel="alternate" hreflang="<?= e($langCode) ?>" href="<?= e($altUrl) ?>">
     <?php endforeach; ?>

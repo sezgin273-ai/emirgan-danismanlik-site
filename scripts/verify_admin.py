@@ -26,6 +26,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTENT_PATH = ROOT / "content/content.json"
 CONTENT_EN_PATH = ROOT / "content/content.en.json"
 CONTENT_DE_PATH = ROOT / "content/content.de.json"
+CONTENT_RU_PATH = ROOT / "content/content.ru.json"
+CONTENT_FA_PATH = ROOT / "content/content.fa.json"
 UPLOADS_DIR = ROOT / "public_html/assets/img/uploads"
 CSS_DIR = ROOT / "public_html/assets/css"
 SHOT_DIR = ROOT / "docs/screenshots"
@@ -35,6 +37,8 @@ TEST_PASSWORD = ".eE951623"
 MARKER = "VERIFY_ADMIN_ROUNDTRIP_MARKER"
 MARKER_EN = "VERIFY_ADMIN_EN_ROUNDTRIP_MARKER"
 MARKER_DE = "VERIFY_ADMIN_DE_ROUNDTRIP_MARKER"
+MARKER_RU = "VERIFY_ADMIN_RU_ROUNDTRIP_MARKER"
+MARKER_FA = "VERIFY_ADMIN_FA_ROUNDTRIP_MARKER"
 STRUCT_SERVICE_MARKER = "VERIFY_FAZ56_STRUCTURE_SERVICE"
 BASELINE_COMMIT = "543df4a"
 PHP_BIN = ROOT / ".tools/php/php.exe"
@@ -111,7 +115,13 @@ def load_content() -> dict:
 
 
 def load_content_lang(lang: str) -> dict:
-    path = {"en": CONTENT_EN_PATH, "de": CONTENT_DE_PATH}.get(lang, CONTENT_PATH)
+    paths = {
+        "en": CONTENT_EN_PATH,
+        "de": CONTENT_DE_PATH,
+        "ru": CONTENT_RU_PATH,
+        "fa": CONTENT_FA_PATH,
+    }
+    path = paths.get(lang, CONTENT_PATH)
     return json.loads(path.read_text(encoding="utf-8"))
 
 
@@ -137,7 +147,7 @@ def content_paths_set(obj: object, prefix: str = "") -> set[str]:
 def assert_content_key_parity() -> bool:
     tr_paths = content_paths_set(load_content())
     ok = True
-    for lang, path in (("en", CONTENT_EN_PATH), ("de", CONTENT_DE_PATH)):
+    for lang, path in (("en", CONTENT_EN_PATH), ("de", CONTENT_DE_PATH), ("ru", CONTENT_RU_PATH), ("fa", CONTENT_FA_PATH)):
         loc_paths = content_paths_set(json.loads(path.read_text(encoding="utf-8")))
         missing = len(tr_paths - loc_paths)
         extra = len(loc_paths - tr_paths)
@@ -150,7 +160,7 @@ def assert_content_key_parity() -> bool:
 def lang_independent_values_match() -> bool:
     tr = load_content()
     ok = True
-    for lang in ("en", "de"):
+    for lang in ("en", "de", "ru", "fa"):
         loc = load_content_lang(lang)
         checks = [
             tr.get("site", {}).get("url") == loc.get("site", {}).get("url"),
@@ -1593,8 +1603,12 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
     tr_bytes_before = CONTENT_PATH.read_bytes()
     en_bytes_before = CONTENT_EN_PATH.read_bytes()
     de_bytes_before = CONTENT_DE_PATH.read_bytes()
+    ru_bytes_before = CONTENT_RU_PATH.read_bytes()
+    fa_bytes_before = CONTENT_FA_PATH.read_bytes()
     en_tagline_before = load_content_lang("en")["hero"]["tagline"]
     de_tagline_before = load_content_lang("de")["hero"]["tagline"]
+    ru_tagline_before = load_content_lang("ru")["hero"]["tagline"]
+    fa_tagline_before = load_content_lang("fa")["hero"]["tagline"]
 
     try:
         with sync_playwright() as p:
@@ -1617,27 +1631,49 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
             assert_metric("admin_lang_switch_de_editor", 1 if de_loaded else 0, "DE hero tagline", de_loaded)
             ok = ok and de_loaded
 
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=ru", wait_until="networkidle")
+            ru_field = page.locator("#hero-tagline")
+            ru_loaded = ru_field.input_value() == ru_tagline_before
+            assert_metric("admin_lang_switch_ru_editor", 1 if ru_loaded else 0, "RU hero tagline", ru_loaded)
+            ok = ok and ru_loaded
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=fa", wait_until="networkidle")
+            fa_field = page.locator("#hero-tagline")
+            fa_loaded = fa_field.input_value() == fa_tagline_before
+            assert_metric("admin_lang_switch_fa_editor", 1 if fa_loaded else 0, "FA hero tagline", fa_loaded)
+            ok = ok and fa_loaded
+
             structural_count = page.locator(
                 '[data-add-service], [data-add-team], [data-add-process], '
                 '[data-add-contact-info], [data-add-contact-hours], '
                 '[data-sort-up], [data-delete-team-member]'
             ).count()
-            assert_metric("admin_lang_de_structural_controls", structural_count, "0", structural_count == 0)
+            assert_metric("admin_lang_fa_structural_controls", structural_count, "0", structural_count == 0)
             ok = ok and structural_count == 0
 
             page.goto(f"{BASE}/admin/dashboard.php?admin_lang=en", wait_until="networkidle")
+            snap_before_en = {
+                "tr": CONTENT_PATH.read_bytes(),
+                "de": CONTENT_DE_PATH.read_bytes(),
+                "ru": CONTENT_RU_PATH.read_bytes(),
+                "fa": CONTENT_FA_PATH.read_bytes(),
+            }
             page.fill("#hero-tagline", MARKER_EN)
             page.click('#content-form button[type="submit"]')
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(800)
 
             en_json_ok = load_content_lang("en")["hero"]["tagline"] == MARKER_EN
-            tr_unchanged = CONTENT_PATH.read_bytes() == tr_bytes_before
-            de_unchanged = CONTENT_DE_PATH.read_bytes() == de_bytes_before
             assert_metric("admin_en_roundtrip_json", 1 if en_json_ok else 0, MARKER_EN, en_json_ok)
-            assert_metric("admin_en_roundtrip_tr_bytes", 1 if tr_unchanged else 0, "unchanged", tr_unchanged)
-            assert_metric("admin_en_roundtrip_de_bytes", 1 if de_unchanged else 0, "unchanged", de_unchanged)
-            ok = ok and en_json_ok and tr_unchanged and de_unchanged
+            assert_metric("admin_en_roundtrip_tr_bytes", 1 if CONTENT_PATH.read_bytes() == snap_before_en["tr"] else 0, "unchanged", CONTENT_PATH.read_bytes() == snap_before_en["tr"])
+            assert_metric("admin_en_roundtrip_de_bytes", 1 if CONTENT_DE_PATH.read_bytes() == snap_before_en["de"] else 0, "unchanged", CONTENT_DE_PATH.read_bytes() == snap_before_en["de"])
+            assert_metric("admin_en_roundtrip_ru_bytes", 1 if CONTENT_RU_PATH.read_bytes() == snap_before_en["ru"] else 0, "unchanged", CONTENT_RU_PATH.read_bytes() == snap_before_en["ru"])
+            assert_metric("admin_en_roundtrip_fa_bytes", 1 if CONTENT_FA_PATH.read_bytes() == snap_before_en["fa"] else 0, "unchanged", CONTENT_FA_PATH.read_bytes() == snap_before_en["fa"])
+            ok = ok and en_json_ok
+            ok = ok and CONTENT_PATH.read_bytes() == snap_before_en["tr"]
+            ok = ok and CONTENT_DE_PATH.read_bytes() == snap_before_en["de"]
+            ok = ok and CONTENT_RU_PATH.read_bytes() == snap_before_en["ru"]
+            ok = ok and CONTENT_FA_PATH.read_bytes() == snap_before_en["fa"]
 
             page.goto(f"{BASE}/?lang=en", wait_until="networkidle")
             en_frontend = MARKER_EN in page.content()
@@ -1645,25 +1681,97 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
             ok = ok and en_frontend
 
             page.goto(f"{BASE}/admin/dashboard.php?admin_lang=de", wait_until="networkidle")
+            snap_before_de = {
+                "tr": CONTENT_PATH.read_bytes(),
+                "en": CONTENT_EN_PATH.read_bytes(),
+                "ru": CONTENT_RU_PATH.read_bytes(),
+                "fa": CONTENT_FA_PATH.read_bytes(),
+            }
             page.fill("#hero-tagline", MARKER_DE)
             page.click('#content-form button[type="submit"]')
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(800)
             de_json_ok = load_content_lang("de")["hero"]["tagline"] == MARKER_DE
             assert_metric("admin_de_roundtrip_json", 1 if de_json_ok else 0, MARKER_DE, de_json_ok)
+            assert_metric("admin_de_roundtrip_tr_bytes", 1 if CONTENT_PATH.read_bytes() == snap_before_de["tr"] else 0, "unchanged", CONTENT_PATH.read_bytes() == snap_before_de["tr"])
+            assert_metric("admin_de_roundtrip_en_bytes", 1 if CONTENT_EN_PATH.read_bytes() == snap_before_de["en"] else 0, "unchanged", CONTENT_EN_PATH.read_bytes() == snap_before_de["en"])
+            assert_metric("admin_de_roundtrip_ru_bytes", 1 if CONTENT_RU_PATH.read_bytes() == snap_before_de["ru"] else 0, "unchanged", CONTENT_RU_PATH.read_bytes() == snap_before_de["ru"])
+            assert_metric("admin_de_roundtrip_fa_bytes", 1 if CONTENT_FA_PATH.read_bytes() == snap_before_de["fa"] else 0, "unchanged", CONTENT_FA_PATH.read_bytes() == snap_before_de["fa"])
             ok = ok and de_json_ok
+            ok = ok and CONTENT_PATH.read_bytes() == snap_before_de["tr"]
+            ok = ok and CONTENT_EN_PATH.read_bytes() == snap_before_de["en"]
+            ok = ok and CONTENT_RU_PATH.read_bytes() == snap_before_de["ru"]
+            ok = ok and CONTENT_FA_PATH.read_bytes() == snap_before_de["fa"]
 
             page.goto(f"{BASE}/?lang=de", wait_until="networkidle")
             de_frontend = MARKER_DE in page.content()
             assert_metric("admin_de_roundtrip_frontend", 1 if de_frontend else 0, "visible", de_frontend)
             ok = ok and de_frontend
 
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=ru", wait_until="networkidle")
+            snap_before_ru = {
+                "tr": CONTENT_PATH.read_bytes(),
+                "en": CONTENT_EN_PATH.read_bytes(),
+                "de": CONTENT_DE_PATH.read_bytes(),
+                "fa": CONTENT_FA_PATH.read_bytes(),
+            }
+            page.fill("#hero-tagline", MARKER_RU)
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+            ru_json_ok = load_content_lang("ru")["hero"]["tagline"] == MARKER_RU
+            assert_metric("admin_ru_roundtrip_json", 1 if ru_json_ok else 0, MARKER_RU, ru_json_ok)
+            assert_metric("admin_ru_roundtrip_tr_bytes", 1 if CONTENT_PATH.read_bytes() == snap_before_ru["tr"] else 0, "unchanged", CONTENT_PATH.read_bytes() == snap_before_ru["tr"])
+            assert_metric("admin_ru_roundtrip_en_bytes", 1 if CONTENT_EN_PATH.read_bytes() == snap_before_ru["en"] else 0, "unchanged", CONTENT_EN_PATH.read_bytes() == snap_before_ru["en"])
+            assert_metric("admin_ru_roundtrip_de_bytes", 1 if CONTENT_DE_PATH.read_bytes() == snap_before_ru["de"] else 0, "unchanged", CONTENT_DE_PATH.read_bytes() == snap_before_ru["de"])
+            assert_metric("admin_ru_roundtrip_fa_bytes", 1 if CONTENT_FA_PATH.read_bytes() == snap_before_ru["fa"] else 0, "unchanged", CONTENT_FA_PATH.read_bytes() == snap_before_ru["fa"])
+            ok = ok and ru_json_ok
+            ok = ok and CONTENT_PATH.read_bytes() == snap_before_ru["tr"]
+            ok = ok and CONTENT_EN_PATH.read_bytes() == snap_before_ru["en"]
+            ok = ok and CONTENT_DE_PATH.read_bytes() == snap_before_ru["de"]
+            ok = ok and CONTENT_FA_PATH.read_bytes() == snap_before_ru["fa"]
+
+            page.goto(f"{BASE}/?lang=ru", wait_until="networkidle")
+            ru_frontend = MARKER_RU in page.content()
+            assert_metric("admin_ru_roundtrip_frontend", 1 if ru_frontend else 0, "visible", ru_frontend)
+            ok = ok and ru_frontend
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=fa", wait_until="networkidle")
+            snap_before_fa = {
+                "tr": CONTENT_PATH.read_bytes(),
+                "en": CONTENT_EN_PATH.read_bytes(),
+                "de": CONTENT_DE_PATH.read_bytes(),
+                "ru": CONTENT_RU_PATH.read_bytes(),
+            }
+            page.fill("#hero-tagline", MARKER_FA)
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+            fa_json_ok = load_content_lang("fa")["hero"]["tagline"] == MARKER_FA
+            assert_metric("admin_fa_roundtrip_json", 1 if fa_json_ok else 0, MARKER_FA, fa_json_ok)
+            assert_metric("admin_fa_roundtrip_tr_bytes", 1 if CONTENT_PATH.read_bytes() == snap_before_fa["tr"] else 0, "unchanged", CONTENT_PATH.read_bytes() == snap_before_fa["tr"])
+            assert_metric("admin_fa_roundtrip_en_bytes", 1 if CONTENT_EN_PATH.read_bytes() == snap_before_fa["en"] else 0, "unchanged", CONTENT_EN_PATH.read_bytes() == snap_before_fa["en"])
+            assert_metric("admin_fa_roundtrip_de_bytes", 1 if CONTENT_DE_PATH.read_bytes() == snap_before_fa["de"] else 0, "unchanged", CONTENT_DE_PATH.read_bytes() == snap_before_fa["de"])
+            assert_metric("admin_fa_roundtrip_ru_bytes", 1 if CONTENT_RU_PATH.read_bytes() == snap_before_fa["ru"] else 0, "unchanged", CONTENT_RU_PATH.read_bytes() == snap_before_fa["ru"])
+            ok = ok and fa_json_ok
+            ok = ok and CONTENT_PATH.read_bytes() == snap_before_fa["tr"]
+            ok = ok and CONTENT_EN_PATH.read_bytes() == snap_before_fa["en"]
+            ok = ok and CONTENT_DE_PATH.read_bytes() == snap_before_fa["de"]
+            ok = ok and CONTENT_RU_PATH.read_bytes() == snap_before_fa["ru"]
+
+            page.goto(f"{BASE}/?lang=fa", wait_until="networkidle")
+            fa_frontend = MARKER_FA in page.content()
+            fa_dir = page.locator("html").get_attribute("dir") or ""
+            assert_metric("admin_fa_roundtrip_frontend", 1 if fa_frontend else 0, "visible", fa_frontend)
+            assert_metric("admin_fa_roundtrip_dir", fa_dir, "rtl", fa_dir == "rtl")
+            ok = ok and fa_frontend and fa_dir == "rtl"
+
             page.goto(f"{BASE}/admin/dashboard.php?admin_lang=tr", wait_until="networkidle")
             service_count_before = len(load_content()["services"]["items"])
             page.click("[data-add-service]")
             page.wait_for_timeout(200)
             page.locator('#services-list input[name*="[title]"]').last.fill(STRUCT_SERVICE_MARKER)
-            page.locator('#services-list textarea[name*="[description]"]').last.fill("Faz 5.6 yapısal senkron testi.")
+            page.locator('#services-list textarea[name*="[description]"]').last.fill("Faz 5.7 yapısal senkron testi.")
             page.click('#content-form button[type="submit"]')
             page.wait_for_load_state("networkidle")
             page.wait_for_timeout(800)
@@ -1674,15 +1782,23 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
             ok = ok and structure_added
 
             ok = assert_content_key_parity() and ok
-            en_has_marker = any(
-                i.get("title") == STRUCT_SERVICE_MARKER for i in load_content_lang("en")["services"]["items"]
-            )
-            de_has_marker = any(
-                i.get("title") == STRUCT_SERVICE_MARKER for i in load_content_lang("de")["services"]["items"]
-            )
-            assert_metric("admin_tr_structure_seed_en", 1 if en_has_marker else 0, "TR seeded", en_has_marker)
-            assert_metric("admin_tr_structure_seed_de", 1 if de_has_marker else 0, "TR seeded", de_has_marker)
-            ok = ok and en_has_marker and de_has_marker
+            for lang in ("en", "de", "ru", "fa"):
+                has_marker = any(
+                    i.get("title") == STRUCT_SERVICE_MARKER
+                    for i in load_content_lang(lang)["services"]["items"]
+                )
+                assert_metric(f"admin_tr_structure_seed_{lang}", 1 if has_marker else 0, "TR seeded", has_marker)
+                ok = ok and has_marker
+
+            page.goto(f"{BASE}/?lang=ru", wait_until="networkidle")
+            ru_card_visible = STRUCT_SERVICE_MARKER in page.content()
+            assert_metric("admin_tr_structure_ru_frontend", 1 if ru_card_visible else 0, "visible", ru_card_visible)
+            ok = ok and ru_card_visible
+
+            page.goto(f"{BASE}/?lang=fa", wait_until="networkidle")
+            fa_card_visible = STRUCT_SERVICE_MARKER in page.content()
+            assert_metric("admin_tr_structure_fa_frontend", 1 if fa_card_visible else 0, "visible", fa_card_visible)
+            ok = ok and fa_card_visible
 
             page.goto(f"{BASE}/?lang=en", wait_until="networkidle")
             en_card_visible = STRUCT_SERVICE_MARKER in page.content()
@@ -1696,6 +1812,8 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
         CONTENT_PATH.write_bytes(tr_bytes_before)
         CONTENT_EN_PATH.write_bytes(en_bytes_before)
         CONTENT_DE_PATH.write_bytes(de_bytes_before)
+        CONTENT_RU_PATH.write_bytes(ru_bytes_before)
+        CONTENT_FA_PATH.write_bytes(fa_bytes_before)
 
     return ok
 
@@ -1708,6 +1826,8 @@ def main() -> int:
     content_bytes = CONTENT_PATH.read_bytes()
     content_en_bytes = CONTENT_EN_PATH.read_bytes()
     content_de_bytes = CONTENT_DE_PATH.read_bytes()
+    content_ru_bytes = CONTENT_RU_PATH.read_bytes()
+    content_fa_bytes = CONTENT_FA_PATH.read_bytes()
     uploads_snap = snapshot_uploads()
     backups_snap = snapshot_backups()
     original_content = json.loads(content_bytes.decode("utf-8"))
@@ -1754,6 +1874,8 @@ def main() -> int:
         CONTENT_PATH.write_bytes(content_bytes)
         CONTENT_EN_PATH.write_bytes(content_en_bytes)
         CONTENT_DE_PATH.write_bytes(content_de_bytes)
+        CONTENT_RU_PATH.write_bytes(content_ru_bytes)
+        CONTENT_FA_PATH.write_bytes(content_fa_bytes)
         restore_uploads(uploads_snap)
         restore_backups(backups_snap)
 

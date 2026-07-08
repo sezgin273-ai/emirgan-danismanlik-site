@@ -1007,6 +1007,12 @@ section {
     transform: translateX(50%);
   }
 
+  [dir="rtl"] .process-step:not(:last-child)::after {
+    right: auto;
+    left: calc(-1 * var(--space-lg) / 2);
+    transform: translateX(-50%);
+  }
+
   .process-step-number {
     display: block;
     margin: 0 auto var(--space-md);
@@ -1613,4 +1619,105 @@ body.display-hero-emblem-small .hero-medallion {
 .hero-medallion.display-hero-emblem-large,
 body.display-hero-emblem-large .hero-medallion {
   width: min(20rem, 85vw);
+}
+
+/* --------------------------------------------------------------------------
+   RTL (Farsça — dir="rtl")
+   -------------------------------------------------------------------------- */
+
+[dir="rtl"] {
+  text-align: right;
+}
+
+[dir="rtl"] .skip-link {
+  left: auto;
+  right: var(--space-md);
+}
+
+[dir="rtl"] .skip-link:focus {
+  right: var(--space-md);
+  left: auto;
+}
+
+[dir="rtl"] .gold-divider {
+  background: linear-gradient(270deg, var(--color-gold), var(--color-gold-light));
+}
+
+[dir="rtl"] .nav-link.is-active::after {
+  left: auto;
+  right: 0;
+}
+
+@media (min-width: 900px) {
+  [dir="rtl"] .lang-switcher {
+    margin-left: 0;
+    margin-right: var(--space-xs);
+  }
+}
+
+[dir="rtl"] .hero-watermark {
+  right: auto;
+  left: -5%;
+}
+
+[dir="rtl"] .hero-title-line {
+  background: linear-gradient(270deg, transparent, var(--color-gold));
+}
+
+[dir="rtl"] .hero-title-line--right {
+  background: linear-gradient(270deg, var(--color-gold), transparent);
+}
+
+[dir="rtl"] .hero-content {
+  text-align: right;
+}
+
+[dir="rtl"] .hero-description {
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+}
+
+[dir="rtl"] .hero-actions {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] .intro-text,
+[dir="rtl"] .section-header,
+[dir="rtl"] .contact .contact-intro {
+  margin-inline-start: auto;
+  margin-inline-end: 0;
+}
+
+[dir="rtl"] .vision-mission-card {
+  border-left: none;
+  border-right: 3px solid var(--color-gold);
+}
+
+[dir="rtl"] .kvkk-note {
+  border-left: none;
+  border-right: 3px solid var(--color-gold);
+}
+
+[dir="rtl"] .process-step {
+  direction: rtl;
+}
+
+[dir="rtl"] .badge-list {
+  justify-content: flex-start;
+}
+
+[dir="rtl"] input[type="email"],
+[dir="rtl"] input[type="tel"],
+[dir="rtl"] input[type="url"],
+[dir="rtl"] .contact-info a[href^="mailto:"],
+[dir="rtl"] .contact-info a[href^="tel:"],
+[dir="rtl"] .footer-contact a[href^="mailto:"] {
+  direction: ltr;
+  text-align: left;
+  unicode-bidi: isolate;
+}
+
+[dir="rtl"] .address-card address,
+[dir="rtl"] .contact-map-iframe {
+  unicode-bidi: plaintext;
 }

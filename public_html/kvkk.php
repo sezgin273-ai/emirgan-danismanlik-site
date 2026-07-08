@@ -10,9 +10,10 @@ $page_title = $kvkk['title'] . ' — ' . $content['site']['title'];
 $page_description = $kvkk['intro'];
 $canonical_path = '/kvkk.php';
 $ui = $content['ui'];
+$currentLang = current_site_lang();
 ?>
 <!DOCTYPE html>
-<html lang="<?= e($content['site']['lang']) ?>">
+<html lang="<?= e($content['site']['lang']) ?>" dir="<?= e(site_html_dir($currentLang)) ?>">
 <?php require __DIR__ . '/includes/head.php'; ?>
 <body class="page-kvkk">
 <?php require __DIR__ . '/includes/header.php'; ?>

@@ -1,0 +1,324 @@
+{
+    "site": {
+        "title": "شرکت سهامی Emirgan Danışmanlık Ticaret",
+        "lang": "fa",
+        "url": "https://emirgandanismanlik.com",
+        "meta": {
+            "description": "ما با خدمات مدیریت راهبردی، توسعه کسب‌وکار و مشاوره حقوقی و مالی از رشد شرکت شما پشتیبانی می‌کنیم.",
+            "og_title": "شرکت سهامی Emirgan Danışmanlık Ticaret",
+            "og_description": "شریک قابل‌اعتماد شما در مدیریت راهبردی، مشاوره حقوقی و مالی.",
+            "og_image": "/assets/img/og-image.png"
+        },
+        "sections": {
+            "hero": {
+                "visible": true
+            },
+            "intro": {
+                "visible": true
+            },
+            "services": {
+                "visible": true
+            },
+            "about": {
+                "visible": true
+            },
+            "process": {
+                "visible": true
+            },
+            "team": {
+                "visible": true
+            },
+            "contact": {
+                "visible": true
+            }
+        },
+        "assets": {
+            "favicon": "/assets/img/favicon.png",
+            "apple_touch_icon": "/assets/img/apple-touch-icon.png",
+            "logo_light": "/assets/img/logo-full.png",
+            "logo_dark": "/assets/img/logo-full-dark.png",
+            "emblem": "/assets/img/emblem-dark.png"
+        }
+    },
+    "navigation": {
+        "items": [
+            {
+                "id": "hero",
+                "label": "صفحه اصلی",
+                "href": "#hero"
+            },
+            {
+                "id": "services",
+                "label": "خدمات",
+                "href": "#services"
+            },
+            {
+                "id": "about",
+                "label": "درباره ما",
+                "href": "#about"
+            },
+            {
+                "id": "team",
+                "label": "تیم",
+                "href": "#team"
+            },
+            {
+                "id": "contact",
+                "label": "تماس",
+                "href": "#contact"
+            }
+        ],
+        "cta": {
+            "label": "با ما تماس بگیرید",
+            "href": "#contact"
+        }
+    },
+    "ui": {
+        "skip_to_content": "رفتن به محتوا",
+        "menu_open": "باز کردن منو",
+        "menu_close": "بستن منو",
+        "hero_visual_label": "ترکیب بصری مشاوره سازمانی",
+        "email_label": "ایمیل",
+        "back_home": "صفحه اصلی"
+    },
+    "hero": {
+        "company": "شرکت سهامی Emirgan Danışmanlık Ticaret",
+        "tagline": "شریک قابل‌اعتماد شما",
+        "description": "ما با خدمات مدیریت راهبردی، توسعه کسب‌وکار و مشاوره حقوقی و مالی از رشد شرکت شما پشتیبانی می‌کنیم.",
+        "watermark_enabled": true
+    },
+    "intro": {
+        "title": "معرفی کوتاه",
+        "text": "شرکت سهامی Emirgan Danışmanlık Ticaret یک شرکت حرفه‌ای است که با حوزه‌های گسترده فعالیت، خدمات مشاوره یکپارچه ارائه می‌دهد. تیم متخصص ما در پروژه‌های انرژی، املاک، تجارت، ساخت‌وساز و سرمایه‌گذاری در کنار شماست.",
+        "badges": [
+            {
+                "icon": "energy",
+                "label": "انرژی"
+            },
+            {
+                "icon": "realestate",
+                "label": "املاک"
+            },
+            {
+                "icon": "trade",
+                "label": "تجارت"
+            },
+            {
+                "icon": "construction",
+                "label": "ساخت‌وساز"
+            },
+            {
+                "icon": "investment",
+                "label": "سرمایه‌گذاری"
+            }
+        ]
+    },
+    "process": {
+        "title": "نحوه کار ما",
+        "steps": [
+            {
+                "title": "آشنایی و تحلیل نیازها",
+                "description": "اهداف کسب‌وکار و وضعیت فعلی شما را می‌شنویم و نیازها را با هم مشخص می‌کنیم."
+            },
+            {
+                "title": "راهبرد و نقشه راه",
+                "description": "برنامه راهبردی متناسب با صنعت و نقشه راه اجرایی عملیاتی تدوین می‌کنیم."
+            },
+            {
+                "title": "اجرا و مشاوره",
+                "description": "گام‌های توافق‌شده را با تیم متخصص اجرا می‌کنیم و در تمام فرایند همراه شما هستیم."
+            },
+            {
+                "title": "پایش و پشتیبانی مستمر",
+                "description": "نتایج را می‌سنجیم، پیشرفت را رصد می‌کنیم و برای رشد پایدار پشتیبانی را ادامه می‌دهیم."
+            }
+        ]
+    },
+    "about": {
+        "title": "درباره ما",
+        "heading": "شرکت سهامی Emirgan Danışmanlık Ticaret",
+        "paragraphs": [
+            "شرکت سهامی Emirgan Danışmanlık Ticaret یک شرکت مشاوره حرفه‌ای است که مطابق قانون تجارت ترکیه تأسیس شده و دارای اختیارات گسترده و حوزه فعالیت وسیع است.",
+            "در زمینه مشاوره، توسعه کسب‌وکار، پیگیری حقوقی، برنامه‌ریزی مالی و پروژه‌های سرمایه‌گذاری خدمات قابل‌اعتماد و باکیفیت ارائه می‌دهیم. با تجربه چندبخشی، راه‌حل‌های یکپارچه در انرژی، املاک، کشاورزی، تجارت، لجستیک و ساخت‌وساز تولید می‌کنیم."
+        ]
+    },
+    "vision": {
+        "title": "چشم‌انداز ما",
+        "text": "کمک به رشد پایدار مشتریان و تبدیل شدن به یکی از شرکت‌های مشاوره برگزیده در ترکیه."
+    },
+    "mission": {
+        "title": "مأموریت ما",
+        "text": "ارائه مؤثرترین و به‌روزترین راه‌حل‌ها به مشتریان با رعایت صداقت، محرمانگی و حرفه‌ای‌گری."
+    },
+    "team": {
+        "title": "تیم ما",
+        "intro": "پشت موفقیت شرکت سهامی Emirgan Danışmanlık Ticaret، تیم قوی شرکای باتجربه و متخصص ما قرار دارد.",
+        "members": [
+            {
+                "name": "Kim Can Yıldız",
+                "title": "شریک — رئیس هیئت‌مدیره",
+                "description": "کارآفرین و مدیر باتجربه. مسئول جهت‌گیری راهبردی شرکت است و سابقه طولانی در توسعه کسب‌وکار و حاکمیت شرکتی دارد.",
+                "photo": ""
+            },
+            {
+                "name": "Turan Öner",
+                "title": "شریک — حقوق‌دان، میانجی و وکیل",
+                "description": "متخصص در حقوق تجاری، میانجی‌گری و مدیریت قراردادها؛ در حل اختلاف و فرایندهای مشاوره حقوقی از مشتریان پشتیبانی می‌کند.",
+                "photo": ""
+            },
+            {
+                "name": "Fatih Karaca",
+                "title": "شریک — حقوق‌دان و وکیل",
+                "description": "وکیل متخصص در حقوق شرکت‌ها، اختلافات تجاری و مشاوره سازمانی. شریک حقوقی قابل‌اعتماد در فرایندهای قانونی مشتریان.",
+                "photo": ""
+            },
+            {
+                "name": "Acar Baran Eyüpoğlu",
+                "title": "شریک — حقوق‌دان و وکیل",
+                "description": "متخصص حقوقی با تجربه گسترده در قراردادهای تجاری، معاملات شرکتی و پروژه‌های سرمایه‌گذاری.",
+                "photo": ""
+            },
+            {
+                "name": "Ozan Öndeş",
+                "title": "شریک — حقوق‌دان و وکیل",
+                "description": "متخصص حقوق تجاری و مشاوره سازمانی. پشتیبانی حقوقی عملی و راه‌حل‌محور به مشتریان ارائه می‌دهد.",
+                "photo": ""
+            }
+        ]
+    },
+    "services": {
+        "title": "خدمات ما",
+        "items": [
+            {
+                "title": "مشاوره مدیریت راهبردی و توسعه کسب‌وکار",
+                "description": "اهداف راهبردی شرکت را تعیین، استراتژی‌های رشد تدوین و فرایندهای کسب‌وکار را بهینه می‌کنیم.",
+                "icon": "strategy"
+            },
+            {
+                "title": "مشاوره حقوقی و قراردادی",
+                "description": "در تنظیم قرارداد، اختلافات تجاری، حاکمیت شرکتی و فرایندهای قانونی پشتیبانی حقوقی حرفه‌ای ارائه می‌دهیم.",
+                "icon": "legal"
+            },
+            {
+                "title": "برنامه‌ریزی مالی و مشاوره مالیاتی",
+                "description": "در بودجه‌بندی، بهینه‌سازی مالیاتی، گزارش‌دهی مالی و برنامه‌ریزی جریان نقدی پشتیبانی می‌کنیم.",
+                "icon": "finance"
+            },
+            {
+                "title": "گزارش‌های سرمایه‌گذاری و امکان‌سنجی",
+                "description": "گزارش‌های جامع امکان‌سنجی با تحلیل اقتصادی، فنی و حقوقی برای سرمایه‌گذاری‌های بالقوه تهیه می‌کنیم.",
+                "icon": "feasibility"
+            },
+            {
+                "title": "مشاوره املاک و توسعه پروژه",
+                "description": "در خرید و فروش املاک، اجاره، توسعه پروژه و فرایندهای سرمایه‌گذاری مشاوره ارائه می‌دهیم.",
+                "icon": "realestate"
+            },
+            {
+                "title": "مشاوره تجارت و صادرات",
+                "description": "در فرایندهای صادرات، تحقیقات بازار، ساختار نمایندگی و عملیات تجارت بین‌الملل همراه شما هستیم.",
+                "icon": "trade"
+            },
+            {
+                "title": "حاکمیت شرکتی و فرایندهای مشارکت",
+                "description": "مشاوره در ادغام، ساختار مشارکت و حاکمیت شرکتی.",
+                "icon": "governance"
+            }
+        ]
+    },
+    "contact": {
+        "title": "تماس",
+        "heading": "با ما تماس بگیرید",
+        "addresses": [
+            {
+                "label": "دفتر مرکزی ترکیه",
+                "text": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "label": "دفتر ارتباطی",
+                "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            }
+        ],
+        "email": "info@emirgandanismanlik.com",
+        "info_items": [
+            {
+                "type": "address",
+                "title": "دفتر مرکزی ترکیه",
+                "value": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "type": "address",
+                "title": "دفتر ارتباطی",
+                "value": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            },
+            {
+                "type": "email",
+                "title": "ایمیل",
+                "value": "info@emirgandanismanlik.com"
+            }
+        ],
+        "form": {
+            "name": {
+                "label": "نام و نام خانوادگی",
+                "placeholder": "نام کامل شما"
+            },
+            "email": {
+                "label": "ایمیل",
+                "placeholder": "nam@email.com"
+            },
+            "phone": {
+                "label": "تلفن",
+                "placeholder": "+90 212 000 00 00"
+            },
+            "subject": {
+                "label": "موضوع",
+                "placeholder": "موضوع پیام"
+            },
+            "message": {
+                "label": "پیام",
+                "placeholder": "پیام خود را بنویسید"
+            },
+            "submit": "ارسال پیام",
+            "success": "پیام شما دریافت شد. به‌زودی با شما تماس خواهیم گرفت.",
+            "error": "لطفاً فیلدهای الزامی را پر کنید."
+        },
+        "hours": {
+            "title": "ساعات کاری",
+            "rows": [
+                {
+                    "label": "دوشنبه – جمعه",
+                    "value": "09:00 – 18:00"
+                },
+                {
+                    "label": "شنبه – یکشنبه",
+                    "value": "تعطیل"
+                }
+            ]
+        }
+    },
+    "display": {
+        "header_logo": "medium",
+        "footer_logo": "medium",
+        "team_avatar": "medium",
+        "service_icon": "medium",
+        "hero_emblem": "medium"
+    },
+    "footer": {
+        "quick_links_title": "پیوندهای سریع"
+    },
+    "kvkk": {
+        "title": "اطلاعیه حفاظت از داده‌های شخصی",
+        "intro": "شرکت سهامی Emirgan Danışmanlık Ticaret، به‌عنوان مسئول پردازش داده مطابق قانون شماره ۶۶۹۸ حفاظت از داده‌های شخصی («KVKK») و مقررات مرتبط، داده‌های شخصی به‌دست‌آمده از وب‌سایت را در چارچوب زیر پردازش می‌کند.",
+        "sections": [
+            {
+                "heading": "۱. مسئول پردازش داده",
+                "paragraphs": [
+                    "شرکت سهامی Emirgan Danışmanlık Ticaret",
+                    "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul",
+                    "دفتر ارتباطی: Hohe Bleichen 12, 20354 Hamburg, Germany"
+                ]
+            }
+        ],
+        "note": "برای متن تفصیلی KVKK به اطلاعیه قبلی مراجعه کنید. این سند به‌صورت خلاصه تهیه شده است."
+    }
+}
