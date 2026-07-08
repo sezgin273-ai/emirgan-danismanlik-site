@@ -5,7 +5,25 @@ const CONTENT_BACKUP_MAX = 20;
 
 function content_file_path(): string
 {
-    return dirname(__DIR__, 2) . '/content/content.json';
+    return content_file_path_for_lang(SITE_LANG_DEFAULT);
+}
+
+function content_file_path_for_lang(string $lang): string
+{
+    $lang = strtolower(trim($lang));
+    if ($lang === SITE_LANG_DEFAULT) {
+        return dirname(__DIR__, 2) . '/content/content.json';
+    }
+    if (!in_array($lang, SITE_LANGS, true)) {
+        throw new InvalidArgumentException('Geçersiz dil kodu.');
+    }
+
+    return dirname(__DIR__, 2) . '/content/content.' . $lang . '.json';
+}
+
+function content_backup_prefix_for_lang(string $lang): string
+{
+    return $lang === SITE_LANG_DEFAULT ? 'content' : 'content-' . $lang;
 }
 
 function content_backup_dir(): string
@@ -24,9 +42,10 @@ function encode_content(array $data): string
     return $json . "\n";
 }
 
-function create_content_backup(): ?string
+function create_content_backup(?string $lang = null): ?string
 {
-    $source = content_file_path();
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    $source = content_file_path_for_lang($lang);
     if (!is_readable($source)) {
         return null;
     }
@@ -36,13 +55,15 @@ function create_content_backup(): ?string
         return null;
     }
 
-    $name = 'content-' . date('Y-m-d_His') . '.json';
+    $prefix = content_backup_prefix_for_lang($lang);
+    $name = $prefix . '-' . date('Y-m-d_His') . '.json';
     $dest = $dir . '/' . $name;
     if (!copy($source, $dest)) {
         return null;
     }
 
-    $files = glob($dir . '/content-*.json') ?: [];
+    $pattern = $dir . '/' . $prefix . '-*.json';
+    $files = glob($pattern) ?: [];
     usort($files, static fn(string $a, string $b): int => filemtime($b) <=> filemtime($a));
     foreach (array_slice($files, CONTENT_BACKUP_MAX) as $old) {
         @unlink($old);
@@ -51,14 +72,16 @@ function create_content_backup(): ?string
     return $name;
 }
 
-function list_content_backups(): array
+function list_content_backups(?string $lang = null): array
 {
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    $prefix = content_backup_prefix_for_lang($lang);
     $dir = content_backup_dir();
     if (!is_dir($dir)) {
         return [];
     }
 
-    $files = glob($dir . '/content-*.json') ?: [];
+    $files = glob($dir . '/' . $prefix . '-*.json') ?: [];
     usort($files, static fn(string $a, string $b): int => filemtime($b) <=> filemtime($a));
 
     return array_map(static fn(string $path): array => [
@@ -68,9 +91,10 @@ function list_content_backups(): array
     ], $files);
 }
 
-function restore_content_backup(string $name): bool
+function restore_content_backup(string $name, ?string $lang = null): bool
 {
-    if (!is_valid_backup_name($name)) {
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    if (!is_valid_backup_name($name, $lang)) {
         return false;
     }
 
@@ -89,10 +113,10 @@ function restore_content_backup(string $name): bool
         return false;
     }
 
-    return save_content($data, true);
+    return save_content_for_lang($lang, $data, true);
 }
 
-function save_content(array $data, bool $backup = true): bool
+function save_content_for_lang(string $lang, array $data, bool $backup = true): bool
 {
     try {
         $json = encode_content($data);
@@ -101,10 +125,10 @@ function save_content(array $data, bool $backup = true): bool
     }
 
     if ($backup) {
-        create_content_backup();
+        create_content_backup($lang);
     }
 
-    $path = content_file_path();
+    $path = content_file_path_for_lang($lang);
     $tmp = $path . '.tmp.' . getmypid() . '.' . bin2hex(random_bytes(4));
     $fp = fopen($tmp, 'c+b');
     if ($fp === false) {
@@ -133,18 +157,26 @@ function save_content(array $data, bool $backup = true): bool
     return true;
 }
 
+function save_content(array $data, bool $backup = true): bool
+{
+    return save_content_for_lang(SITE_LANG_DEFAULT, $data, $backup);
+}
+
 function section_visible(array $content, string $sectionId): bool
 {
     return ($content['site']['sections'][$sectionId]['visible'] ?? true) === true;
 }
 
-function is_valid_backup_name(string $name): bool
+function is_valid_backup_name(string $name, ?string $lang = null): bool
 {
     if (str_contains($name, '..') || str_contains($name, '/') || str_contains($name, '\\')) {
         return false;
     }
 
-    return (bool) preg_match('/^content-[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}\.json$/', $name);
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    $prefix = content_backup_prefix_for_lang($lang);
+
+    return (bool) preg_match('/^' . preg_quote($prefix, '/') . '-[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{6}\.json$/', $name);
 }
 
 function backup_labels_path(): string
@@ -188,9 +220,10 @@ function sanitize_backup_label(string $label): ?string
     return $label;
 }
 
-function delete_content_backup(string $name): bool
+function delete_content_backup(string $name, ?string $lang = null): bool
 {
-    if (!is_valid_backup_name($name)) {
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    if (!is_valid_backup_name($name, $lang)) {
         return false;
     }
     $path = content_backup_dir() . '/' . $name;
@@ -209,9 +242,10 @@ function delete_content_backup(string $name): bool
     return true;
 }
 
-function set_backup_label(string $name, string $label): bool
+function set_backup_label(string $name, string $label, ?string $lang = null): bool
 {
-    if (!is_valid_backup_name($name)) {
+    $lang = $lang ?? SITE_LANG_DEFAULT;
+    if (!is_valid_backup_name($name, $lang)) {
         return false;
     }
     $path = content_backup_dir() . '/' . $name;
@@ -228,9 +262,9 @@ function set_backup_label(string $name, string $label): bool
     return save_backup_labels($labels);
 }
 
-function list_content_backups_with_labels(): array
+function list_content_backups_with_labels(?string $lang = null): array
 {
-    $backups = list_content_backups();
+    $backups = list_content_backups($lang);
     $labels = load_backup_labels();
     foreach ($backups as $i => $backup) {
         $backups[$i]['label'] = $labels[$backup['name']] ?? '';

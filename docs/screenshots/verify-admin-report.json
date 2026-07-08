@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.33,
+      "measured": 1.66,
       "limit": ">= 1",
       "passed": true
     },
@@ -601,6 +601,101 @@
     "display_invalid_size_status": {
       "measured": 422,
       "limit": "422",
+      "passed": true
+    },
+    "admin_lang_switch_en_editor": {
+      "measured": 1,
+      "limit": "EN hero tagline",
+      "passed": true
+    },
+    "admin_lang_switch_de_editor": {
+      "measured": 1,
+      "limit": "DE hero tagline",
+      "passed": true
+    },
+    "admin_lang_de_structural_controls": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_en_roundtrip_json": {
+      "measured": 1,
+      "limit": "VERIFY_ADMIN_EN_ROUNDTRIP_MARKER",
+      "passed": true
+    },
+    "admin_en_roundtrip_tr_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_en_roundtrip_de_bytes": {
+      "measured": 1,
+      "limit": "unchanged",
+      "passed": true
+    },
+    "admin_en_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_de_roundtrip_json": {
+      "measured": 1,
+      "limit": "VERIFY_ADMIN_DE_ROUNDTRIP_MARKER",
+      "passed": true
+    },
+    "admin_de_roundtrip_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_tr_structure_add_service_count": {
+      "measured": 8,
+      "limit": "8",
+      "passed": true
+    },
+    "admin_lang_en_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_en_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_de_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_lang_de_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "admin_tr_structure_seed_en": {
+      "measured": 1,
+      "limit": "TR seeded",
+      "passed": true
+    },
+    "admin_tr_structure_seed_de": {
+      "measured": 1,
+      "limit": "TR seeded",
+      "passed": true
+    },
+    "admin_tr_structure_en_frontend": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "admin_lang_independent_match_en": {
+      "measured": 1,
+      "limit": "byte-identical fields",
+      "passed": true
+    },
+    "admin_lang_independent_match_de": {
+      "measured": 1,
+      "limit": "byte-identical fields",
       "passed": true
     },
     "content_json_byte_restored": {

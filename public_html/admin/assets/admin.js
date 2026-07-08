@@ -27,10 +27,12 @@
   function submitAdminAction(fields) {
     var csrfEl = document.querySelector('#content-form input[name="csrf_token"]');
     var csrf = csrfEl ? csrfEl.value : '';
+    var langEl = document.querySelector('#content-form input[name="admin_lang"]');
+    var adminLang = langEl ? langEl.value : (document.body.dataset.adminLang || 'tr');
     var form = document.createElement('form');
     form.method = 'post';
     form.action = '/admin/actions.php';
-    [{ name: 'csrf_token', value: csrf }].concat(fields).forEach(function (field) {
+    [{ name: 'csrf_token', value: csrf }, { name: 'admin_lang', value: adminLang }].concat(fields).forEach(function (field) {
       var input = document.createElement('input');
       input.type = 'hidden';
       input.name = field.name;
@@ -301,5 +303,30 @@
       var active = nav.querySelector('a[href="' + location.hash + '"]');
       if (active) active.classList.add('is-active');
     }
+  }
+
+  if (document.body.classList.contains('admin-mode-localized')) {
+    var structuralSelector = [
+      '[data-add-service]',
+      '[data-add-team]',
+      '[data-add-process]',
+      '[data-add-contact-info]',
+      '[data-add-contact-hours]',
+      '[data-sort-up]',
+      '[data-sort-down]',
+      '[data-remove-item]',
+      '[data-delete-process-step]',
+      '[data-delete-team-member]',
+      '[data-delete-contact-info]',
+      '[data-delete-contact-hours]',
+      '[data-remove-team-photo]',
+      '[data-delete-backup]',
+    ].join(',');
+    document.querySelectorAll(structuralSelector).forEach(function (el) {
+      el.remove();
+    });
+    document.querySelectorAll('#services-list select, #badges-list select, #contact-info-list select, #contact-info-list textarea[name*="[value]"]').forEach(function (el) {
+      el.disabled = true;
+    });
   }
 })();

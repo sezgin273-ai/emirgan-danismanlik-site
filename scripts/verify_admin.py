@@ -24,6 +24,8 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT_PATH = ROOT / "content/content.json"
+CONTENT_EN_PATH = ROOT / "content/content.en.json"
+CONTENT_DE_PATH = ROOT / "content/content.de.json"
 UPLOADS_DIR = ROOT / "public_html/assets/img/uploads"
 CSS_DIR = ROOT / "public_html/assets/css"
 SHOT_DIR = ROOT / "docs/screenshots"
@@ -31,6 +33,9 @@ REPORT_PATH = SHOT_DIR / "verify-admin-report.json"
 BASE = "http://localhost:8080"
 TEST_PASSWORD = ".eE951623"
 MARKER = "VERIFY_ADMIN_ROUNDTRIP_MARKER"
+MARKER_EN = "VERIFY_ADMIN_EN_ROUNDTRIP_MARKER"
+MARKER_DE = "VERIFY_ADMIN_DE_ROUNDTRIP_MARKER"
+STRUCT_SERVICE_MARKER = "VERIFY_FAZ56_STRUCTURE_SERVICE"
 BASELINE_COMMIT = "543df4a"
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
@@ -103,6 +108,63 @@ def setup_admin_config() -> None:
 
 def load_content() -> dict:
     return json.loads(CONTENT_PATH.read_text(encoding="utf-8"))
+
+
+def load_content_lang(lang: str) -> dict:
+    path = {"en": CONTENT_EN_PATH, "de": CONTENT_DE_PATH}.get(lang, CONTENT_PATH)
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def content_paths_set(obj: object, prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            child = f"{prefix}.{key}" if prefix else str(key)
+            if isinstance(value, (dict, list)):
+                paths |= content_paths_set(value, child)
+            else:
+                paths.add(child)
+    elif isinstance(obj, list):
+        for i, value in enumerate(obj):
+            child = f"{prefix}[{i}]"
+            if isinstance(value, (dict, list)):
+                paths |= content_paths_set(value, child)
+            else:
+                paths.add(child)
+    return paths
+
+
+def assert_content_key_parity() -> bool:
+    tr_paths = content_paths_set(load_content())
+    ok = True
+    for lang, path in (("en", CONTENT_EN_PATH), ("de", CONTENT_DE_PATH)):
+        loc_paths = content_paths_set(json.loads(path.read_text(encoding="utf-8")))
+        missing = len(tr_paths - loc_paths)
+        extra = len(loc_paths - tr_paths)
+        assert_metric(f"admin_lang_{lang}_missing_keys", missing, "0", missing == 0)
+        assert_metric(f"admin_lang_{lang}_extra_keys", extra, "0", extra == 0)
+        ok = ok and missing == 0 and extra == 0
+    return ok
+
+
+def lang_independent_values_match() -> bool:
+    tr = load_content()
+    ok = True
+    for lang in ("en", "de"):
+        loc = load_content_lang(lang)
+        checks = [
+            tr.get("site", {}).get("url") == loc.get("site", {}).get("url"),
+            tr.get("site", {}).get("assets") == loc.get("site", {}).get("assets"),
+            tr.get("display") == loc.get("display"),
+            [i.get("icon") for i in tr.get("services", {}).get("items", [])]
+            == [i.get("icon") for i in loc.get("services", {}).get("items", [])],
+            [m.get("photo") for m in tr.get("team", {}).get("members", [])]
+            == [m.get("photo") for m in loc.get("team", {}).get("members", [])],
+        ]
+        passed = all(checks)
+        assert_metric(f"admin_lang_independent_match_{lang}", 1 if passed else 0, "byte-identical fields", passed)
+        ok = ok and passed
+    return ok
 
 
 def save_content_direct(data: dict) -> None:
@@ -844,6 +906,7 @@ def assert_css_unchanged() -> bool:
 
 def build_process_save_form(content: dict) -> dict[str, str]:
     form: dict[str, str] = {
+        "admin_lang": "tr",
         "content[process][title]": content.get("process", {}).get("title", ""),
         "content[process][steps_present]": "1",
     }
@@ -855,6 +918,7 @@ def build_process_save_form(content: dict) -> dict[str, str]:
 
 def build_services_save_form(content: dict) -> dict[str, str]:
     form: dict[str, str] = {
+        "admin_lang": "tr",
         "content[services][title]": content["services"]["title"],
         "content[services][items_present]": "1",
     }
@@ -1331,6 +1395,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     post_data = {
         "csrf_token": csrf,
         "action": "save_content",
+        "admin_lang": "tr",
         "content[hero][company]": data["hero"]["company"],
         "content[hero][tagline]": MARKER,
         "content[hero][description]": data["hero"]["description"],
@@ -1379,6 +1444,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     form: dict[str, str] = {
         "csrf_token": csrf,
         "action": "save_content",
+        "admin_lang": "tr",
         "content[services][title]": content["services"]["title"],
         "content[services][items_present]": "1",
     }
@@ -1517,6 +1583,119 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = assert_contact_map_roundtrip(TEST_PASSWORD) and ok
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
     ok = assert_faz48_admin(TEST_PASSWORD) and ok
+    ok = assert_faz56_admin_multilang(TEST_PASSWORD) and ok
+
+    return ok
+
+
+def assert_faz56_admin_multilang(test_password: str) -> bool:
+    ok = True
+    tr_bytes_before = CONTENT_PATH.read_bytes()
+    en_bytes_before = CONTENT_EN_PATH.read_bytes()
+    de_bytes_before = CONTENT_DE_PATH.read_bytes()
+    en_tagline_before = load_content_lang("en")["hero"]["tagline"]
+    de_tagline_before = load_content_lang("de")["hero"]["tagline"]
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1440, "height": 900})
+            page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+            page.fill("#password", test_password)
+            page.click('button[type="submit"]')
+            page.wait_for_url("**/admin/dashboard.php")
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=en", wait_until="networkidle")
+            en_field = page.locator("#hero-tagline")
+            en_loaded = en_field.input_value() == en_tagline_before
+            assert_metric("admin_lang_switch_en_editor", 1 if en_loaded else 0, "EN hero tagline", en_loaded)
+            ok = ok and en_loaded
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=de", wait_until="networkidle")
+            de_field = page.locator("#hero-tagline")
+            de_loaded = de_field.input_value() == de_tagline_before
+            assert_metric("admin_lang_switch_de_editor", 1 if de_loaded else 0, "DE hero tagline", de_loaded)
+            ok = ok and de_loaded
+
+            structural_count = page.locator(
+                '[data-add-service], [data-add-team], [data-add-process], '
+                '[data-add-contact-info], [data-add-contact-hours], '
+                '[data-sort-up], [data-delete-team-member]'
+            ).count()
+            assert_metric("admin_lang_de_structural_controls", structural_count, "0", structural_count == 0)
+            ok = ok and structural_count == 0
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=en", wait_until="networkidle")
+            page.fill("#hero-tagline", MARKER_EN)
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+
+            en_json_ok = load_content_lang("en")["hero"]["tagline"] == MARKER_EN
+            tr_unchanged = CONTENT_PATH.read_bytes() == tr_bytes_before
+            de_unchanged = CONTENT_DE_PATH.read_bytes() == de_bytes_before
+            assert_metric("admin_en_roundtrip_json", 1 if en_json_ok else 0, MARKER_EN, en_json_ok)
+            assert_metric("admin_en_roundtrip_tr_bytes", 1 if tr_unchanged else 0, "unchanged", tr_unchanged)
+            assert_metric("admin_en_roundtrip_de_bytes", 1 if de_unchanged else 0, "unchanged", de_unchanged)
+            ok = ok and en_json_ok and tr_unchanged and de_unchanged
+
+            page.goto(f"{BASE}/?lang=en", wait_until="networkidle")
+            en_frontend = MARKER_EN in page.content()
+            assert_metric("admin_en_roundtrip_frontend", 1 if en_frontend else 0, "visible", en_frontend)
+            ok = ok and en_frontend
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=de", wait_until="networkidle")
+            page.fill("#hero-tagline", MARKER_DE)
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+            de_json_ok = load_content_lang("de")["hero"]["tagline"] == MARKER_DE
+            assert_metric("admin_de_roundtrip_json", 1 if de_json_ok else 0, MARKER_DE, de_json_ok)
+            ok = ok and de_json_ok
+
+            page.goto(f"{BASE}/?lang=de", wait_until="networkidle")
+            de_frontend = MARKER_DE in page.content()
+            assert_metric("admin_de_roundtrip_frontend", 1 if de_frontend else 0, "visible", de_frontend)
+            ok = ok and de_frontend
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=tr", wait_until="networkidle")
+            service_count_before = len(load_content()["services"]["items"])
+            page.click("[data-add-service]")
+            page.wait_for_timeout(200)
+            page.locator('#services-list input[name*="[title]"]').last.fill(STRUCT_SERVICE_MARKER)
+            page.locator('#services-list textarea[name*="[description]"]').last.fill("Faz 5.6 yapısal senkron testi.")
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+
+            service_count_after = len(load_content()["services"]["items"])
+            structure_added = service_count_after == service_count_before + 1
+            assert_metric("admin_tr_structure_add_service_count", service_count_after, str(service_count_before + 1), structure_added)
+            ok = ok and structure_added
+
+            ok = assert_content_key_parity() and ok
+            en_has_marker = any(
+                i.get("title") == STRUCT_SERVICE_MARKER for i in load_content_lang("en")["services"]["items"]
+            )
+            de_has_marker = any(
+                i.get("title") == STRUCT_SERVICE_MARKER for i in load_content_lang("de")["services"]["items"]
+            )
+            assert_metric("admin_tr_structure_seed_en", 1 if en_has_marker else 0, "TR seeded", en_has_marker)
+            assert_metric("admin_tr_structure_seed_de", 1 if de_has_marker else 0, "TR seeded", de_has_marker)
+            ok = ok and en_has_marker and de_has_marker
+
+            page.goto(f"{BASE}/?lang=en", wait_until="networkidle")
+            en_card_visible = STRUCT_SERVICE_MARKER in page.content()
+            assert_metric("admin_tr_structure_en_frontend", 1 if en_card_visible else 0, "visible", en_card_visible)
+            ok = ok and en_card_visible
+
+            ok = lang_independent_values_match() and ok
+
+            browser.close()
+    finally:
+        CONTENT_PATH.write_bytes(tr_bytes_before)
+        CONTENT_EN_PATH.write_bytes(en_bytes_before)
+        CONTENT_DE_PATH.write_bytes(de_bytes_before)
 
     return ok
 
@@ -1527,6 +1706,8 @@ def main() -> int:
     ok = True
 
     content_bytes = CONTENT_PATH.read_bytes()
+    content_en_bytes = CONTENT_EN_PATH.read_bytes()
+    content_de_bytes = CONTENT_DE_PATH.read_bytes()
     uploads_snap = snapshot_uploads()
     backups_snap = snapshot_backups()
     original_content = json.loads(content_bytes.decode("utf-8"))
@@ -1553,7 +1734,7 @@ def main() -> int:
             client.request(
                 "POST",
                 "/admin/actions.php",
-                data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0"},
+                data={"csrf_token": csrf, "action": "upload_team_photo", "member_index": "0", "admin_lang": "tr"},
                 files={"photo": ("team-shot.png", png, "image/png")},
                 allow_redirects=True,
             )
@@ -1571,6 +1752,8 @@ def main() -> int:
             print(f"Screenshot warning: {exc}", file=sys.stderr)
     finally:
         CONTENT_PATH.write_bytes(content_bytes)
+        CONTENT_EN_PATH.write_bytes(content_en_bytes)
+        CONTENT_DE_PATH.write_bytes(content_de_bytes)
         restore_uploads(uploads_snap)
         restore_backups(backups_snap)
 

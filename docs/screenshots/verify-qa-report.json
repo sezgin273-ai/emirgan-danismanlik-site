@@ -537,7 +537,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.9288,
+      "measured": -5.97676,
       "limit": "<= -2px",
       "passed": true
     },

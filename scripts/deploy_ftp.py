@@ -497,6 +497,16 @@ FAZ55_CONTENT_FILES = (
 FAZ55_HERO_EN = "Your Trusted Solution Partner"
 FAZ55_HERO_DE = "Ihr verlässlicher Lösungspartner"
 
+# Faz 5.6 — admin çok dilli düzenleme (önyüz dosyalarına dokunulmaz).
+FAZ56_PUBLIC_REL = (
+    "includes/content_store.php",
+    "includes/admin_multilang.php",
+    "admin/dashboard.php",
+    "admin/actions.php",
+    "admin/assets/admin.js",
+    "admin/assets/admin.css",
+)
+
 
 def backup_live_faz54_files(ftp: FTP, web_root: str, backup_dir: Path) -> dict[str, bool]:
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -661,6 +671,47 @@ def upload_faz55_bundle(ftp: FTP, web_root: str) -> list[str]:
     return uploaded
 
 
+def backup_live_faz56_files(ftp: FTP, web_root: str, backup_dir: Path) -> dict[str, bool]:
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    rows: dict[str, bool] = {}
+    for rel in FAZ56_PUBLIC_REL:
+        local_name = rel.replace("/", "__")
+        remote = f"{web_root}/{rel}"
+        if not ftp_exists(ftp, remote):
+            rows[rel] = True
+            continue
+        rows[rel] = download_remote_file(ftp, remote, backup_dir / local_name)
+    return rows
+
+
+def rollback_faz56_files(ftp: FTP, web_root: str, backup_dir: Path) -> list[str]:
+    restored: list[str] = []
+    for rel in FAZ56_PUBLIC_REL:
+        local_path = backup_dir / rel.replace("/", "__")
+        if not local_path.is_file():
+            continue
+        remote = f"{web_root}/{rel}"
+        upload_file(ftp, local_path, remote)
+        restored.append(remote)
+    return restored
+
+
+def upload_faz56_bundle(ftp: FTP, web_root: str) -> list[str]:
+    uploaded: list[str] = []
+    for rel in FAZ56_PUBLIC_REL:
+        local_path = PUBLIC_HTML / rel
+        remote = f"{web_root}/{rel}"
+        upload_file(ftp, local_path, remote)
+        uploaded.append(remote)
+        if not assert_live_homepage():
+            raise RuntimeError(f"Ana sayfa asserti başarısız ({remote} sonrası).")
+    if not assert_live_lang_hero("en", FAZ55_HERO_EN):
+        raise RuntimeError("Canlı ?lang=en hero asserti başarısız.")
+    if not assert_live_lang_hero("de", FAZ55_HERO_DE):
+        raise RuntimeError("Canlı ?lang=de hero asserti başarısız.")
+    return uploaded
+
+
 def upload_config(ftp: FTP, web_root: str) -> None:
     remote = f"{web_root}/config.php"
     upload_file(ftp, CONFIG_PATH, remote)
@@ -724,6 +775,10 @@ def main() -> int:
     backup_faz55 = "--backup-faz55" in sys.argv
     rollback_faz55 = "--rollback-faz55" in sys.argv
     faz55_backup_dir = ROOT / ".tmp" / "live-faz55-backup"
+    faz56_deploy = "--faz56-deploy" in sys.argv
+    backup_faz56 = "--backup-faz56" in sys.argv
+    rollback_faz56 = "--rollback-faz56" in sys.argv
+    faz56_backup_dir = ROOT / ".tmp" / "live-faz56-backup"
 
     ftp = connect_ftp(host, user, password)
     root_listing = ftp_list_names(ftp, ".")
@@ -967,6 +1022,55 @@ def main() -> int:
         except RuntimeError as exc:
             print(f"HATA: {exc} — rollback.", file=sys.stderr)
             rollback_faz55_files(ftp, web_root, faz55_backup_dir)
+            if not assert_live_homepage():
+                print("HATA: Rollback sonrası ana sayfa asserti başarısız.", file=sys.stderr)
+            ftp.quit()
+            return 1
+        ftp.quit()
+        print(json.dumps({"uploaded": uploaded}, ensure_ascii=False, indent=2))
+        return 0
+
+    if backup_faz56 or faz56_deploy or rollback_faz56:
+        if backup_faz56 or faz56_deploy:
+            if not assert_live_homepage():
+                print("HATA: Faz 5.6 öncesi ana sayfa asserti başarısız.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            backup_rows = backup_live_faz56_files(ftp, web_root, faz56_backup_dir)
+            missing = [k for k, ok in backup_rows.items() if not ok]
+            print(
+                json.dumps(
+                    {"backup": backup_rows, "backup_dir": str(faz56_backup_dir)},
+                    ensure_ascii=False,
+                )
+            )
+            if missing:
+                print(f"HATA: Faz 5.6 canlı yedek eksik: {missing}", file=sys.stderr)
+                ftp.quit()
+                return 1
+        if rollback_faz56:
+            if not faz56_backup_dir.is_dir():
+                print("HATA: Faz 5.6 yedek dizini yok.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            restored = rollback_faz56_files(ftp, web_root, faz56_backup_dir)
+            print(json.dumps({"restored": restored}, ensure_ascii=False))
+            if not assert_live_homepage():
+                print("HATA: Faz 5.6 rollback sonrası ana sayfa asserti başarısız.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            ftp.quit()
+            return 0
+        if backup_faz56:
+            ftp.quit()
+            return 0
+
+    if faz56_deploy:
+        try:
+            uploaded = upload_faz56_bundle(ftp, web_root)
+        except RuntimeError as exc:
+            print(f"HATA: {exc} — rollback.", file=sys.stderr)
+            rollback_faz56_files(ftp, web_root, faz56_backup_dir)
             if not assert_live_homepage():
                 print("HATA: Rollback sonrası ana sayfa asserti başarısız.", file=sys.stderr)
             ftp.quit()

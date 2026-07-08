@@ -63,6 +63,39 @@ a { color: var(--admin-gold); }
   font-size: 1.75rem;
 }
 
+.admin-lang-switcher {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  padding: 0.2rem;
+  background: #fff;
+}
+
+.admin-lang-switcher__link {
+  text-decoration: none;
+  color: var(--admin-navy);
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.admin-lang-switcher__link.is-active {
+  background: var(--admin-gold);
+  color: #fff;
+}
+
+.admin-readonly,
+.admin-card--readonly select:disabled,
+.admin-card--readonly input:disabled {
+  background: #f3f0eb;
+  color: var(--admin-muted);
+  cursor: not-allowed;
+}
+
 .admin-nav {
   display: flex;
   flex-wrap: wrap;

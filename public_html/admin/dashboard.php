@@ -3,12 +3,15 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../includes/bootstrap.php';
 require_once __DIR__ . '/../includes/admin_auth.php';
+require_once __DIR__ . '/../includes/admin_multilang.php';
 
 admin_require_login();
 
-$content = load_content();
+$adminLang = admin_resolve_lang();
+$adminStructural = admin_is_tr_mode($adminLang);
+$content = admin_load_lang_file($adminLang);
 $csrf = admin_csrf_token();
-$backups = list_content_backups_with_labels();
+$backups = list_content_backups_with_labels($adminLang);
 $flash = null;
 
 admin_start_session();
@@ -62,10 +65,28 @@ $sectionLabels = [
     <title>İçerik Yönetimi — Emirgan Admin</title>
     <link rel="stylesheet" href="/admin/assets/admin.css">
 </head>
-<body>
+<body class="<?= $adminStructural ? 'admin-mode-tr' : 'admin-mode-localized' ?>" data-admin-lang="<?= e($adminLang) ?>">
 <div class="admin-shell">
     <div class="admin-topbar">
         <h1>İçerik Yönetimi</h1>
+        <nav class="admin-lang-switcher" aria-label="Düzenleme dili">
+            <?php foreach (SITE_LANGS as $langCode): ?>
+                <?php
+                $isActive = $langCode === $adminLang;
+                $langLabel = strtoupper($langCode);
+                $langHref = $langCode === SITE_LANG_DEFAULT
+                    ? '/admin/dashboard.php'
+                    : '/admin/dashboard.php?admin_lang=' . rawurlencode($langCode);
+                ?>
+                <a
+                    href="<?= e($langHref) ?>"
+                    class="admin-lang-switcher__link<?= $isActive ? ' is-active' : '' ?>"
+                    hreflang="<?= e($langCode) ?>"
+                    lang="<?= e($langCode) ?>"
+                    <?= $isActive ? 'aria-current="page"' : '' ?>
+                ><?= e($langLabel) ?></a>
+            <?php endforeach; ?>
+        </nav>
         <form method="post" action="/admin/actions.php">
             <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
             <input type="hidden" name="action" value="logout">
@@ -99,6 +120,7 @@ $sectionLabels = [
     <form method="post" action="/admin/actions.php" class="admin-form" id="content-form">
         <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
         <input type="hidden" name="action" value="save_content">
+        <input type="hidden" name="admin_lang" value="<?= e($adminLang) ?>">
 
         <section class="admin-card" id="seo">
             <h2>SEO ve Site</h2>
@@ -109,7 +131,7 @@ $sectionLabels = [
                 </div>
                 <div>
                     <label for="site-lang">Dil kodu</label>
-                    <input type="text" id="site-lang" name="content[site][lang]" value="<?= e($content['site']['lang']) ?>">
+                    <input type="text" id="site-lang" name="content[site][lang]" value="<?= e($content['site']['lang']) ?>"<?= $adminStructural ? '' : ' readonly class="admin-readonly"' ?>>
                 </div>
             </div>
             <label for="meta-description">Meta açıklama</label>
@@ -120,13 +142,13 @@ $sectionLabels = [
             <textarea id="og-description" name="content[site][meta][og_description]"><?= e($content['site']['meta']['og_description'] ?? '') ?></textarea>
         </section>
 
-        <section class="admin-card" id="sections">
+        <section class="admin-card<?= $adminStructural ? '' : ' admin-card--readonly' ?>" id="sections">
             <h2>Bölüm Görünürlüğü</h2>
             <p class="admin-muted">Kapalı bölümler ön yüzde ve menüde görünmez.</p>
             <?php foreach ($sectionLabels as $sid => $label): ?>
-                <label class="admin-check">
-                    <input type="checkbox" name="content[site][sections][<?= e($sid) ?>][visible]" value="1"
-                        <?= section_visible($content, $sid) ? 'checked' : '' ?>>
+            <label class="admin-check" data-admin-structural>
+                <input type="checkbox" name="content[site][sections][<?= e($sid) ?>][visible]" value="1"
+                    <?= section_visible($content, $sid) ? 'checked' : '' ?><?= $adminStructural ? '' : ' disabled' ?>>
                     <?= e($label) ?>
                 </label>
             <?php endforeach; ?>
@@ -140,10 +162,10 @@ $sectionLabels = [
             <input type="text" id="hero-tagline" name="content[hero][tagline]" value="<?= e($content['hero']['tagline']) ?>">
             <label for="hero-description">Açıklama</label>
             <textarea id="hero-description" name="content[hero][description]"><?= e($content['hero']['description']) ?></textarea>
-            <label class="admin-check">
+            <label class="admin-check" data-admin-structural>
                 <input type="hidden" name="content[hero][watermark_enabled]" value="0">
                 <input type="checkbox" name="content[hero][watermark_enabled]" value="1"
-                    <?= hero_watermark_enabled($content) ? 'checked' : '' ?>>
+                    <?= hero_watermark_enabled($content) ? 'checked' : '' ?><?= $adminStructural ? '' : ' disabled' ?>>
                 Arka plan watermark (amblem) göster
             </label>
         </section>
@@ -306,7 +328,7 @@ $sectionLabels = [
             <label for="contact-heading">Alt başlık</label>
             <input type="text" id="contact-heading" name="content[contact][heading]" value="<?= e($content['contact']['heading']) ?>">
             <label for="contact-email">E-posta (eski anahtar)</label>
-            <input type="email" id="contact-email" name="content[contact][email]" value="<?= e($content['contact']['email']) ?>">
+            <input type="email" id="contact-email" name="content[contact][email]" value="<?= e($content['contact']['email']) ?>"<?= $adminStructural ? '' : ' readonly class="admin-readonly"' ?>>
             <h3>İletişim bilgileri (ön yüz)</h3>
             <input type="hidden" name="content[contact][info_items_present]" value="1">
             <div id="contact-info-list" data-sortable-prefix="content[contact][info_items]" data-label-prefix="Bilgi">
@@ -417,12 +439,15 @@ $sectionLabels = [
             <textarea id="kvkk-note" name="content[kvkk][note]"><?= e($content['kvkk']['note'] ?? '') ?></textarea>
         </section>
 
-        <section class="admin-card" id="display">
+        <section class="admin-card<?= $adminStructural ? '' : ' admin-card--readonly' ?>" id="display">
             <h2>Görsel Boyutları</h2>
+            <?php if (!$adminStructural): ?>
+                <p class="admin-muted">Görsel boyutları yalnızca TR modunda düzenlenebilir.</p>
+            <?php endif; ?>
             <p class="admin-muted">Varsayılan Orta, bugünkü ölçülerle aynıdır.</p>
             <?php foreach ($displayGroups as $groupKey => $groupLabel): ?>
                 <label for="display-<?= e($groupKey) ?>"><?= e($groupLabel) ?></label>
-                <select id="display-<?= e($groupKey) ?>" name="content[display][<?= e($groupKey) ?>]">
+                <select id="display-<?= e($groupKey) ?>" name="content[display][<?= e($groupKey) ?>]"<?= $adminStructural ? '' : ' disabled' ?>>
                     <?php foreach ($displaySizes as $sizeKey => $sizeLabel): ?>
                         <option value="<?= e($sizeKey) ?>" <?= display_size_value($content, $groupKey) === $sizeKey ? 'selected' : '' ?>><?= e($sizeLabel) ?></option>
                     <?php endforeach; ?>
@@ -447,8 +472,9 @@ $sectionLabels = [
         </div>
     </form>
 
-    <section class="admin-card" id="media">
+    <section class="admin-card<?= $adminStructural ? '' : ' admin-card--readonly' ?>" id="media">
         <h2>Görsel Yükleme</h2>
+        <?php if ($adminStructural): ?>
         <p class="admin-muted">Logo/amblem değişiminde mevcut dosyaların üzerine yazılmaz; yeni dosya yolu content.json'a kaydedilir.</p>
 
         <h3>Ekip fotoğrafı</h3>
@@ -458,6 +484,7 @@ $sectionLabels = [
                 <form method="post" action="/admin/actions.php" enctype="multipart/form-data" class="admin-form">
                     <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                     <input type="hidden" name="action" value="upload_team_photo">
+                    <input type="hidden" name="admin_lang" value="<?= e($adminLang) ?>">
                     <input type="hidden" name="member_index" value="<?= $i ?>">
                     <input type="file" name="photo" accept="image/png,image/jpeg,image/webp" required>
                     <div class="admin-actions-row">
@@ -493,16 +520,20 @@ $sectionLabels = [
                 <form method="post" action="/admin/actions.php" enctype="multipart/form-data" class="admin-form">
                     <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                     <input type="hidden" name="action" value="upload_asset">
+                    <input type="hidden" name="admin_lang" value="<?= e($adminLang) ?>">
                     <input type="hidden" name="asset_key" value="<?= e($key) ?>">
                     <input type="file" name="asset_file" accept="image/png,image/jpeg,image/webp" required>
                     <button type="submit" class="admin-btn">Yükle</button>
                 </form>
             </div>
         <?php endforeach; ?>
+        <?php else: ?>
+            <p class="admin-muted">Görsel yolları yalnızca TR modunda düzenlenebilir.</p>
+        <?php endif; ?>
     </section>
 
     <section class="admin-card" id="backups">
-        <h2>Yedekler</h2>
+        <h2>Yedekler (<?= e(strtoupper($adminLang)) ?>)</h2>
         <p class="admin-muted">Her kayıttan önce otomatik yedek alınır (son 20).</p>
         <?php if ($backups === []): ?>
             <p class="admin-muted">Henüz yedek yok.</p>
@@ -523,6 +554,7 @@ $sectionLabels = [
                             <form method="post" action="/admin/actions.php" class="admin-form admin-form--inline">
                                 <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                                 <input type="hidden" name="action" value="label_backup">
+                                <input type="hidden" name="admin_lang" value="<?= e($adminLang) ?>">
                                 <input type="hidden" name="backup_name" value="<?= e($backup['name']) ?>">
                                 <input type="text" name="backup_label" value="<?= e($backup['label']) ?>" maxlength="50" placeholder="Etiket">
                                 <button type="submit" class="admin-btn">Etiket Kaydet</button>
@@ -530,6 +562,7 @@ $sectionLabels = [
                             <form method="post" action="/admin/actions.php" class="admin-form admin-form--inline">
                                 <input type="hidden" name="csrf_token" value="<?= e($csrf) ?>">
                                 <input type="hidden" name="action" value="restore_backup">
+                                <input type="hidden" name="admin_lang" value="<?= e($adminLang) ?>">
                                 <input type="hidden" name="backup_name" value="<?= e($backup['name']) ?>">
                                 <button type="submit" class="admin-btn">Geri Yükle</button>
                             </form>
