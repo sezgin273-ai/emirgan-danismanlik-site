@@ -12,7 +12,7 @@ declare(strict_types=1);
 
  * Kullanım: php scripts/create_admin_config.php
 
- *           php scripts/create_admin_config.php --password="***REMOVED***"
+ *           ADMIN_PASSWORD ortam degiskeni veya --password= (deger repoda tutulmaz)
 
  *           SMTP_PASS ortam değişkeni veya --set-smtp-pass (etkileşimli) ile smtp_pass yazılır.
 
