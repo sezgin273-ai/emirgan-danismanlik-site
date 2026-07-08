@@ -161,21 +161,6 @@ function admin_apply_lang_independent_from_tr(array $target, array $tr): array
     }
     $target['contact']['addresses'] = $targetAddresses;
 
-    if (isset($tr['contact']['hours']['rows']) && is_array($tr['contact']['hours']['rows'])) {
-        if (!isset($target['contact']['hours']) || !is_array($target['contact']['hours'])) {
-            $target['contact']['hours'] = ['title' => $tr['contact']['hours']['title'] ?? '', 'rows' => []];
-        }
-        $trRows = $tr['contact']['hours']['rows'];
-        $targetRows = $target['contact']['hours']['rows'] ?? [];
-        foreach ($trRows as $i => $trRow) {
-            if (!isset($targetRows[$i]) || !is_array($targetRows[$i])) {
-                continue;
-            }
-            $targetRows[$i]['value'] = $trRow['value'] ?? '';
-        }
-        $target['contact']['hours']['rows'] = $targetRows;
-    }
-
     $trNav = $tr['navigation']['items'] ?? [];
     $targetNav = $target['navigation']['items'] ?? [];
     foreach ($trNav as $i => $trItem) {
@@ -386,7 +371,9 @@ function admin_sync_hours(array $trHours, ?array $locHours): array
             'label' => (is_array($locRow) && trim((string) ($locRow['label'] ?? '')) !== '')
                 ? $locRow['label']
                 : ($trRow['label'] ?? ''),
-            'value' => $trRow['value'] ?? '',
+            'value' => (is_array($locRow) && trim((string) ($locRow['value'] ?? '')) !== '')
+                ? $locRow['value']
+                : ($trRow['value'] ?? ''),
         ];
     }
 

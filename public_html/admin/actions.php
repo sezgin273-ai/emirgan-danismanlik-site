@@ -407,6 +407,10 @@ function admin_normalize_content(array $posted, array $current, bool $structural
                         if ($label !== '') {
                             $content['contact']['hours']['rows'][$i]['label'] = $label;
                         }
+                        $value = str_replace(["\r", "\n", "\0"], '', trim((string) ($row['value'] ?? '')));
+                        if ($value !== '') {
+                            $content['contact']['hours']['rows'][$i]['value'] = $value;
+                        }
                     }
                 }
             }

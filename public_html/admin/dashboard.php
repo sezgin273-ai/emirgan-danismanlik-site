@@ -385,7 +385,7 @@ $sectionLabels = [
             <input type="text" name="content[contact][form][success]" value="<?= e($content['contact']['form']['success']) ?>">
             <label>Hata mesajı</label>
             <input type="text" name="content[contact][form][error]" value="<?= e($content['contact']['form']['error']) ?>">
-            <h3>Çalışma Saatleri</h3>
+            <h3<?= $adminStructural ? ' data-admin-structural' : '' ?>>Çalışma Saatleri</h3>
             <input type="hidden" name="content[contact][hours_present]" value="1">
             <label for="contact-hours-title">Kart başlığı</label>
             <input type="text" id="contact-hours-title" name="content[contact][hours][title]" value="<?= e($content['contact']['hours']['title'] ?? '') ?>">
@@ -394,7 +394,7 @@ $sectionLabels = [
                     <div class="admin-list-item" data-sortable-item>
                         <div class="admin-list-item__head">
                             <strong data-item-label>Satır <?= $i + 1 ?></strong>
-                            <div class="admin-actions-row">
+                            <div class="admin-actions-row"<?= $adminStructural ? ' data-admin-structural' : '' ?>>
                                 <button type="button" class="admin-btn" data-sort-up>↑</button>
                                 <button type="button" class="admin-btn" data-sort-down>↓</button>
                                 <button
@@ -418,7 +418,7 @@ $sectionLabels = [
                     </div>
                 <?php endforeach; ?>
             </div>
-            <button type="button" class="admin-btn admin-btn--gold" data-add-contact-hours>Satır Ekle</button>
+            <button type="button" class="admin-btn admin-btn--gold" data-add-contact-hours<?= $adminStructural ? ' data-admin-structural' : '' ?>>Satır Ekle</button>
         </section>
 
         <section class="admin-card" id="kvkk">

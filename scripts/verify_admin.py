@@ -40,6 +40,20 @@ MARKER_DE = "VERIFY_ADMIN_DE_ROUNDTRIP_MARKER"
 MARKER_RU = "VERIFY_ADMIN_RU_ROUNDTRIP_MARKER"
 MARKER_FA = "VERIFY_ADMIN_FA_ROUNDTRIP_MARKER"
 STRUCT_SERVICE_MARKER = "VERIFY_FAZ56_STRUCTURE_SERVICE"
+STRUCT_HOURS_MARKER = "VERIFY_FAZ58_HOURS_ROW"
+HOURS_ROUNDTRIP_MARKERS = {
+    "en": "VERIFY_FAZ58_HOURS_EN",
+    "de": "VERIFY_FAZ58_HOURS_DE",
+    "ru": "VERIFY_FAZ58_HOURS_RU",
+    "fa": "VERIFY_FAZ58_HOURS_FA",
+}
+HOURS_CLOSED_EXPECTED = {
+    "tr": "Kapalı",
+    "en": "Closed",
+    "de": "Geschlossen",
+    "ru": "Закрыто",
+    "fa": "تعطیل",
+}
 BASELINE_COMMIT = "543df4a"
 PHP_BIN = ROOT / ".tools/php/php.exe"
 PHP_INI = ROOT / ".tools/php/php.ini"
@@ -1594,6 +1608,172 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     ok = assert_team_delete_ui(TEST_PASSWORD, baseline_members) and ok
     ok = assert_faz48_admin(TEST_PASSWORD) and ok
     ok = assert_faz56_admin_multilang(TEST_PASSWORD) and ok
+    ok = assert_faz58_hours_multilang(TEST_PASSWORD) and ok
+
+    return ok
+
+
+def assert_faz58_hours_code() -> bool:
+    ok = True
+    src = (ROOT / "public_html/includes/admin_multilang.php").read_text(encoding="utf-8")
+    override_count = len(re.findall(r"\$targetRows\[\$i\]\['value'\]\s*=\s*\$trRow\['value'\]", src))
+    assert_metric("faz58_apply_hours_value_override", override_count, "0", override_count == 0)
+    ok = ok and override_count == 0
+
+    sync_ok = (
+        "'value' => (is_array($locRow) && trim((string) ($locRow['value'] ?? '')) !== '')"
+        in src
+    )
+    assert_metric("faz58_sync_hours_value_preserve", 1 if sync_ok else 0, "loc-first", sync_ok)
+    ok = ok and sync_ok
+    return ok
+
+
+def contact_hours_paths_set(hours: object, prefix: str = "contact.hours") -> set[str]:
+    return content_paths_set(hours, prefix) if isinstance(hours, dict) else set()
+
+
+def assert_hours_key_parity() -> bool:
+    ok = True
+    tr_hours = load_content().get("contact", {}).get("hours", {})
+    tr_paths = contact_hours_paths_set(tr_hours)
+    for lang in ("en", "de", "ru", "fa"):
+        loc_hours = load_content_lang(lang).get("contact", {}).get("hours", {})
+        loc_paths = contact_hours_paths_set(loc_hours)
+        missing = len(tr_paths - loc_paths)
+        extra = len(loc_paths - tr_paths)
+        assert_metric(f"faz58_hours_{lang}_missing_keys", missing, "0", missing == 0)
+        assert_metric(f"faz58_hours_{lang}_extra_keys", extra, "0", extra == 0)
+        ok = ok and missing == 0 and extra == 0
+    return ok
+
+
+def hours_closed_value(lang: str) -> str:
+    if lang == "tr":
+        return load_content()["contact"]["hours"]["rows"][1]["value"]
+    return load_content_lang(lang)["contact"]["hours"]["rows"][1]["value"]
+
+
+def assert_faz58_hours_multilang(test_password: str) -> bool:
+    ok = assert_faz58_hours_code() and assert_hours_key_parity()
+    all_bytes_before = {
+        "tr": CONTENT_PATH.read_bytes(),
+        "en": CONTENT_EN_PATH.read_bytes(),
+        "de": CONTENT_DE_PATH.read_bytes(),
+        "ru": CONTENT_RU_PATH.read_bytes(),
+        "fa": CONTENT_FA_PATH.read_bytes(),
+    }
+    closed_before = {lang: HOURS_CLOSED_EXPECTED[lang] for lang in HOURS_CLOSED_EXPECTED}
+    roundtrip_passed = {lang: False for lang in HOURS_ROUNDTRIP_MARKERS}
+    isolation_passed = {lang: False for lang in HOURS_ROUNDTRIP_MARKERS}
+
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page(viewport={"width": 1440, "height": 900})
+            page.goto(f"{BASE}/admin/login.php", wait_until="networkidle")
+            page.fill("#password", test_password)
+            page.click('button[type="submit"]')
+            page.wait_for_url("**/admin/dashboard.php")
+
+            page.goto(f"{BASE}/admin/dashboard.php?admin_lang=tr", wait_until="networkidle")
+            count_before = len(load_content()["contact"]["hours"]["rows"])
+            page.click("[data-add-contact-hours]")
+            page.wait_for_timeout(200)
+            idx = page.locator("#contact-hours-list [data-sortable-item]").count() - 1
+            page.locator(f'input[name="content[contact][hours][rows][{idx}][label]"]').fill(STRUCT_HOURS_MARKER)
+            page.locator(f'input[name="content[contact][hours][rows][{idx}][value]"]').fill("09:00 – 12:00")
+            page.click('#content-form button[type="submit"]')
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+
+            counts = {
+                "tr": len(load_content()["contact"]["hours"]["rows"]),
+                "en": len(load_content_lang("en")["contact"]["hours"]["rows"]),
+                "de": len(load_content_lang("de")["contact"]["hours"]["rows"]),
+                "ru": len(load_content_lang("ru")["contact"]["hours"]["rows"]),
+                "fa": len(load_content_lang("fa")["contact"]["hours"]["rows"]),
+            }
+            structure_count_ok = all(c == count_before + 1 for c in counts.values())
+            assert_metric("faz58_hours_structure_row_parity", 1 if structure_count_ok else 0, str(count_before + 1), structure_count_ok)
+            ok = ok and structure_count_ok
+
+            for lang in ("en", "de", "ru", "fa"):
+                closed_now = load_content_lang(lang)["contact"]["hours"]["rows"][1]["value"]
+                seeded = any(
+                    row.get("label") == STRUCT_HOURS_MARKER
+                    for row in load_content_lang(lang)["contact"]["hours"]["rows"]
+                )
+                assert_metric(f"faz58_hours_structure_closed_{lang}", 1 if closed_now == closed_before[lang] else 0, closed_before[lang], closed_now == closed_before[lang])
+                assert_metric(f"faz58_hours_structure_seed_{lang}", 1 if seeded else 0, STRUCT_HOURS_MARKER, seeded)
+                ok = ok and closed_now == closed_before[lang] and seeded
+
+            page.once("dialog", lambda d: d.accept())
+            page.locator("[data-delete-contact-hours]").last.click()
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(800)
+
+            for lang, marker in HOURS_ROUNDTRIP_MARKERS.items():
+                snap_before = {
+                    "tr": CONTENT_PATH.read_bytes(),
+                    "en": CONTENT_EN_PATH.read_bytes(),
+                    "de": CONTENT_DE_PATH.read_bytes(),
+                    "ru": CONTENT_RU_PATH.read_bytes(),
+                    "fa": CONTENT_FA_PATH.read_bytes(),
+                }
+                page.goto(f"{BASE}/admin/dashboard.php?admin_lang={lang}", wait_until="networkidle")
+                page.locator('input[name="content[contact][hours][rows][1][value]"]').fill(marker)
+                page.click('#content-form button[type="submit"]')
+                page.wait_for_load_state("networkidle")
+                page.wait_for_timeout(800)
+
+                saved = load_content_lang(lang)["contact"]["hours"]["rows"][1]["value"] == marker
+                others_unchanged = all(
+                    {
+                        "tr": CONTENT_PATH,
+                        "en": CONTENT_EN_PATH,
+                        "de": CONTENT_DE_PATH,
+                        "ru": CONTENT_RU_PATH,
+                        "fa": CONTENT_FA_PATH,
+                    }[other].read_bytes() == snap_before[other]
+                    for other in snap_before
+                    if other != lang
+                )
+                assert_metric(f"faz58_hours_roundtrip_{lang}", 1 if saved else 0, marker, saved)
+                assert_metric(f"faz58_hours_isolation_{lang}", 1 if others_unchanged else 0, "4 files unchanged", others_unchanged)
+                roundtrip_passed[lang] = saved
+                isolation_passed[lang] = others_unchanged
+                ok = ok and saved and others_unchanged
+
+                page.goto(f"{BASE}/admin/dashboard.php?admin_lang={lang}", wait_until="networkidle")
+                reloaded = page.locator('input[name="content[contact][hours][rows][1][value]"]').input_value() == marker
+                assert_metric(f"faz58_hours_reload_{lang}", 1 if reloaded else 0, marker, reloaded)
+                roundtrip_passed[lang] = roundtrip_passed[lang] and reloaded
+                ok = ok and reloaded
+
+            passed_roundtrip = sum(1 for v in roundtrip_passed.values() if v)
+            assert_metric("faz58_hours_roundtrip_total", passed_roundtrip, "4", passed_roundtrip == 4)
+            ok = ok and passed_roundtrip == 4
+
+            browser.close()
+    finally:
+        CONTENT_PATH.write_bytes(all_bytes_before["tr"])
+        CONTENT_EN_PATH.write_bytes(all_bytes_before["en"])
+        CONTENT_DE_PATH.write_bytes(all_bytes_before["de"])
+        CONTENT_RU_PATH.write_bytes(all_bytes_before["ru"])
+        CONTENT_FA_PATH.write_bytes(all_bytes_before["fa"])
+
+    tr_hours_head = json.loads(
+        subprocess.run(
+            ["git", "show", "HEAD:content/content.json"],
+            cwd=ROOT,
+            capture_output=True,
+            check=True,
+        ).stdout.decode("utf-8")
+    )["contact"]["hours"]
+    tr_hours_unchanged = load_content()["contact"]["hours"] == tr_hours_head
+    assert_metric("faz58_tr_hours_block_unchanged", 1 if tr_hours_unchanged else 0, "unchanged", tr_hours_unchanged)
+    ok = ok and tr_hours_unchanged
 
     return ok
 
@@ -1819,6 +1999,10 @@ def assert_faz56_admin_multilang(test_password: str) -> bool:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     SHOT_DIR.mkdir(parents=True, exist_ok=True)
     results: dict = {"screenshots": [], "acceptance": {}}
     ok = True

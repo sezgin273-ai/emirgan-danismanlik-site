@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 1.67,
+      "measured": 6.28,
       "limit": ">= 1",
       "passed": true
     },
@@ -851,6 +851,171 @@
     "admin_lang_independent_match_fa": {
       "measured": 1,
       "limit": "byte-identical fields",
+      "passed": true
+    },
+    "faz58_apply_hours_value_override": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_sync_hours_value_preserve": {
+      "measured": 1,
+      "limit": "loc-first",
+      "passed": true
+    },
+    "faz58_hours_en_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_en_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_de_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_de_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_ru_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_ru_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_fa_missing_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_fa_extra_keys": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz58_hours_structure_row_parity": {
+      "measured": 1,
+      "limit": "3",
+      "passed": true
+    },
+    "faz58_hours_structure_closed_en": {
+      "measured": 1,
+      "limit": "Closed",
+      "passed": true
+    },
+    "faz58_hours_structure_seed_en": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_ROW",
+      "passed": true
+    },
+    "faz58_hours_structure_closed_de": {
+      "measured": 1,
+      "limit": "Geschlossen",
+      "passed": true
+    },
+    "faz58_hours_structure_seed_de": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_ROW",
+      "passed": true
+    },
+    "faz58_hours_structure_closed_ru": {
+      "measured": 1,
+      "limit": "Закрыто",
+      "passed": true
+    },
+    "faz58_hours_structure_seed_ru": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_ROW",
+      "passed": true
+    },
+    "faz58_hours_structure_closed_fa": {
+      "measured": 1,
+      "limit": "تعطیل",
+      "passed": true
+    },
+    "faz58_hours_structure_seed_fa": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_ROW",
+      "passed": true
+    },
+    "faz58_hours_roundtrip_en": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_EN",
+      "passed": true
+    },
+    "faz58_hours_isolation_en": {
+      "measured": 1,
+      "limit": "4 files unchanged",
+      "passed": true
+    },
+    "faz58_hours_reload_en": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_EN",
+      "passed": true
+    },
+    "faz58_hours_roundtrip_de": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_DE",
+      "passed": true
+    },
+    "faz58_hours_isolation_de": {
+      "measured": 1,
+      "limit": "4 files unchanged",
+      "passed": true
+    },
+    "faz58_hours_reload_de": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_DE",
+      "passed": true
+    },
+    "faz58_hours_roundtrip_ru": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_RU",
+      "passed": true
+    },
+    "faz58_hours_isolation_ru": {
+      "measured": 1,
+      "limit": "4 files unchanged",
+      "passed": true
+    },
+    "faz58_hours_reload_ru": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_RU",
+      "passed": true
+    },
+    "faz58_hours_roundtrip_fa": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_FA",
+      "passed": true
+    },
+    "faz58_hours_isolation_fa": {
+      "measured": 1,
+      "limit": "4 files unchanged",
+      "passed": true
+    },
+    "faz58_hours_reload_fa": {
+      "measured": 1,
+      "limit": "VERIFY_FAZ58_HOURS_FA",
+      "passed": true
+    },
+    "faz58_hours_roundtrip_total": {
+      "measured": 4,
+      "limit": "4",
+      "passed": true
+    },
+    "faz58_tr_hours_block_unchanged": {
+      "measured": 1,
+      "limit": "unchanged",
       "passed": true
     },
     "content_json_byte_restored": {

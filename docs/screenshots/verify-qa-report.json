@@ -522,6 +522,36 @@
       "limit": "exact",
       "passed": true
     },
+    "faz58_hours_frontend_tr": {
+      "measured": 1,
+      "limit": "Kapalı",
+      "passed": true
+    },
+    "faz58_hours_frontend_en": {
+      "measured": 1,
+      "limit": "Closed",
+      "passed": true
+    },
+    "faz58_hours_frontend_de": {
+      "measured": 1,
+      "limit": "Geschlossen",
+      "passed": true
+    },
+    "faz58_hours_frontend_ru": {
+      "measured": 1,
+      "limit": "Закрыто",
+      "passed": true
+    },
+    "faz58_hours_frontend_fa": {
+      "measured": 1,
+      "limit": "تعطیل",
+      "passed": true
+    },
+    "faz58_hours_frontend_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
     "homepage_meta_canonical": {
       "measured": 1,
       "limit": "present",
@@ -678,7 +708,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.92876,
+      "measured": -5.94954,
       "limit": "<= -2px",
       "passed": true
     },

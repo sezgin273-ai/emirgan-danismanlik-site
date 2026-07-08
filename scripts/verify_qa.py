@@ -501,6 +501,34 @@ def assert_faz55_multilang_frontend() -> bool:
     return ok
 
 
+def assert_faz58_hours_frontend() -> bool:
+    ok = True
+    hours_closed = {
+        "tr": "Kapalı",
+        "en": "Closed",
+        "de": "Geschlossen",
+        "ru": "Закрыто",
+        "fa": "تعطیل",
+    }
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        errors: list[str] = []
+        for lang, expected in hours_closed.items():
+            page = browser.new_page(viewport={"width": 1440, "height": 900})
+            page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+            url = BASE + "/" if lang == "tr" else f"{BASE}/?lang={lang}"
+            page.goto(url + "#contact", wait_until="networkidle")
+            closed = page.locator(".contact-hours-row").nth(1).locator("dd").inner_text().strip()
+            assert_metric(f"faz58_hours_frontend_{lang}", 1 if closed == expected else 0, expected, closed == expected)
+            ok = ok and closed == expected
+            page.close()
+        console_ok = len(errors) == 0
+        assert_metric("faz58_hours_frontend_console_errors", len(errors), "0", console_ok)
+        ok = ok and console_ok
+        browser.close()
+    return ok
+
+
 def assert_scope_unchanged() -> bool:
     ok = True
     for path in PROTECTED_ASSETS:
@@ -1703,6 +1731,10 @@ def run_verify_admin() -> bool:
 
 
 def main() -> int:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     QA_SHOT_DIR.mkdir(parents=True, exist_ok=True)
     results: dict = {"screenshots": [], "acceptance": {}}
     ok = True
@@ -1726,6 +1758,7 @@ def main() -> int:
         ok = assert_mail_security() and ok
         ok = assert_lang_content_parity() and ok
         ok = assert_faz55_multilang_frontend() and ok
+        ok = assert_faz58_hours_frontend() and ok
         ok = assert_seo_files() and ok
         ok = assert_page_health() and ok
         ok = assert_htaccess() and ok
