@@ -8,7 +8,9 @@ $site = $content['site'];
 $nav = $content['navigation'];
 $ui = $content['ui'];
 $assets = $site['assets'];
-$home_href = $is_home ? '#hero' : '/#hero';
+$home_href = $is_home ? '#hero' : site_lang_url('/#hero');
+$currentLang = current_site_lang();
+$langLabels = ['tr' => 'TR', 'en' => 'EN', 'de' => 'DE'];
 ?>
 <a class="skip-link" href="#main-content"><?= e($ui['skip_to_content']) ?></a>
 
@@ -37,15 +39,27 @@ $home_href = $is_home ? '#hero' : '/#hero';
                     <li>
                         <a
                             class="nav-link"
-                            href="<?= $is_home ? e($item['href']) : '/' . e($item['href']) ?>"
+                            href="<?= $is_home ? e((string) $item['href']) : e(site_lang_url('/' . ltrim((string) $item['href'], '/'))) ?>"
                             data-nav-link="<?= e($item['id']) ?>"
                         ><?= e($item['label']) ?></a>
                     </li>
                 <?php endforeach; ?>
             </ul>
-            <a class="btn btn-gold btn-sm nav-cta" href="<?= $is_home ? e($nav['cta']['href']) : '/' . e($nav['cta']['href']) ?>">
+            <a class="btn btn-gold btn-sm nav-cta" href="<?= $is_home ? e((string) $nav['cta']['href']) : e(site_lang_url('/' . ltrim((string) $nav['cta']['href'], '/'))) ?>">
                 <?= e($nav['cta']['label']) ?>
             </a>
+            <div class="lang-switcher" role="navigation" aria-label="Language selector">
+                <?php foreach ($langLabels as $langCode => $langLabel): ?>
+                    <?php $isActive = $currentLang === $langCode; ?>
+                    <a
+                        class="lang-link<?= $isActive ? ' is-active' : '' ?>"
+                        href="<?= e('/?lang=' . $langCode . '#hero') ?>"
+                        hreflang="<?= e($langCode) ?>"
+                        lang="<?= e($langCode) ?>"
+                        <?= $isActive ? 'aria-current="page"' : '' ?>
+                    ><?= e($langLabel) ?></a>
+                <?php endforeach; ?>
+            </div>
         </nav>
     </div>
 </header>

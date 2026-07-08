@@ -1,0 +1,324 @@
+{
+    "site": {
+        "title": "Emirgan Consultancy Trade Joint Stock Company",
+        "lang": "en",
+        "url": "https:\/\/emirgandanismanlik.com",
+        "meta": {
+            "description": "We support your company's growth through strategic management, business development, legal and financial advisory services.",
+            "og_title": "Emirgan Consultancy Trade Joint Stock Company",
+            "og_description": "Your trusted solution partner for strategic management, legal and financial advisory.",
+            "og_image": "\/assets\/img\/og-image.png"
+        },
+        "sections": {
+            "hero": {
+                "visible": true
+            },
+            "intro": {
+                "visible": true
+            },
+            "services": {
+                "visible": true
+            },
+            "about": {
+                "visible": true
+            },
+            "process": {
+                "visible": true
+            },
+            "team": {
+                "visible": true
+            },
+            "contact": {
+                "visible": true
+            }
+        },
+        "assets": {
+            "favicon": "\/assets\/img\/favicon.png",
+            "apple_touch_icon": "\/assets\/img\/apple-touch-icon.png",
+            "logo_light": "\/assets\/img\/logo-full.png",
+            "logo_dark": "\/assets\/img\/logo-full-dark.png",
+            "emblem": "\/assets\/img\/emblem-dark.png"
+        }
+    },
+    "navigation": {
+        "items": [
+            {
+                "id": "hero",
+                "label": "Home",
+                "href": "#hero"
+            },
+            {
+                "id": "services",
+                "label": "Services",
+                "href": "#services"
+            },
+            {
+                "id": "about",
+                "label": "About",
+                "href": "#about"
+            },
+            {
+                "id": "team",
+                "label": "Team",
+                "href": "#team"
+            },
+            {
+                "id": "contact",
+                "label": "Contact",
+                "href": "#contact"
+            }
+        ],
+        "cta": {
+            "label": "Contact Us",
+            "href": "#contact"
+        }
+    },
+    "ui": {
+        "skip_to_content": "Skip to content",
+        "menu_open": "Open menu",
+        "menu_close": "Close menu",
+        "hero_visual_label": "Corporate advisory visual composition",
+        "email_label": "Email",
+        "back_home": "Home"
+    },
+    "hero": {
+        "company": "Emirgan Consultancy Trade Joint Stock Company",
+        "tagline": "Your Trusted Solution Partner",
+        "description": "We support your company's growth through strategic management, business development, legal and financial advisory services.",
+        "watermark_enabled": true
+    },
+    "intro": {
+        "title": "Brief Introduction",
+        "text": "Emirgan Consultancy Trade Joint Stock Company is a professional firm offering integrated advisory services across a broad range of business activities. Our expert team supports your projects in energy, real estate, trade, construction and investment.",
+        "badges": [
+            {
+                "icon": "energy",
+                "label": "Energy"
+            },
+            {
+                "icon": "realestate",
+                "label": "Real Estate"
+            },
+            {
+                "icon": "trade",
+                "label": "Trade"
+            },
+            {
+                "icon": "construction",
+                "label": "Construction"
+            },
+            {
+                "icon": "investment",
+                "label": "Investment"
+            }
+        ]
+    },
+    "process": {
+        "title": "How We Work",
+        "steps": [
+            {
+                "title": "Discovery & Needs Assessment",
+                "description": "We listen to your business objectives and current situation, and clearly define your needs together."
+            },
+            {
+                "title": "Strategy & Roadmap",
+                "description": "We build a sector-specific strategic plan and an actionable implementation roadmap."
+            },
+            {
+                "title": "Execution & Advisory",
+                "description": "We execute the agreed actions with our expert team and stand by you throughout the process."
+            },
+            {
+                "title": "Monitoring & Ongoing Support",
+                "description": "We measure outcomes, monitor progress, and continue our support for sustainable growth."
+            }
+        ]
+    },
+    "about": {
+        "title": "About Us",
+        "heading": "Emirgan Consultancy Trade Joint Stock Company",
+        "paragraphs": [
+            "Emirgan Consultancy Trade Joint Stock Company is a professional advisory firm established under the Turkish Commercial Code with broad authority and a wide scope of business activities.",
+            "We provide reliable and high-quality services in advisory, business development, legal follow-up, financial planning and investment projects. Leveraging our cross-sector expertise, we deliver integrated solutions in energy, real estate, agriculture, trade, logistics and construction."
+        ]
+    },
+    "vision": {
+        "title": "Our Vision",
+        "text": "To contribute to our clients' sustainable growth and become one of Turkey's preferred advisory firms."
+    },
+    "mission": {
+        "title": "Our Mission",
+        "text": "To deliver the most effective and up-to-date solutions to our clients by acting with integrity, confidentiality and professionalism."
+    },
+    "team": {
+        "title": "Our Team",
+        "intro": "Behind the success of Emirgan Consultancy Trade Joint Stock Company stands our strong team of experienced and specialized partners.",
+        "members": [
+            {
+                "name": "Kim Can Yıldız",
+                "title": "Partner - Chairman of the Board",
+                "description": "An experienced business leader and executive. He is responsible for the company's strategic direction and has long-standing expertise in business development and corporate governance.",
+                "photo": ""
+            },
+            {
+                "name": "Turan Öner",
+                "title": "Partner - Legal Counsel, Mediator and Attorney",
+                "description": "Specialized in commercial law, mediation and contract management, supporting clients in dispute resolution and legal advisory processes.",
+                "photo": ""
+            },
+            {
+                "name": "Fatih Karaca",
+                "title": "Partner - Legal Counsel and Attorney",
+                "description": "An expert attorney in corporate law, commercial disputes and corporate advisory. A reliable legal solution partner in our clients' legal processes.",
+                "photo": ""
+            },
+            {
+                "name": "Acar Baran Eyüpoğlu",
+                "title": "Partner - Legal Counsel and Attorney",
+                "description": "A legal expert with extensive experience in commercial contracts, corporate transactions and investment projects.",
+                "photo": ""
+            },
+            {
+                "name": "Ozan Öndeş",
+                "title": "Partner - Legal Counsel and Attorney",
+                "description": "Specialized in commercial law and corporate advisory, providing practical and solution-oriented legal support to our clients.",
+                "photo": ""
+            }
+        ]
+    },
+    "services": {
+        "title": "Our Services",
+        "items": [
+            {
+                "title": "Strategic Management and Business Development Advisory",
+                "description": "We define your company's strategic objectives, develop growth strategies, and optimize your business processes.",
+                "icon": "strategy"
+            },
+            {
+                "title": "Legal and Contract Advisory",
+                "description": "We provide professional legal support in contract drafting, commercial disputes, corporate governance and legal proceedings.",
+                "icon": "legal"
+            },
+            {
+                "title": "Financial Planning and Tax Advisory",
+                "description": "We support budgeting, tax optimization, financial reporting and cash-flow planning.",
+                "icon": "finance"
+            },
+            {
+                "title": "Investment and Feasibility Reports",
+                "description": "We prepare comprehensive feasibility reports with economic, technical and legal analyses for your potential investments.",
+                "icon": "feasibility"
+            },
+            {
+                "title": "Real Estate and Project Development Advisory",
+                "description": "We deliver advisory services for real estate acquisition and disposal, leasing, project development and investment processes.",
+                "icon": "realestate"
+            },
+            {
+                "title": "Trade and Export Advisory",
+                "description": "We support you in export processes, market research, distributorship structuring and international trade operations.",
+                "icon": "trade"
+            },
+            {
+                "title": "Corporate Governance and Partnership Processes",
+                "description": "Advisory services for mergers, partnership structures and corporate governance.",
+                "icon": "governance"
+            }
+        ]
+    },
+    "contact": {
+        "title": "Contact",
+        "heading": "Contact Us",
+        "addresses": [
+            {
+                "label": "Turkey Headquarters",
+                "text": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "label": "Liaison Office",
+                "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            }
+        ],
+        "email": "info@emirgandanismanlik.com",
+        "info_items": [
+            {
+                "type": "address",
+                "title": "Turkey Headquarters",
+                "value": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "type": "address",
+                "title": "Liaison Office",
+                "value": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            },
+            {
+                "type": "email",
+                "title": "Email",
+                "value": "info@emirgandanismanlik.com"
+            }
+        ],
+        "form": {
+            "name": {
+                "label": "Full Name",
+                "placeholder": "Your full name"
+            },
+            "email": {
+                "label": "Email",
+                "placeholder": "example@email.com"
+            },
+            "phone": {
+                "label": "Phone",
+                "placeholder": "+90 212 000 00 00"
+            },
+            "subject": {
+                "label": "Subject",
+                "placeholder": "Message subject"
+            },
+            "message": {
+                "label": "Message",
+                "placeholder": "Write your message"
+            },
+            "submit": "Send Message",
+            "success": "Your message has been received. We will get back to you shortly.",
+            "error": "Please fill in the required fields."
+        },
+        "hours": {
+            "title": "Business Hours",
+            "rows": [
+                {
+                    "label": "Monday - Friday",
+                    "value": "09:00 - 18:00"
+                },
+                {
+                    "label": "Saturday - Sunday",
+                    "value": "Closed"
+                }
+            ]
+        }
+    },
+    "display": {
+        "header_logo": "medium",
+        "footer_logo": "medium",
+        "team_avatar": "medium",
+        "service_icon": "medium",
+        "hero_emblem": "medium"
+    },
+    "footer": {
+        "quick_links_title": "Quick Links"
+    },
+    "kvkk": {
+        "title": "Data Protection Information Notice",
+        "intro": "As Emirgan Consultancy Trade Joint Stock Company, in accordance with Law No. 6698 on the Protection of Personal Data (\"KVKK\") and applicable legislation, we process your personal data obtained through our website in our capacity as data controller within the framework set out below.",
+        "sections": [
+            {
+                "heading": "1. Data Controller",
+                "paragraphs": [
+                    "Emirgan Consultancy Trade Joint Stock Company",
+                    "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul",
+                    "Liaison Office: Hohe Bleichen 12, 20354 Hamburg, Germany"
+                ]
+            }
+        ],
+        "note": "For the detailed KVKK text, please refer to the previous notice. This document has been prepared in summary form."
+    }
+}

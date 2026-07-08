@@ -13,11 +13,14 @@ $og_title = $content['site']['meta']['og_title'] ?? $page_title;
 $og_description = $content['site']['meta']['og_description'] ?? $meta_description;
 $site_url = rtrim((string) ($site['url'] ?? ''), '/');
 $canonical_path = $canonical_path ?? '/';
-$canonical_url = $site_url !== '' ? $site_url . $canonical_path : $canonical_path;
+$current_lang = current_site_lang();
+$canonical_path_with_lang = site_lang_url($canonical_path, $current_lang);
+$canonical_url = $site_url !== '' ? $site_url . $canonical_path_with_lang : $canonical_path_with_lang;
 $og_image_path = (string) ($site['meta']['og_image'] ?? '');
 $og_image_url = $og_image_path !== ''
     ? ($site_url !== '' && str_starts_with($og_image_path, '/') ? $site_url . $og_image_path : $og_image_path)
     : '';
+$locale = site_og_locale($current_lang);
 ?>
 <head>
     <meta charset="UTF-8">
@@ -30,7 +33,12 @@ $og_image_url = $og_image_path !== ''
     <meta property="og:url" content="<?= e($canonical_url) ?>">
     <meta property="og:title" content="<?= e($og_title) ?>">
     <meta property="og:description" content="<?= e($og_description) ?>">
-    <meta property="og:locale" content="tr_TR">
+    <meta property="og:locale" content="<?= e($locale) ?>">
+    <?php foreach (['tr', 'en', 'de'] as $langCode): ?>
+    <?php $altUrl = $site_url . site_lang_url($canonical_path, $langCode); ?>
+    <link rel="alternate" hreflang="<?= e($langCode) ?>" href="<?= e($altUrl) ?>">
+    <?php endforeach; ?>
+    <link rel="alternate" hreflang="x-default" href="<?= e($site_url . site_lang_url($canonical_path, 'tr')) ?>">
     <?php if ($og_image_url !== ''): ?>
     <meta property="og:image" content="<?= e($og_image_url) ?>">
     <meta property="og:image:width" content="1200">

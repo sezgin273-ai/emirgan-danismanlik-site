@@ -14,6 +14,7 @@ from ftplib import FTP, FTP_TLS, error_perm
 from pathlib import Path, PurePosixPath
 
 ROOT = Path(__file__).resolve().parents[1]
+FTP_ENV_FILE = ROOT / ".ftp.env"
 PUBLIC_HTML = ROOT / "public_html"
 CONTENT_DIR = ROOT / "content"
 CONFIG_PATH = PUBLIC_HTML / "config.php"
@@ -30,10 +31,26 @@ CHMOD_DIRS = (
 )
 
 
+def load_ftp_env_file() -> None:
+    """Yerel .ftp.env (gitignore) — ortam değişkeni yoksa FTP_* değerlerini yükler."""
+    if not FTP_ENV_FILE.is_file():
+        return
+    for line in FTP_ENV_FILE.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key.startswith("FTP_") and key not in os.environ:
+            os.environ[key] = value
+
+
 def require_env(name: str) -> str:
     value = os.environ.get(name, "").strip()
     if not value:
-        print(f"HATA: {name} ortam değişkeni gerekli.", file=sys.stderr)
+        hint = f" veya {FTP_ENV_FILE.name} dosyası" if name.startswith("FTP_") else ""
+        print(f"HATA: {name} ortam değişkeni gerekli{hint}.", file=sys.stderr)
         sys.exit(1)
     return value
 
@@ -97,7 +114,9 @@ def verify_content_path_contract(web_root_name: str) -> None:
     """public_html/includes → dirname(__DIR__, 2)/content ile canlı yerleşim uyumu."""
     includes = PUBLIC_HTML / "includes" / "bootstrap.php"
     text = includes.read_text(encoding="utf-8")
-    if "dirname(__DIR__, 2) . '/content/content.json'" not in text:
+    legacy = "dirname(__DIR__, 2) . '/content/content.json'"
+    modern = "dirname(__DIR__, 2)" in text and "content_path_for_lang" in text
+    if legacy not in text and not modern:
         raise RuntimeError(
             "content yolu beklenen ../content sözleşmesiyle uyumlu değil; deploy durduruldu."
         )
@@ -460,6 +479,24 @@ FAZ54_PUBLIC_REL = (
     "admin/assets/admin.js",
 )
 
+# Faz 5.5 — önyüz i18n (admin dosyalarına dokunulmaz; TR content.json yüklenmez).
+FAZ55_PUBLIC_REL = (
+    "includes/bootstrap.php",
+    "includes/head.php",
+    "includes/header.php",
+    "includes/footer.php",
+    "assets/css/main.css",
+    "api/contact.php",
+    "index.php",
+    "kvkk.php",
+)
+FAZ55_CONTENT_FILES = (
+    "content.en.json",
+    "content.de.json",
+)
+FAZ55_HERO_EN = "Your Trusted Solution Partner"
+FAZ55_HERO_DE = "Ihr verlässlicher Lösungspartner"
+
 
 def backup_live_faz54_files(ftp: FTP, web_root: str, backup_dir: Path) -> dict[str, bool]:
     backup_dir.mkdir(parents=True, exist_ok=True)
@@ -538,6 +575,92 @@ def assert_live_homepage() -> bool:
         return False
 
 
+def assert_live_lang_hero(lang: str, expected_tagline: str) -> bool:
+    import requests
+
+    try:
+        resp = requests.get(f"https://emirgandanismanlik.com/?lang={lang}", timeout=30)
+        return resp.status_code == 200 and expected_tagline in resp.text
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def assert_live_content_lang_private(filename: str) -> bool:
+    import requests
+
+    try:
+        resp = requests.get(
+            f"https://emirgandanismanlik.com/content/{filename}",
+            timeout=30,
+            allow_redirects=True,
+        )
+        return resp.status_code in (403, 404)
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def backup_live_faz55_files(ftp: FTP, web_root: str, backup_dir: Path) -> dict[str, bool]:
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    rows: dict[str, bool] = {}
+    for rel in FAZ55_PUBLIC_REL:
+        local_name = rel.replace("/", "__")
+        rows[rel] = download_remote_file(
+            ftp, f"{web_root}/{rel}", backup_dir / local_name
+        )
+    for name in FAZ55_CONTENT_FILES:
+        # Dil dosyaları henüz yoksa yedek False olabilir; yüklemede yeni eklenir.
+        rows[f"content/{name}"] = download_remote_file(
+            ftp, f"content/{name}", backup_dir / name
+        )
+    return rows
+
+
+def rollback_faz55_files(ftp: FTP, web_root: str, backup_dir: Path) -> list[str]:
+    restored: list[str] = []
+    for rel in FAZ55_PUBLIC_REL:
+        local_path = backup_dir / rel.replace("/", "__")
+        if not local_path.is_file():
+            continue
+        remote = f"{web_root}/{rel}"
+        upload_file(ftp, local_path, remote)
+        restored.append(remote)
+    for name in FAZ55_CONTENT_FILES:
+        local_path = backup_dir / name
+        if not local_path.is_file():
+            continue
+        remote = f"content/{name}"
+        upload_file(ftp, local_path, remote)
+        restored.append(remote)
+    return restored
+
+
+def upload_faz55_bundle(ftp: FTP, web_root: str) -> list[str]:
+    uploaded: list[str] = []
+    ensure_remote_dir(ftp, "content")
+    for rel in FAZ55_PUBLIC_REL:
+        local_path = PUBLIC_HTML / rel
+        remote = f"{web_root}/{rel}"
+        upload_file(ftp, local_path, remote)
+        uploaded.append(remote)
+        if not assert_live_homepage():
+            raise RuntimeError(f"Ana sayfa asserti başarısız ({remote} sonrası).")
+    for name in FAZ55_CONTENT_FILES:
+        local_path = CONTENT_DIR / name
+        remote = f"content/{name}"
+        upload_file(ftp, local_path, remote)
+        uploaded.append(remote)
+        if not assert_live_homepage():
+            raise RuntimeError(f"Ana sayfa asserti başarısız ({remote} sonrası).")
+    if not assert_live_lang_hero("en", FAZ55_HERO_EN):
+        raise RuntimeError("Canlı ?lang=en hero asserti başarısız.")
+    if not assert_live_lang_hero("de", FAZ55_HERO_DE):
+        raise RuntimeError("Canlı ?lang=de hero asserti başarısız.")
+    for name in FAZ55_CONTENT_FILES:
+        if not assert_live_content_lang_private(name):
+            raise RuntimeError(f"/content/{name} gizlilik asserti başarısız.")
+    return uploaded
+
+
 def upload_config(ftp: FTP, web_root: str) -> None:
     remote = f"{web_root}/config.php"
     upload_file(ftp, CONFIG_PATH, remote)
@@ -579,6 +702,8 @@ def main() -> int:
     if hasattr(sys.stderr, "reconfigure"):
         sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
+    load_ftp_env_file()
+
     host = require_env("FTP_HOST")
     user = require_env("FTP_USER")
     password = require_env("FTP_PASS")
@@ -595,6 +720,10 @@ def main() -> int:
     backup_faz54 = "--backup-faz54" in sys.argv
     rollback_faz54 = "--rollback-faz54" in sys.argv
     faz54_backup_dir = ROOT / ".tmp" / "live-faz54-backup"
+    faz55_deploy = "--faz55-deploy" in sys.argv
+    backup_faz55 = "--backup-faz55" in sys.argv
+    rollback_faz55 = "--rollback-faz55" in sys.argv
+    faz55_backup_dir = ROOT / ".tmp" / "live-faz55-backup"
 
     ftp = connect_ftp(host, user, password)
     root_listing = ftp_list_names(ftp, ".")
@@ -794,6 +923,56 @@ def main() -> int:
                 indent=2,
             )
         )
+        return 0
+
+    if backup_faz55 or faz55_deploy or rollback_faz55:
+        if backup_faz55 or faz55_deploy:
+            if not assert_live_homepage():
+                print("HATA: Faz 5.5 öncesi ana sayfa asserti başarısız.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            backup_rows = backup_live_faz55_files(ftp, web_root, faz55_backup_dir)
+            required_backup = [rel for rel in FAZ55_PUBLIC_REL]
+            missing = [k for k in required_backup if not backup_rows.get(k)]
+            print(
+                json.dumps(
+                    {"backup": backup_rows, "backup_dir": str(faz55_backup_dir)},
+                    ensure_ascii=False,
+                )
+            )
+            if missing:
+                print(f"HATA: Faz 5.5 canlı yedek eksik: {missing}", file=sys.stderr)
+                ftp.quit()
+                return 1
+        if rollback_faz55:
+            if not faz55_backup_dir.is_dir():
+                print("HATA: Faz 5.5 yedek dizini yok.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            restored = rollback_faz55_files(ftp, web_root, faz55_backup_dir)
+            print(json.dumps({"restored": restored}, ensure_ascii=False))
+            if not assert_live_homepage():
+                print("HATA: Faz 5.5 rollback sonrası ana sayfa asserti başarısız.", file=sys.stderr)
+                ftp.quit()
+                return 1
+            ftp.quit()
+            return 0
+        if backup_faz55:
+            ftp.quit()
+            return 0
+
+    if faz55_deploy:
+        try:
+            uploaded = upload_faz55_bundle(ftp, web_root)
+        except RuntimeError as exc:
+            print(f"HATA: {exc} — rollback.", file=sys.stderr)
+            rollback_faz55_files(ftp, web_root, faz55_backup_dir)
+            if not assert_live_homepage():
+                print("HATA: Rollback sonrası ana sayfa asserti başarısız.", file=sys.stderr)
+            ftp.quit()
+            return 1
+        ftp.quit()
+        print(json.dumps({"uploaded": uploaded}, ensure_ascii=False, indent=2))
         return 0
 
     print(f"İçerik hedefi: content/ (web kökünün bir üst dizini)")

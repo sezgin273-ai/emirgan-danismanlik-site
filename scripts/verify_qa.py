@@ -21,6 +21,8 @@ from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT_PATH = ROOT / "content/content.json"
+CONTENT_EN_PATH = ROOT / "content/content.en.json"
+CONTENT_DE_PATH = ROOT / "content/content.de.json"
 MAIL_LOG_DIR = ROOT / "content/mail-log"
 SHOT_DIR = ROOT / "docs/screenshots"
 QA_SHOT_DIR = SHOT_DIR / "qa"
@@ -70,6 +72,7 @@ VIEWPORTS = [
     ("tablet", 768, 1024),
     ("desktop", 1440, 900),
 ]
+SITE_LANGS = ("tr", "en", "de")
 
 ACCEPTANCE: dict[str, dict] = {}
 
@@ -119,6 +122,54 @@ def head_content_json() -> dict:
     return json.loads(raw.decode("utf-8"))
 
 
+def load_lang_content(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def collect_paths(obj: object, prefix: str = "") -> set[str]:
+    paths: set[str] = set()
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            child = f"{prefix}.{key}" if prefix else key
+            paths.add(child)
+            paths |= collect_paths(value, child)
+    elif isinstance(obj, list):
+        for i, value in enumerate(obj):
+            child = f"{prefix}[{i}]"
+            paths.add(child)
+            paths |= collect_paths(value, child)
+    return paths
+
+
+def count_empty_strings(obj: object) -> int:
+    if isinstance(obj, dict):
+        return sum(count_empty_strings(v) for v in obj.values())
+    if isinstance(obj, list):
+        return sum(count_empty_strings(v) for v in obj)
+    if isinstance(obj, str):
+        return 1 if obj.strip() == "" else 0
+    return 0
+
+
+def count_translatable_empty_strings(base: object, localized: object) -> int:
+    if isinstance(base, dict) and isinstance(localized, dict):
+        total = 0
+        for key, base_value in base.items():
+            if key in localized:
+                total += count_translatable_empty_strings(base_value, localized[key])
+        return total
+    if isinstance(base, list) and isinstance(localized, list):
+        return sum(
+            count_translatable_empty_strings(base[i], localized[i])
+            for i in range(min(len(base), len(localized)))
+        )
+    if isinstance(localized, str) and localized.strip() == "":
+        if isinstance(base, str) and base.strip() == "":
+            return 0
+        return 1
+    return 0
+
+
 def deep_equal_except_allowed(head: object, current: object, path: str = "") -> tuple[bool, str]:
     if isinstance(head, dict):
         if not isinstance(current, dict):
@@ -154,9 +205,10 @@ def assert_content_json_scope() -> bool:
             cmp_obj["site"].pop("url", None)
             if "meta" in cmp_obj["site"]:
                 cmp_obj["site"]["meta"].pop("og_image", None)
+    head_hours = head_cmp.get("contact", {}).pop("hours", None)
     hours_added = current_cmp.get("contact", {}).pop("hours", None)
     ok, reason = deep_equal_except_allowed(head_cmp, current_cmp)
-    hours_ok = hours_added == CONTACT_HOURS_EXPECTED
+    hours_ok = hours_added == CONTACT_HOURS_EXPECTED and head_hours == CONTACT_HOURS_EXPECTED
     assert_metric("content_json_contact_hours_added", 1 if hours_ok else 0, "hours seed only", hours_ok)
     assert_metric("content_json_existing_values_unchanged", 1 if ok else 0, "unchanged", ok)
     if not ok:
@@ -208,6 +260,166 @@ def assert_content_json_scope() -> bool:
     assert_metric("content_json_info_items_seeded", 1 if seeded_ok else 0, "byte-identical seed", seeded_ok)
 
     return ok and process_ok and watermark_ok and process_section_ok and url_ok and og_ok and display_ok and seeded_ok and hours_ok
+
+
+def assert_lang_content_parity() -> bool:
+    ok = True
+    tr_content = load_content()
+    tr_paths = collect_paths(tr_content)
+    for lang, path in (("en", CONTENT_EN_PATH), ("de", CONTENT_DE_PATH)):
+        lang_content = load_lang_content(path)
+        lang_paths = collect_paths(lang_content)
+        missing = len(tr_paths - lang_paths)
+        extra = len(lang_paths - tr_paths)
+        empty_count = count_translatable_empty_strings(tr_content, lang_content)
+        assert_metric(f"lang_{lang}_missing_keys", missing, "0", missing == 0)
+        assert_metric(f"lang_{lang}_extra_keys", extra, "0", extra == 0)
+        assert_metric(f"lang_{lang}_empty_strings", empty_count, "0", empty_count == 0)
+        ok = ok and missing == 0 and extra == 0 and empty_count == 0
+    return ok
+
+
+def assert_faz55_multilang_frontend() -> bool:
+    ok = True
+    en_content = load_lang_content(CONTENT_EN_PATH)
+    de_content = load_lang_content(CONTENT_DE_PATH)
+    tr_content = load_content()
+    hero_expected = {
+        "tr": tr_content["hero"]["tagline"],
+        "en": en_content["hero"]["tagline"],
+        "de": de_content["hero"]["tagline"],
+    }
+    kvkk_en_title = en_content["kvkk"]["title"]
+    en_title_expected = en_content["site"]["title"]
+    locale_map = {"tr": "tr_TR", "en": "en_US", "de": "de_DE"}
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        errors: list[str] = []
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(500)
+        header_baseline = page.evaluate(
+            """() => Math.round(document.querySelector('.site-header').getBoundingClientRect().height)"""
+        )
+        assert_metric("lang_header_height_baseline_px", header_baseline, "baseline", True)
+
+        # Desktop real click EN
+        page.click('.lang-switcher a[href*="lang=en"]')
+        page.wait_for_load_state("networkidle")
+        en_hero = page.locator(".hero-title-accent").inner_text().strip()
+        en_lang_attr = page.locator("html").get_attribute("lang") or ""
+        en_og_locale = page.locator('meta[property="og:locale"]').get_attribute("content") or ""
+        en_title = page.locator("title").inner_text().strip()
+        assert_metric("lang_en_hero_exact", 1 if en_hero == hero_expected["en"] else 0, "exact", en_hero == hero_expected["en"])
+        assert_metric("lang_en_html_lang", en_lang_attr, "en", en_lang_attr == "en")
+        assert_metric("lang_en_og_locale", en_og_locale, "en_US", en_og_locale == "en_US")
+        assert_metric("lang_en_title_exact", 1 if en_title == en_title_expected else 0, "exact", en_title == en_title_expected)
+        ok = ok and en_hero == hero_expected["en"] and en_lang_attr == "en" and en_og_locale == "en_US" and en_title == en_title_expected
+
+        hreflang_count = page.locator('link[rel="alternate"][hreflang]').count()
+        assert_metric("lang_hreflang_total", hreflang_count, "4", hreflang_count == 4)
+        ok = ok and hreflang_count == 4
+
+        # Cookie persistence
+        page.goto(BASE + "/", wait_until="networkidle")
+        persisted_lang = page.locator("html").get_attribute("lang") or ""
+        assert_metric("lang_cookie_persist_en", persisted_lang, "en", persisted_lang == "en")
+        ok = ok and persisted_lang == "en"
+
+        # Invalid language falls back to TR without console errors
+        errors.clear()
+        page.goto(BASE + "/?lang=xx", wait_until="networkidle")
+        bad_lang_attr = page.locator("html").get_attribute("lang") or ""
+        bad_hero = page.locator(".hero-title-accent").inner_text().strip()
+        bad_console = len(errors)
+        assert_metric("lang_invalid_fallback_tr", bad_lang_attr, "tr", bad_lang_attr == "tr")
+        assert_metric("lang_invalid_tr_hero", 1 if bad_hero == hero_expected["tr"] else 0, "exact", bad_hero == hero_expected["tr"])
+        assert_metric("lang_invalid_console_errors", bad_console, "0", bad_console == 0)
+        ok = ok and bad_lang_attr == "tr" and bad_hero == hero_expected["tr"] and bad_console == 0
+
+        # Desktop real click DE then TR
+        page.click('.lang-switcher a[href*="lang=de"]')
+        page.wait_for_load_state("networkidle")
+        de_hero = page.locator(".hero-title-accent").inner_text().strip()
+        de_lang_attr = page.locator("html").get_attribute("lang") or ""
+        de_og_locale = page.locator('meta[property="og:locale"]').get_attribute("content") or ""
+        assert_metric("lang_de_hero_exact", 1 if de_hero == hero_expected["de"] else 0, "exact", de_hero == hero_expected["de"])
+        assert_metric("lang_de_html_lang", de_lang_attr, "de", de_lang_attr == "de")
+        assert_metric("lang_de_og_locale", de_og_locale, "de_DE", de_og_locale == "de_DE")
+        ok = ok and de_hero == hero_expected["de"] and de_lang_attr == "de" and de_og_locale == "de_DE"
+
+        page.click('.lang-switcher a[href*="lang=tr"]')
+        page.wait_for_load_state("networkidle")
+        tr_hero = page.locator(".hero-title-accent").inner_text().strip()
+        tr_lang_attr = page.locator("html").get_attribute("lang") or ""
+        assert_metric("lang_tr_return_hero_exact", 1 if tr_hero == hero_expected["tr"] else 0, "exact", tr_hero == hero_expected["tr"])
+        assert_metric("lang_tr_return_html_lang", tr_lang_attr, "tr", tr_lang_attr == "tr")
+        ok = ok and tr_hero == hero_expected["tr"] and tr_lang_attr == "tr"
+
+        # Header height guard
+        for lang in SITE_LANGS:
+            page.goto(BASE + f"/?lang={lang}", wait_until="networkidle")
+            header_h = page.evaluate(
+                """() => Math.round(document.querySelector('.site-header').getBoundingClientRect().height)"""
+            )
+            growth = header_h - header_baseline
+            assert_metric(f"lang_{lang}_header_height_px", header_h, "<= 96", header_h <= 96)
+            assert_metric(f"lang_{lang}_header_growth_px", growth, "<= 8", growth <= 8)
+            ok = ok and header_h <= 96 and growth <= 8
+
+        # KVKK EN render
+        page.goto(BASE + "/kvkk.php?lang=en", wait_until="networkidle")
+        kvkk_h1 = page.locator("#kvkk-heading").inner_text().strip()
+        assert_metric("lang_kvkk_en_heading", 1 if kvkk_h1 == kvkk_en_title else 0, "exact", kvkk_h1 == kvkk_en_title)
+        ok = ok and kvkk_h1 == kvkk_en_title
+
+        # Mobile selector real click
+        mobile = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile.goto(BASE + "/", wait_until="networkidle")
+        mobile.click("[data-nav-toggle]")
+        mobile.click('.lang-switcher a[href*="lang=en"]')
+        mobile.wait_for_load_state("networkidle")
+        mobile_lang = mobile.locator("html").get_attribute("lang") or ""
+        mobile_hero = mobile.locator(".hero-title-accent").inner_text().strip()
+        assert_metric("lang_mobile_switch_en_html_lang", mobile_lang, "en", mobile_lang == "en")
+        assert_metric("lang_mobile_switch_en_hero", 1 if mobile_hero == hero_expected["en"] else 0, "exact", mobile_hero == hero_expected["en"])
+        ok = ok and mobile_lang == "en" and mobile_hero == hero_expected["en"]
+        mobile.close()
+        browser.close()
+
+    # Per-language resource byte budgets
+    for lang in SITE_LANGS:
+        total = measure_homepage_total_bytes_for_lang(lang)
+        assert_metric(f"homepage_total_resource_bytes_{lang}", total, "<= 650000", total <= 650_000)
+        ok = ok and total <= 650_000
+
+    # Contact form messages in EN (log + 422)
+    session = requests.Session()
+    status_en, body_en = contact_post(
+        session,
+        {
+            "lang": "en",
+            "name": "Lang QA",
+            "email": "lang.qa@example.com",
+            "subject": "Language",
+            "message": "English response test",
+        },
+    )
+    status_en_422, body_en_422 = contact_post(
+        requests.Session(),
+        {"lang": "en", "email": "invalid", "message": "missing name"},
+    )
+    en_success = body_en.get("message", "") == en_content["contact"]["form"]["success"]
+    en_error = body_en_422.get("message", "") == en_content["contact"]["form"]["error"]
+    assert_metric("lang_contact_en_success_status", status_en, "200", status_en == 200)
+    assert_metric("lang_contact_en_success_message", 1 if en_success else 0, "exact", en_success)
+    assert_metric("lang_contact_en_422_status", status_en_422, "422", status_en_422 == 422)
+    assert_metric("lang_contact_en_422_message", 1 if en_error else 0, "exact", en_error)
+    ok = ok and status_en == 200 and en_success and status_en_422 == 422 and en_error
+
+    return ok
 
 
 def assert_scope_unchanged() -> bool:
@@ -763,6 +975,20 @@ def assert_seo_files() -> bool:
         assert_metric(f"homepage_meta_{key}", 1 if passed else 0, "present", passed)
         ok = ok and passed
 
+    hreflang_tags = re.findall(r'rel="alternate"\s+hreflang="([^"]+)"', home)
+    hreflang_ok = set(hreflang_tags) == {"tr", "en", "de", "x-default"}
+    assert_metric("homepage_hreflang_count", len(hreflang_tags), "4", len(hreflang_tags) == 4)
+    assert_metric("homepage_hreflang_set", 1 if hreflang_ok else 0, "tr,en,de,x-default", hreflang_ok)
+    ok = ok and hreflang_ok
+
+    home_en = requests.get(BASE + "/?lang=en", timeout=30).text
+    og_locale_en = 'property="og:locale" content="en_US"' in home_en
+    en_title = load_lang_content(CONTENT_EN_PATH)["site"]["title"]
+    title_match = f"<title>{en_title}</title>" in home_en
+    assert_metric("homepage_en_og_locale", 1 if og_locale_en else 0, "en_US", og_locale_en)
+    assert_metric("homepage_en_title_exact", 1 if title_match else 0, "match content.en.json", title_match)
+    ok = ok and og_locale_en and title_match
+
     og_path = ROOT / "public_html/assets/img/og-image.png"
     with Image.open(og_path) as img:
         w, h = img.size
@@ -870,17 +1096,30 @@ def assert_htaccess() -> bool:
     return has_cache and has_deflate
 
 
-def measure_homepage_total_bytes() -> int:
+def measure_homepage_total_bytes_for_lang(lang: str = "tr") -> int:
     session = requests.Session()
     total = 0
-    html_resp = session.get(BASE + "/", timeout=30)
+    path = "/" if lang == "tr" else f"/?lang={lang}"
+    html_resp = session.get(BASE + path, timeout=30)
     total += len(html_resp.content)
+    allowed_ext = (".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff", ".woff2")
     for match in re.finditer(r"""(?:href|src)=["']([^"']+)["']""", html_resp.text):
         raw = match.group(1).strip()
-        if raw.startswith("#") or raw.startswith("mailto:") or raw.startswith("http"):
+        raw_lower = raw.lower()
+        if (
+            raw.startswith("#")
+            or raw.startswith("mailto:")
+            or raw.startswith("tel:")
+            or raw.startswith("http")
+            or raw.startswith("/#")
+            or "?lang=" in raw_lower
+            or raw_lower.endswith(".php")
+        ):
             continue
         path = urljoin("/", raw)
         if not path.startswith("/"):
+            continue
+        if not path.lower().endswith(allowed_ext):
             continue
         try:
             resp = session.get(BASE + path, timeout=30)
@@ -888,6 +1127,11 @@ def measure_homepage_total_bytes() -> int:
                 total += len(resp.content)
         except requests.RequestException:
             pass
+    return total
+
+
+def measure_homepage_total_bytes() -> int:
+    total = measure_homepage_total_bytes_for_lang("tr")
     limit_ok = total <= 650_000
     assert_metric("homepage_total_resource_bytes", total, "<= 650000", limit_ok)
     return total
@@ -1335,7 +1579,10 @@ def assert_viewport_qa() -> tuple[bool, list[str]]:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         for label, width, height in VIEWPORTS:
-            for path, page_name in [("/", "home"), ("/kvkk.php", "kvkk")]:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                path = "/" + suffix
+                page_name = f"home-{lang}"
                 page = browser.new_page(viewport={"width": width, "height": height})
                 page.goto(BASE + path, wait_until="networkidle")
                 page.wait_for_timeout(800)
@@ -1398,6 +1645,8 @@ def main() -> int:
         ok = assert_faz51_contact_mail() and ok
         ok = assert_faz53_contact_smtp() and ok
         ok = assert_mail_security() and ok
+        ok = assert_lang_content_parity() and ok
+        ok = assert_faz55_multilang_frontend() and ok
         ok = assert_seo_files() and ok
         ok = assert_page_health() and ok
         ok = assert_htaccess() and ok

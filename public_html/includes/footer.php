@@ -23,13 +23,13 @@ $assets = $site['assets'];
                 <?php foreach ($nav['items'] as $item): ?>
                     <?php if (!section_visible($content, $item['id'])) continue; ?>
                     <li>
-                        <a href="<?= $is_home ? e($item['href']) : '/' . e($item['href']) ?>">
+                        <a href="<?= $is_home ? e((string) $item['href']) : e(site_lang_url('/' . ltrim((string) $item['href'], '/'))) ?>">
                             <?= e($item['label']) ?>
                         </a>
                     </li>
                 <?php endforeach; ?>
                 <li>
-                    <a href="/kvkk.php"><?= e($kvkk['title']) ?></a>
+                    <a href="<?= e(site_lang_url('/kvkk.php')) ?>"><?= e($kvkk['title']) ?></a>
                 </li>
             </ul>
         </div>

@@ -12,6 +12,7 @@ yedekler/
 # Geçici dosyalar
 docs_extract.txt
 *.tmp
+.ftp.env
 .DS_Store
 Thumbs.db
 __pycache__/

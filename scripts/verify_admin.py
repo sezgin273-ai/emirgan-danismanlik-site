@@ -289,7 +289,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
             visible_json = load_content()["site"]["sections"][sid]["visible"] is False
             errors: list[str] = []
             page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
-            page.goto(BASE + "/", wait_until="networkidle")
+            page.goto(BASE + "/?lang=tr", wait_until="networkidle")
             html = page.content()
             section_gone = f'id="{sid}"' not in html
             nav_gone = sid not in NAV_SECTION_IDS or f'data-nav-link="{sid}"' not in html
@@ -301,7 +301,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
             set_section_visible_checkbox(page, sid, True)
             click_save_all_content(page)
             visible_show = load_content()["site"]["sections"][sid]["visible"] is True
-            page.goto(BASE + "/", wait_until="networkidle")
+            page.goto(BASE + "/?lang=tr", wait_until="networkidle")
             html_show = page.content()
             section_back = f'id="{sid}"' in html_show
             nav_back = sid not in NAV_SECTION_IDS or f'data-nav-link="{sid}"' in html_show
@@ -316,7 +316,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
         wm_cb.uncheck()
         click_save_all_content(page)
         wm_off_json = not load_content()["hero"]["watermark_enabled"]
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         wm_off = page.evaluate(
             """() => ({
               watermark: document.querySelector('.hero-watermark'),
@@ -339,7 +339,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
         wm_cb.check()
         click_save_all_content(page)
         wm_on_json = bool(load_content()["hero"]["watermark_enabled"])
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         wm_on = page.evaluate(
             """() => {
               const el = document.querySelector('.hero-watermark');
@@ -365,7 +365,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
             page.locator("#badges-list [data-remove-item]").first.click()
         click_save_all_content(page)
         badges = load_content()["intro"]["badges"]
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         badge_count = page.locator(".badge-item").count()
         intro_html = page.content()
         badges_ok = badges == [] and badge_count == 0 and "Warning" not in intro_html and "Notice" not in intro_html
@@ -381,7 +381,7 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
         )
         click_save_all_content(page)
         steps = load_content()["process"]["steps"]
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         process_html = page.content()
         steps_ok = (
             steps == []
@@ -417,7 +417,7 @@ def assert_contact_hours_admin(test_password: str) -> bool:
         page.locator('a[href="#contact"]').click()
         page.locator('input[name="content[contact][hours][rows][0][value]"]').fill(marked_value)
         click_save_all_content(page)
-        page.goto(BASE + "/#contact", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr#contact", wait_until="networkidle")
         shown = page.locator(".contact-hours-row").first.locator("dd").inner_text()
         round_ok = marked_value in shown
         assert_metric("contact_hours_value_roundtrip", 1 if round_ok else 0, "marked on frontend", round_ok)
@@ -436,7 +436,7 @@ def assert_contact_hours_admin(test_password: str) -> bool:
         page.locator(f'input[name="content[contact][hours][rows][{idx}][label]"]').fill("Test Gün")
         page.locator(f'input[name="content[contact][hours][rows][{idx}][value]"]').fill("10:00 – 12:00")
         click_save_all_content(page)
-        page.goto(BASE + "/#contact", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr#contact", wait_until="networkidle")
         count3 = page.locator(".contact-hours-row").count()
         assert_metric("contact_hours_add_row_count", count3, "3", count3 == 3)
         ok = ok and count3 == 3
@@ -488,7 +488,7 @@ def assert_contact_map_roundtrip(test_password: str) -> bool:
         page.locator('a[href="#contact"]').click()
         page.locator('textarea[name="content[contact][info_items][0][value]"]').fill(marked_text)
         click_save_all_content(page)
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         src = page.locator(".contact-map-iframe").get_attribute("src") or ""
         encoded_marked = quote(marked_text, safe="")
         marker_ok = encoded_marked in src and "output=embed" in src
@@ -499,7 +499,7 @@ def assert_contact_map_roundtrip(test_password: str) -> bool:
         page.locator('a[href="#contact"]').click()
         page.locator('textarea[name="content[contact][info_items][0][value]"]').fill(original_text)
         click_save_all_content(page)
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         src_restored = page.locator(".contact-map-iframe").get_attribute("src") or ""
         encoded_orig = quote(original_text, safe="")
         restored_ok = encoded_orig in src_restored and CONTACT_MAP_MARKER not in src_restored
@@ -669,7 +669,7 @@ def assert_faz48_admin(test_password: str) -> bool:
             page.wait_for_timeout(200)
         photo_cleared = load_content()["team"]["members"][0].get("photo", "") == ""
         file_gone = bool(photo_file) and not photo_file.exists()
-        page.goto(BASE + "/#team", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr#team", wait_until="networkidle")
         monogram_ok = page.locator(".team-card").first.locator(".team-monogram").count() == 1
         assert_metric("team_photo_remove_cleared_json", 1 if photo_cleared else 0, "empty photo", photo_cleared)
         assert_metric("team_photo_remove_file_deleted", 1 if file_gone else 0, "orphan removed", file_gone)
@@ -687,7 +687,7 @@ def assert_faz48_admin(test_password: str) -> bool:
         page.locator(f'input[name="content[contact][info_items][{idx}][title]"]').fill("Telefon")
         page.locator(f'textarea[name="content[contact][info_items][{idx}][value]"]').fill("+90 212 555 0101")
         click_save_all_content(page)
-        page.goto(BASE + "/#contact", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr#contact", wait_until="networkidle")
         phone_layout = page.evaluate(
             """() => {
               const email = document.querySelector('.contact-info-email');
@@ -714,12 +714,12 @@ def assert_faz48_admin(test_password: str) -> bool:
         assert_metric("contact_phone_delete_restored_count", restored_items, "3", restored_items == 3)
         ok = ok and restored_items == 3
 
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         medium_sizes = page.evaluate("""() => document.querySelector('.brand-logo').getBoundingClientRect().height""")
         page.goto(f"{BASE}/admin/dashboard.php#display", wait_until="networkidle")
         page.select_option("#display-header_logo", "large")
         click_save_all_content(page)
-        page.goto(BASE + "/", wait_until="networkidle")
+        page.goto(BASE + "/?lang=tr", wait_until="networkidle")
         sizes = page.evaluate(
             """() => {
               const logo = document.querySelector('.brand-logo');
@@ -896,7 +896,7 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     data["process"]["steps"][0]["description"] = step_marker
     form = {"csrf_token": csrf, "action": "save_content", **build_process_save_form(data)}
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     roundtrip_ok = process_marker in home and step_marker in home
     assert_metric("process_text_roundtrip_frontend", 1 if roundtrip_ok else 0, "visible", roundtrip_ok)
     ok = ok and roundtrip_ok
@@ -915,7 +915,7 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     form = {"csrf_token": csrf, "action": "save_content", **build_process_save_form(data)}
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
     steps_after_add = len(load_content()["process"]["steps"])
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     add_ok = steps_after_add == 5 and home.count("VERIFY TEST ADIM") >= 1
     assert_metric("process_add_step_count", steps_after_add, "5", steps_after_add == 5)
     assert_metric("process_add_step_home_visible", 1 if "VERIFY TEST ADIM" in home else 0, "visible", "VERIFY TEST ADIM" in home)
@@ -982,7 +982,7 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
             and reordered[0]["title"] == steps_before_sort[1]
             and reordered[1]["title"] == steps_before_sort[0]
         )
-        page.goto(f"{BASE}/#process", wait_until="networkidle")
+        page.goto(f"{BASE}/?lang=tr#process", wait_until="networkidle")
         page.wait_for_timeout(1000)
         body_text = page.evaluate("() => document.getElementById('process')?.innerText ?? ''")
         first_idx = body_text.find(reordered[0]["title"]) if json_ok else -1
@@ -1052,13 +1052,13 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     content_empty = load_content()
     content_empty["process"]["steps"] = []
     save_content_direct(content_empty)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     empty_ok = 'id="process"' not in home and "Warning" not in home and "Notice" not in home
     assert_metric("process_all_steps_removed_no_section", 1 if empty_ok else 0, "absent + no PHP noise", empty_ok)
     ok = ok and empty_ok
     save_content_direct(original)
 
-    status, home_before, _ = client.request("GET", "/")
+    status, home_before, _ = client.request("GET", "/?lang=tr")
     sigs_before = service_svg_signatures(home_before)
     content_icon = load_content()
     alt_icon = "legal" if content_icon["services"]["items"][0].get("icon") != "legal" else "finance"
@@ -1067,7 +1067,7 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     csrf = extract_csrf(dash)
     form = {"csrf_token": csrf, "action": "save_content", **build_services_save_form(content_icon)}
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-    status, home_after, _ = client.request("GET", "/")
+    status, home_after, _ = client.request("GET", "/?lang=tr")
     sigs_after = service_svg_signatures(home_after)
     icon_change_ok = (
         len(sigs_before) == len(sigs_after) == 7
@@ -1090,7 +1090,7 @@ def assert_faz46_admin(client: AdminClient, test_password: str, original_content
     csrf = extract_csrf(dash)
     form = {"csrf_token": csrf, "action": "save_content", **build_services_save_form(content_svc)}
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     svg_count = home.count("<svg")
     service_cards = len(re.findall(r'class="service-card', home))
     add_svc_ok = service_cards == 8 and svg_count >= 8 and home.count("VERIFY ICON TEST HİZMET") >= 1
@@ -1247,7 +1247,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
 
     content_after_add = load_content()
     member_count_after_add = len(content_after_add["team"]["members"])
-    status, home_after_add, _ = client.request("GET", "/")
+    status, home_after_add, _ = client.request("GET", "/?lang=tr")
     test_member_visible = test_member_name in home_after_add
     assert_metric("team_add_member_count", member_count_after_add, "6", member_count_after_add == 6)
     assert_metric("team_add_member_home_visible", 1 if test_member_visible else 0, "visible", test_member_visible)
@@ -1287,7 +1287,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     content_after_delete = load_content()
     member_count_after_delete = len(content_after_delete["team"]["members"])
     remaining_names_after_delete = [m.get("name", "") for m in content_after_delete["team"]["members"]]
-    status, home_after_delete, _ = client.request("GET", "/")
+    status, home_after_delete, _ = client.request("GET", "/?lang=tr")
     member_removed_home = test_member_name not in home_after_delete
     photo_deleted = bool(test_photo_file) and (not test_photo_file.exists())
     names_unchanged = remaining_names_after_delete == team_names_before
@@ -1337,7 +1337,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     }
     client.request("POST", "/admin/actions.php", data=post_data, allow_redirects=True)
 
-    status, home_after, _ = client.request("GET", "/")
+    status, home_after, _ = client.request("GET", "/?lang=tr")
     json_content = load_content()
     assert_metric(
         "text_roundtrip_json",
@@ -1387,7 +1387,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         form[f"content[services][items][{i}][description]"] = item["description"]
         form[f"content[services][items][{i}][icon]"] = item["icon"]
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     count8 = home.count("VERIFY TEST HİZMET")
     assert_metric("service_add_count", count8, ">= 1", count8 >= 1)
     ok = ok and count8 >= 1
@@ -1407,7 +1407,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         form[f"content[services][items][{i}][description]"] = item["description"]
         form[f"content[services][items][{i}][icon]"] = item["icon"]
     client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     service_cards = len(re.findall(r'class="service-card', home))
     assert_metric("service_count_after_delete", service_cards, "7", service_cards == 7)
     ok = ok and service_cards == 7
@@ -1429,7 +1429,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
             form[f"content[services][items][{i}][description]"] = item["description"]
             form[f"content[services][items][{i}][icon]"] = item["icon"]
         client.request("POST", "/admin/actions.php", data=form, allow_redirects=True)
-        status, home, _ = client.request("GET", "/")
+        status, home, _ = client.request("GET", "/?lang=tr")
         first_pos = home.find(items[0]["title"])
         second_pos = home.find(items[1]["title"])
         order_ok = first_pos != -1 and second_pos != -1 and first_pos < second_pos
@@ -1456,7 +1456,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
     if upload_file and upload_file.is_file():
         with Image.open(upload_file) as img:
             max_dim = max(img.size)
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     has_photo = 'class="team-photo"' in home
     assert_metric("team_photo_max_dimension", max_dim, "<= 480", max_dim <= 480 and max_dim > 0)
     assert_metric("team_photo_frontend", 1 if has_photo else 0, "team-photo visible", has_photo)
@@ -1476,7 +1476,7 @@ def run_admin_tests(client: AdminClient, original_content: dict) -> bool:
         },
         allow_redirects=True,
     )
-    status, home, _ = client.request("GET", "/")
+    status, home, _ = client.request("GET", "/?lang=tr")
     monogram_back = 'class="team-monogram"' in home
     assert_metric("team_photo_removed_monogram", 1 if monogram_back else 0, "monogram fallback", monogram_back)
     ok = ok and monogram_back
@@ -1561,7 +1561,7 @@ def main() -> int:
             with sync_playwright() as p:
                 browser = p.chromium.launch(headless=True)
                 page = browser.new_page(viewport={"width": 1440, "height": 900})
-                page.goto(f"{BASE}/#team", wait_until="networkidle")
+                page.goto(f"{BASE}/?lang=tr#team", wait_until="networkidle")
                 page.wait_for_timeout(800)
                 shot = SHOT_DIR / "team-card-with-photo.png"
                 page.locator("#team .team-card").first.screenshot(path=str(shot))
@@ -1599,7 +1599,7 @@ def main() -> int:
     assert_metric("hero_tagline_matches_543df4a", 1 if tagline_ok else 0, expected_tagline, tagline_ok)
     ok = ok and tagline_ok
 
-    _, home_html, _ = client.request("GET", "/")
+    _, home_html, _ = client.request("GET", "/?lang=tr")
     no_marker_html = MARKER not in home_html
     tagline_in_html = expected_tagline in home_html
     assert_metric("homepage_no_marker", 1 if no_marker_html else 0, "no MARKER", no_marker_html)

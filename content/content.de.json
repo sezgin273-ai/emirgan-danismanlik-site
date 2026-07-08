@@ -1,0 +1,324 @@
+{
+    "site": {
+        "title": "Emirgan Beratungs- und Handelsaktiengesellschaft",
+        "lang": "de",
+        "url": "https:\/\/emirgandanismanlik.com",
+        "meta": {
+            "description": "Wir unterstützen das Wachstum Ihres Unternehmens mit Leistungen in strategischer Führung, Geschäftsentwicklung sowie rechtlicher und finanzieller Beratung.",
+            "og_title": "Emirgan Beratungs- und Handelsaktiengesellschaft",
+            "og_description": "Ihr verlässlicher Lösungspartner für strategische Führung sowie rechtliche und finanzielle Beratung.",
+            "og_image": "\/assets\/img\/og-image.png"
+        },
+        "sections": {
+            "hero": {
+                "visible": true
+            },
+            "intro": {
+                "visible": true
+            },
+            "services": {
+                "visible": true
+            },
+            "about": {
+                "visible": true
+            },
+            "process": {
+                "visible": true
+            },
+            "team": {
+                "visible": true
+            },
+            "contact": {
+                "visible": true
+            }
+        },
+        "assets": {
+            "favicon": "\/assets\/img\/favicon.png",
+            "apple_touch_icon": "\/assets\/img\/apple-touch-icon.png",
+            "logo_light": "\/assets\/img\/logo-full.png",
+            "logo_dark": "\/assets\/img\/logo-full-dark.png",
+            "emblem": "\/assets\/img\/emblem-dark.png"
+        }
+    },
+    "navigation": {
+        "items": [
+            {
+                "id": "hero",
+                "label": "Startseite",
+                "href": "#hero"
+            },
+            {
+                "id": "services",
+                "label": "Leistungen",
+                "href": "#services"
+            },
+            {
+                "id": "about",
+                "label": "Über uns",
+                "href": "#about"
+            },
+            {
+                "id": "team",
+                "label": "Team",
+                "href": "#team"
+            },
+            {
+                "id": "contact",
+                "label": "Kontakt",
+                "href": "#contact"
+            }
+        ],
+        "cta": {
+            "label": "Kontakt aufnehmen",
+            "href": "#contact"
+        }
+    },
+    "ui": {
+        "skip_to_content": "Zum Inhalt springen",
+        "menu_open": "Menü öffnen",
+        "menu_close": "Menü schließen",
+        "hero_visual_label": "Visuelle Komposition für Unternehmensberatung",
+        "email_label": "E-Mail",
+        "back_home": "Startseite"
+    },
+    "hero": {
+        "company": "Emirgan Beratungs- und Handelsaktiengesellschaft",
+        "tagline": "Ihr verlässlicher Lösungspartner",
+        "description": "Wir unterstützen das Wachstum Ihres Unternehmens mit Leistungen in strategischer Führung, Geschäftsentwicklung sowie rechtlicher und finanzieller Beratung.",
+        "watermark_enabled": true
+    },
+    "intro": {
+        "title": "Kurzvorstellung",
+        "text": "Die Emirgan Beratungs- und Handelsaktiengesellschaft ist ein professionelles Unternehmen, das mit einem breiten Tätigkeitsspektrum ganzheitliche Beratungsleistungen anbietet. Mit unserem Expertenteam begleiten wir Sie in Energie-, Immobilien-, Handels-, Bau- und Investitionsprojekten.",
+        "badges": [
+            {
+                "icon": "energy",
+                "label": "Energie"
+            },
+            {
+                "icon": "realestate",
+                "label": "Immobilien"
+            },
+            {
+                "icon": "trade",
+                "label": "Handel"
+            },
+            {
+                "icon": "construction",
+                "label": "Bauwesen"
+            },
+            {
+                "icon": "investment",
+                "label": "Investition"
+            }
+        ]
+    },
+    "process": {
+        "title": "Wie wir arbeiten",
+        "steps": [
+            {
+                "title": "Kennenlernen & Bedarfsanalyse",
+                "description": "Wir hören Ihre Geschäftsziele und Ihre aktuelle Situation an und definieren gemeinsam Ihren Bedarf."
+            },
+            {
+                "title": "Strategie & Fahrplan",
+                "description": "Wir erstellen einen branchenspezifischen Strategieplan und eine umsetzbare Roadmap."
+            },
+            {
+                "title": "Umsetzung & Beratung",
+                "description": "Wir setzen die vereinbarten Schritte mit unserem Expertenteam um und begleiten Sie während des gesamten Prozesses."
+            },
+            {
+                "title": "Monitoring & Kontinuierliche Unterstützung",
+                "description": "Wir messen Ergebnisse, verfolgen Entwicklungen und setzen unsere Unterstützung für nachhaltiges Wachstum fort."
+            }
+        ]
+    },
+    "about": {
+        "title": "Über uns",
+        "heading": "Emirgan Beratungs- und Handelsaktiengesellschaft",
+        "paragraphs": [
+            "Die Emirgan Beratungs- und Handelsaktiengesellschaft ist ein professionelles Beratungsunternehmen, das gemäß den Bestimmungen des türkischen Handelsgesetzbuchs gegründet wurde und über umfassende Befugnisse sowie ein breites Tätigkeitsfeld verfügt.",
+            "Wir bieten unseren Mandanten verlässliche und hochwertige Leistungen in den Bereichen Beratung, Geschäftsentwicklung, rechtliche Begleitung, Finanzplanung und Investitionsprojekte. Dank unserer breiten Branchenerfahrung entwickeln wir integrierte Lösungen in den Bereichen Energie, Immobilien, Landwirtschaft, Handel, Logistik und Bauwesen."
+        ]
+    },
+    "vision": {
+        "title": "Unsere Vision",
+        "text": "Zum nachhaltigen Wachstum unserer Mandanten beizutragen und eines der bevorzugten Beratungsunternehmen in der Türkei zu werden."
+    },
+    "mission": {
+        "title": "Unsere Mission",
+        "text": "Durch Integrität, Vertraulichkeit und Professionalität unseren Mandanten die wirksamsten und aktuellsten Lösungen anzubieten."
+    },
+    "team": {
+        "title": "Unser Team",
+        "intro": "Hinter dem Erfolg der Emirgan Beratungs- und Handelsaktiengesellschaft steht unser starkes Team aus erfahrenen und spezialisierten Partnern.",
+        "members": [
+            {
+                "name": "Kim Can Yıldız",
+                "title": "Partner - Vorsitzender des Vorstands",
+                "description": "Ein erfahrener Unternehmer und Manager. Er verantwortet die strategische Ausrichtung des Unternehmens und verfügt über langjährige Erfahrung in Geschäftsentwicklung und Corporate Governance.",
+                "photo": ""
+            },
+            {
+                "name": "Turan Öner",
+                "title": "Partner - Jurist, Mediator und Rechtsanwalt",
+                "description": "Spezialisiert auf Handelsrecht, Mediation und Vertragsmanagement; unterstützt unsere Mandanten in Streitbeilegung und rechtlichen Beratungsprozessen.",
+                "photo": ""
+            },
+            {
+                "name": "Fatih Karaca",
+                "title": "Partner - Jurist und Rechtsanwalt",
+                "description": "Fachanwalt für Gesellschaftsrecht, handelsrechtliche Streitigkeiten und Unternehmensberatung. Verlässlicher Lösungspartner in den rechtlichen Prozessen unserer Mandanten.",
+                "photo": ""
+            },
+            {
+                "name": "Acar Baran Eyüpoğlu",
+                "title": "Partner - Jurist und Rechtsanwalt",
+                "description": "Auf Recht spezialisierter Berater mit besonderer Erfahrung in Handelsverträgen, Gesellschaftsvorgängen und Investitionsprojekten.",
+                "photo": ""
+            },
+            {
+                "name": "Ozan Öndeş",
+                "title": "Partner - Jurist und Rechtsanwalt",
+                "description": "Spezialist für Handelsrecht und Unternehmensberatung. Bietet unseren Mandanten praxisnahe und lösungsorientierte rechtliche Unterstützung.",
+                "photo": ""
+            }
+        ]
+    },
+    "services": {
+        "title": "Unsere Leistungen",
+        "items": [
+            {
+                "title": "Beratung zu strategischer Führung und Geschäftsentwicklung",
+                "description": "Wir definieren die strategischen Ziele Ihres Unternehmens, entwickeln Wachstumsstrategien und optimieren Ihre Geschäftsprozesse.",
+                "icon": "strategy"
+            },
+            {
+                "title": "Rechts- und Vertragsberatung",
+                "description": "Wir bieten professionelle rechtliche Unterstützung bei Vertragsgestaltung, handelsrechtlichen Streitigkeiten, Corporate Governance und rechtlichen Verfahren.",
+                "icon": "legal"
+            },
+            {
+                "title": "Finanzplanung und Steuerberatung",
+                "description": "Wir unterstützen Sie bei Budgetsteuerung, Steueroptimierung, Finanzberichterstattung und Liquiditätsplanung.",
+                "icon": "finance"
+            },
+            {
+                "title": "Investitions- und Machbarkeitsberichte",
+                "description": "Für Ihre potenziellen Investitionen erstellen wir umfassende Machbarkeitsberichte mit wirtschaftlichen, technischen und rechtlichen Analysen.",
+                "icon": "feasibility"
+            },
+            {
+                "title": "Immobilien- und Projektentwicklungsberatung",
+                "description": "Wir beraten bei Immobilienkauf und -verkauf, Vermietung, Projektentwicklung und Investitionsprozessen.",
+                "icon": "realestate"
+            },
+            {
+                "title": "Handels- und Exportberatung",
+                "description": "Wir begleiten Sie bei Exportprozessen, Marktanalysen, Distributionsstrukturen und internationalen Handelsoperationen.",
+                "icon": "trade"
+            },
+            {
+                "title": "Corporate Governance und Partnerschaftsprozesse",
+                "description": "Beratung zu Unternehmenszusammenschlüssen, Partnerschaftsstrukturen und Corporate Governance.",
+                "icon": "governance"
+            }
+        ]
+    },
+    "contact": {
+        "title": "Kontakt",
+        "heading": "Kontakt aufnehmen",
+        "addresses": [
+            {
+                "label": "Hauptsitz Türkei",
+                "text": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "label": "Kontaktbüro",
+                "text": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            }
+        ],
+        "email": "info@emirgandanismanlik.com",
+        "info_items": [
+            {
+                "type": "address",
+                "title": "Hauptsitz Türkei",
+                "value": "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul"
+            },
+            {
+                "type": "address",
+                "title": "Kontaktbüro",
+                "value": "Hohe Bleichen 12, 20354 Hamburg, Germany"
+            },
+            {
+                "type": "email",
+                "title": "E-Mail",
+                "value": "info@emirgandanismanlik.com"
+            }
+        ],
+        "form": {
+            "name": {
+                "label": "Vollständiger Name",
+                "placeholder": "Ihr Vor- und Nachname"
+            },
+            "email": {
+                "label": "E-Mail",
+                "placeholder": "beispiel@email.com"
+            },
+            "phone": {
+                "label": "Telefon",
+                "placeholder": "+90 212 000 00 00"
+            },
+            "subject": {
+                "label": "Betreff",
+                "placeholder": "Betreff Ihrer Nachricht"
+            },
+            "message": {
+                "label": "Nachricht",
+                "placeholder": "Schreiben Sie Ihre Nachricht"
+            },
+            "submit": "Nachricht senden",
+            "success": "Ihre Nachricht wurde empfangen. Wir melden uns kurzfristig bei Ihnen.",
+            "error": "Bitte füllen Sie die Pflichtfelder aus."
+        },
+        "hours": {
+            "title": "Geschäftszeiten",
+            "rows": [
+                {
+                    "label": "Montag - Freitag",
+                    "value": "09:00 - 18:00"
+                },
+                {
+                    "label": "Samstag - Sonntag",
+                    "value": "Geschlossen"
+                }
+            ]
+        }
+    },
+    "display": {
+        "header_logo": "medium",
+        "footer_logo": "medium",
+        "team_avatar": "medium",
+        "service_icon": "medium",
+        "hero_emblem": "medium"
+    },
+    "footer": {
+        "quick_links_title": "Schnellzugriffe"
+    },
+    "kvkk": {
+        "title": "Datenschutzhinweis nach KVKK",
+        "intro": "Als Emirgan Beratungs- und Handelsaktiengesellschaft verarbeiten wir als Verantwortlicher im Rahmen des Gesetzes Nr. 6698 zum Schutz personenbezogener Daten (\"KVKK\") und der einschlägigen Vorschriften die personenbezogenen Daten, die wir über unsere Website erheben, innerhalb des nachstehenden Rahmens.",
+        "sections": [
+            {
+                "heading": "1. Verantwortlicher",
+                "paragraphs": [
+                    "Emirgan Beratungs- und Handelsaktiengesellschaft",
+                    "Denizbank Üst Sitesi, Yol Sokak, No:29 Reşitpaşa, Sarıyer, İstanbul",
+                    "Kontaktbüro: Hohe Bleichen 12, 20354 Hamburg, Germany"
+                ]
+            }
+        ],
+        "note": "Für den ausführlichen KVKK-Text beziehen Sie sich bitte auf die vorherige Mitteilung. Dieses Dokument wurde in zusammengefasster Form erstellt."
+    }
+}

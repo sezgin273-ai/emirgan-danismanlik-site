@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
-$content = load_content();
+$content = load_localized_content();
 $is_home = false;
 $kvkk = $content['kvkk'];
 $page_title = $kvkk['title'] . ' — ' . $content['site']['title'];
@@ -36,7 +36,7 @@ $ui = $content['ui'];
             <?php endforeach; ?>
 
             <p class="kvkk-back">
-                <a class="btn btn-outline-navy" href="/"><?= e($ui['back_home']) ?></a>
+                <a class="btn btn-outline-navy" href="<?= e(site_lang_url('/')) ?>"><?= e($ui['back_home']) ?></a>
             </p>
         </article>
     </div>

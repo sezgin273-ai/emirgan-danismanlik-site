@@ -54,6 +54,19 @@ function contact_respond(bool $ok, string $message, int $status = 200): void
     exit;
 }
 
+function contact_resolve_lang(): string
+{
+    $postLang = strtolower(trim((string) ($_POST['lang'] ?? '')));
+    if ($postLang !== '' && is_supported_site_lang($postLang)) {
+        return $postLang;
+    }
+    $queryLang = strtolower(trim((string) ($_GET['lang'] ?? '')));
+    if ($queryLang !== '' && is_supported_site_lang($queryLang)) {
+        return $queryLang;
+    }
+    return current_site_lang();
+}
+
 function contact_load_config(): array
 {
     $path = dirname(__DIR__) . '/config.php';
@@ -134,22 +147,25 @@ function contact_send_via_smtp(
     }
 }
 
+$langContent = load_content_for_lang(contact_resolve_lang());
+$successMessage = (string) ($langContent['contact']['form']['success'] ?? 'Message received.');
+$errorMessage = (string) ($langContent['contact']['form']['error'] ?? 'Please check the form.');
+$methodNotAllowedMessage = (string) ($langContent['ui']['method_not_allowed'] ?? $errorMessage);
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if (contact_wants_json()) {
         http_response_code(405);
         header('Content-Type: application/json; charset=utf-8');
-        echo json_encode(['ok' => false, 'error' => 'Yalnızca POST istekleri kabul edilir.'], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['ok' => false, 'error' => $methodNotAllowedMessage], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
     http_response_code(405);
-    echo 'Yalnızca POST istekleri kabul edilir.';
+    echo $methodNotAllowedMessage;
     exit;
 }
 
-$content = load_content();
-$successMessage = (string) ($content['contact']['form']['success'] ?? 'Mesajınız alındı.');
-$errorMessage = (string) ($content['contact']['form']['error'] ?? 'Lütfen formu kontrol edin.');
+$content = $langContent;
 
 $honeypot = contact_strip_crlf(trim((string) ($_POST['website'] ?? '')));
 if ($honeypot !== '') {

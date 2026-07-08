@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/bootstrap.php';
 
-$content = load_content();
+$content = load_localized_content();
 $is_home = true;
 $page_title = $content['site']['title'];
 $page_description = $content['site']['meta']['description'] ?? $content['hero']['description'];
@@ -20,6 +20,7 @@ $process = $content['process'] ?? ['title' => '', 'steps' => []];
 $contact = $content['contact'];
 $ui = $content['ui'];
 $assets = $content['site']['assets'];
+$currentLang = current_site_lang();
 
 /** @return list<array{label:string,value:string}> */
 function index_contact_hours_rows(array $contactBlock): array
@@ -234,6 +235,7 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
             <div class="contact-grid">
                 <div class="contact-form-col reveal">
                 <form class="contact-form" id="contact-form" action="/api/contact.php" method="post" novalidate data-success="<?= e($contact['form']['success']) ?>" data-error="<?= e($contact['form']['error']) ?>">
+                    <input type="hidden" name="lang" value="<?= e($currentLang) ?>">
                     <div class="form-row visually-hidden" aria-hidden="true">
                         <label for="contact-website">Website</label>
                         <input type="text" id="contact-website" name="website" tabindex="-1" autocomplete="off">
@@ -340,7 +342,7 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
                                 class="contact-map-iframe"
                                 src="<?= e($mapEmbedUrl) ?>"
                                 loading="lazy"
-                                title="Türkiye ofisi konumu"
+                                title="<?= e((string) ($contact['info_items'][0]['title'] ?? 'Office location')) ?>"
                                 referrerpolicy="no-referrer-when-downgrade"
                                 allowfullscreen
                             ></iframe>

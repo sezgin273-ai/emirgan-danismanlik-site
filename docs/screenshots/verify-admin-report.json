@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 2.44,
+      "measured": 1.33,
       "limit": ">= 1",
       "passed": true
     },

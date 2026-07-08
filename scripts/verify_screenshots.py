@@ -217,7 +217,7 @@ def test_js_resilience(browser, results: dict) -> bool:
     page = browser.new_page()
     page.route("**/assets/js/main.js", lambda route: route.abort())
     page.set_viewport_size({"width": 1440, "height": 900})
-    page.goto(BASE, wait_until="domcontentloaded", timeout=30000)
+    page.goto(BASE + "/?lang=tr", wait_until="domcontentloaded", timeout=30000)
     page.wait_for_timeout(400)
 
     state = page.evaluate(
@@ -254,7 +254,7 @@ def screenshot_section(page, selector: str, path: Path) -> None:
 def run_viewport(page, width: int, name: str, results: dict) -> bool:
     ok = True
     page.set_viewport_size({"width": width, "height": 900})
-    page.goto(BASE, wait_until="networkidle", timeout=30000)
+    page.goto(BASE + "/?lang=tr", wait_until="networkidle", timeout=30000)
     page.wait_for_timeout(1200)
 
     hero = measure_hero_emblem(page)

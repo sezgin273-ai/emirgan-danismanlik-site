@@ -3,27 +3,219 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/content_store.php';
 
+const SITE_LANG_DEFAULT = 'tr';
+const SITE_LANGS = ['tr', 'en', 'de'];
+
 /**
- * İçerik dosyasını yükler ve JSON olarak döndürür.
+ * Dil kodu whitelist doğrulaması.
+ */
+function is_supported_site_lang(string $lang): bool
+{
+    return in_array($lang, SITE_LANGS, true);
+}
+
+/**
+ * URL/query/cookie üzerinden etkin dili çöz.
+ */
+function resolve_site_lang(): string
+{
+    static $resolved = null;
+    if ($resolved !== null) {
+        return $resolved;
+    }
+
+    if (array_key_exists('lang', $_GET)) {
+        $requested = strtolower(trim((string) ($_GET['lang'] ?? '')));
+        if (is_supported_site_lang($requested)) {
+            $isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+            setcookie('site_lang', $requested, [
+                'expires' => time() + 31536000,
+                'path' => '/',
+                'samesite' => 'Lax',
+                'secure' => $isHttps,
+                'httponly' => false,
+            ]);
+            $_COOKIE['site_lang'] = $requested;
+            $resolved = $requested;
+            return $resolved;
+        }
+        $resolved = SITE_LANG_DEFAULT;
+        return $resolved;
+    }
+
+    $cookieLang = strtolower(trim((string) ($_COOKIE['site_lang'] ?? '')));
+    if (is_supported_site_lang($cookieLang)) {
+        $resolved = $cookieLang;
+        return $resolved;
+    }
+
+    $resolved = SITE_LANG_DEFAULT;
+    return $resolved;
+}
+
+/**
+ * Dil dosyası yolu.
+ */
+function content_path_for_lang(string $lang): string
+{
+    $root = dirname(__DIR__, 2);
+    if ($lang === SITE_LANG_DEFAULT) {
+        return $root . '/content/content.json';
+    }
+    return $root . '/content/content.' . $lang . '.json';
+}
+
+/**
+ * İçeriği dosyadan güvenli yükle.
+ */
+function load_content_file(string $path): array
+{
+    if (!is_readable($path)) {
+        return [];
+    }
+    $json = file_get_contents($path);
+    if ($json === false) {
+        return [];
+    }
+    $data = json_decode($json, true);
+    return is_array($data) ? $data : [];
+}
+
+/**
+ * Locale kodu.
+ */
+function site_og_locale(string $lang): string
+{
+    return match ($lang) {
+        'en' => 'en_US',
+        'de' => 'de_DE',
+        default => 'tr_TR',
+    };
+}
+
+/**
+ * İç içe TR fallback merge.
+ */
+function merge_content_with_fallback(array $base, array $localized): array
+{
+    $result = $base;
+    foreach ($base as $key => $baseValue) {
+        if (!array_key_exists($key, $localized)) {
+            continue;
+        }
+        $locValue = $localized[$key];
+        if (is_array($baseValue) && is_array($locValue)) {
+            if (array_is_list($baseValue) && array_is_list($locValue)) {
+                $mergedList = [];
+                foreach ($baseValue as $i => $listValue) {
+                    if (!array_key_exists($i, $locValue)) {
+                        $mergedList[] = $listValue;
+                        continue;
+                    }
+                    $candidate = $locValue[$i];
+                    if (is_array($listValue) && is_array($candidate)) {
+                        $mergedList[] = merge_content_with_fallback($listValue, $candidate);
+                    } elseif (is_string($candidate) && trim($candidate) === '') {
+                        $mergedList[] = $listValue;
+                    } else {
+                        $mergedList[] = $candidate;
+                    }
+                }
+                $result[$key] = $mergedList;
+                continue;
+            }
+            $result[$key] = merge_content_with_fallback($baseValue, $locValue);
+            continue;
+        }
+        if (is_string($locValue) && trim($locValue) === '') {
+            continue;
+        }
+        $result[$key] = $locValue;
+    }
+    return $result;
+}
+
+/**
+ * TR kaynak içeriği (admin panel ve yedekleme her zaman TR dosyasını okur).
  */
 function load_content(): array
 {
-    $path = dirname(__DIR__, 2) . '/content/content.json';
-
-    if (!is_readable($path)) {
+    $basePath = content_path_for_lang(SITE_LANG_DEFAULT);
+    if (!is_readable($basePath)) {
         http_response_code(500);
         echo 'İçerik dosyası okunamadı.';
         exit;
     }
 
-    $json = file_get_contents($path);
-    $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-
-    if (!is_array($data)) {
+    $base = load_content_file($basePath);
+    if (!is_array($base) || $base === []) {
         throw new RuntimeException('Geçersiz içerik formatı.');
     }
 
-    return $data;
+    $base['site']['lang'] = SITE_LANG_DEFAULT;
+    return $base;
+}
+
+/**
+ * Önyüz için dil çözümlemeli içerik (TR fallback merge).
+ */
+function load_localized_content(): array
+{
+    return load_content_for_lang(resolve_site_lang());
+}
+
+/**
+ * Belirli dil için içerik yükle (query/cookie okumaz).
+ */
+function load_content_for_lang(string $lang): array
+{
+    $lang = strtolower(trim($lang));
+    if (!is_supported_site_lang($lang)) {
+        $lang = SITE_LANG_DEFAULT;
+    }
+    $basePath = content_path_for_lang(SITE_LANG_DEFAULT);
+    $base = load_content_file($basePath);
+    if ($base === []) {
+        throw new RuntimeException('Geçersiz içerik formatı.');
+    }
+    if ($lang === SITE_LANG_DEFAULT) {
+        $base['site']['lang'] = SITE_LANG_DEFAULT;
+        return $base;
+    }
+    $localized = load_content_file(content_path_for_lang($lang));
+    $merged = merge_content_with_fallback($base, $localized);
+    $merged['site']['lang'] = $lang;
+    return $merged;
+}
+
+/**
+ * Etkin dil kodu.
+ */
+function current_site_lang(): string
+{
+    return resolve_site_lang();
+}
+
+/**
+ * Dil parametreli URL üret.
+ */
+function site_lang_url(string $path, ?string $lang = null): string
+{
+    $lang = $lang ?? current_site_lang();
+    $parts = parse_url($path);
+    $cleanPath = $parts['path'] ?? '/';
+    $query = [];
+    if (!empty($parts['query'])) {
+        parse_str($parts['query'], $query);
+    }
+    if ($lang === SITE_LANG_DEFAULT) {
+        unset($query['lang']);
+    } else {
+        $query['lang'] = $lang;
+    }
+    $queryString = http_build_query($query);
+    $fragment = isset($parts['fragment']) ? '#' . $parts['fragment'] : '';
+    return $cleanPath . ($queryString !== '' ? '?' . $queryString : '') . $fragment;
 }
 
 /**
