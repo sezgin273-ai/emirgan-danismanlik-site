@@ -28,3 +28,11 @@ __pycache__/
 
 # Faz 6 ham kaynak (web köküne kopyalanmaz)
 hero-source.png
+sektor-enerji.png
+sektor-gayrimenkul.png
+sektor-ticaret.png
+sektor-insaat.png
+sektor-yatirim.png
+
+# Verify çalıştırma logları (commit dışı)
+docs/screenshots/verify-qa-run*.log

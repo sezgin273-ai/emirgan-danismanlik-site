@@ -54,6 +54,19 @@ function index_contact_hours_rows(array $contactBlock): array
 
 $contactHoursRows = index_contact_hours_rows($contact);
 $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']['title'] ?? '')) : '';
+
+function sektor_image_slug(string $icon): string
+{
+    static $map = [
+        'energy' => 'enerji',
+        'realestate' => 'gayrimenkul',
+        'trade' => 'ticaret',
+        'construction' => 'insaat',
+        'investment' => 'yatirim',
+    ];
+
+    return $map[$icon] ?? 'enerji';
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?= e($content['site']['lang']) ?>" dir="<?= e(site_html_dir($currentLang)) ?>">
@@ -124,14 +137,60 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
                 <h2 id="intro-heading" class="section-title"><?= e($intro['title']) ?></h2>
             </div>
             <p class="intro-text reveal"><?= e($intro['text']) ?></p>
-            <ul class="badge-list reveal" aria-label="<?= e($intro['title']) ?>">
-                <?php foreach ($intro['badges'] as $badge): ?>
-                    <li class="badge-item">
-                        <span class="badge-icon"><?= badge_icon($badge['icon']) ?></span>
-                        <span><?= e($badge['label']) ?></span>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+            <div class="sektor-band reveal" aria-label="<?= e($intro['title']) ?>">
+                <div class="sektor-band-track">
+                    <?php foreach ($intro['badges'] as $badge): ?>
+                        <?php $slug = sektor_image_slug((string) $badge['icon']); ?>
+                        <article class="sektor-card">
+                            <div class="sektor-card-photo">
+                                <picture>
+                                    <source
+                                        type="image/webp"
+                                        srcset="/assets/img/sektor/sektor-<?= e($slug) ?>-400.webp 400w, /assets/img/sektor/sektor-<?= e($slug) ?>-800.webp 800w"
+                                        sizes="240px"
+                                    >
+                                    <img
+                                        src="/assets/img/sektor/sektor-<?= e($slug) ?>-800.jpg"
+                                        alt=""
+                                        aria-hidden="true"
+                                        width="240"
+                                        height="160"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
+                                </picture>
+                                <span class="sektor-card-overlay" aria-hidden="true"></span>
+                                <span class="sektor-card-label"><?= e($badge['label']) ?></span>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                    <?php foreach ($intro['badges'] as $badge): ?>
+                        <?php $slug = sektor_image_slug((string) $badge['icon']); ?>
+                        <article class="sektor-card" aria-hidden="true">
+                            <div class="sektor-card-photo">
+                                <picture>
+                                    <source
+                                        type="image/webp"
+                                        srcset="/assets/img/sektor/sektor-<?= e($slug) ?>-400.webp 400w, /assets/img/sektor/sektor-<?= e($slug) ?>-800.webp 800w"
+                                        sizes="240px"
+                                    >
+                                    <img
+                                        src="/assets/img/sektor/sektor-<?= e($slug) ?>-800.jpg"
+                                        alt=""
+                                        aria-hidden="true"
+                                        width="240"
+                                        height="160"
+                                        loading="lazy"
+                                        decoding="async"
+                                    >
+                                </picture>
+                                <span class="sektor-card-overlay" aria-hidden="true"></span>
+                                <span class="sektor-card-label"><?= e($badge['label']) ?></span>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         </div>
     </section>
     <?php endif; ?>

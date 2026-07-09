@@ -1080,6 +1080,281 @@ def capture_faz6_hero_final_screenshots() -> list[str]:
     return shots
 
 
+SEKTOR_SLUGS = ("enerji", "gayrimenkul", "ticaret", "insaat", "yatirim")
+SEKTOR_ICON_SLUGS = {
+    "energy": "enerji",
+    "realestate": "gayrimenkul",
+    "trade": "ticaret",
+    "construction": "insaat",
+    "investment": "yatirim",
+}
+
+
+def assert_faz62_sektor_band() -> bool:
+    """Faz 6.2: Kısa Tanıtım sektör foto kart bandı — boyut, kontrast, animasyon, LCP."""
+    ok = True
+    sektor_dir = ROOT / "public_html/assets/img/sektor"
+    expected_files: list[Path] = []
+    for slug in SEKTOR_SLUGS:
+        expected_files.extend(
+            [
+                sektor_dir / f"sektor-{slug}-400.webp",
+                sektor_dir / f"sektor-{slug}-800.webp",
+                sektor_dir / f"sektor-{slug}-800.jpg",
+            ]
+        )
+    total_bytes = 0
+    for path in expected_files:
+        exists = path.is_file() and path.stat().st_size > 0
+        size = path.stat().st_size if exists else 0
+        total_bytes += size
+        single_ok = exists and size <= 60_000
+        assert_metric(f"faz62_asset_{path.name}_bytes", size, "<= 60000", single_ok)
+        ok = ok and single_ok
+    total_ok = total_bytes <= 400_000
+    assert_metric("faz62_assets_total_bytes", total_bytes, "<= 400000", total_ok)
+    ok = ok and total_ok
+
+    for src_name in (
+        "sektor-enerji.png",
+        "sektor-gayrimenkul.png",
+        "sektor-ticaret.png",
+        "sektor-insaat.png",
+        "sektor-yatirim.png",
+        "hero-source.png",
+    ):
+        in_web = (ROOT / "public_html" / src_name).exists()
+        assert_metric(f"faz62_raw_not_in_web_{src_name}", 0 if in_web else 1, "absent", not in_web)
+        ok = ok and not in_web
+
+    tr_badges = load_content()["intro"]["badges"]
+    badge_ok = len(tr_badges) == 5 and all(
+        SEKTOR_ICON_SLUGS.get(b.get("icon", "")) in SEKTOR_SLUGS for b in tr_badges
+    )
+    assert_metric("faz62_badge_keys_from_content", len(tr_badges), "5", badge_ok)
+    ok = ok and badge_ok
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(800)
+
+        band_data = page.evaluate(
+            """() => {
+              function parseRgb(c) {
+                const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
+              }
+              function lum(rgb) {
+                const a = rgb.map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+                return a[0]*0.2126 + a[1]*0.7152 + a[2]*0.0722;
+              }
+              function contrast(fg, bg) {
+                const l1 = lum(parseRgb(fg));
+                const l2 = lum(parseRgb(bg));
+                return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+              }
+              const band = document.querySelector('.sektor-band');
+              const track = document.querySelector('.sektor-band-track');
+              const cards = Array.from(document.querySelectorAll('.sektor-card:not([aria-hidden="true"])'));
+              const imgs = Array.from(document.querySelectorAll('.sektor-band img'));
+              const heroImg = document.querySelector('.hero-photo img');
+              const labels = Array.from(document.querySelectorAll('.sektor-card:not([aria-hidden="true"]) .sektor-card-label'));
+              const labelContrasts = labels.map(el => contrast(getComputedStyle(el).color, 'rgb(16, 24, 44)'));
+              const trackStyle = track ? getComputedStyle(track) : null;
+              const bandRect = band ? band.getBoundingClientRect() : { height: 999 };
+              const photoRect = document.querySelector('.sektor-card-photo');
+              return {
+                bandExists: !!band,
+                cardCount: cards.length,
+                duplicateHidden: document.querySelectorAll('.sektor-card[aria-hidden="true"]').length === cards.length,
+                bandHeight: bandRect.height,
+                cardHeight: photoRect ? photoRect.getBoundingClientRect().height : 0,
+                imgsLazy: imgs.every(img => img.getAttribute('loading') === 'lazy'),
+                imgsHaveDimensions: imgs.every(img => img.width > 0 && img.height > 0),
+                webpSrcset: imgs.every(img => {
+                  const source = img.closest('picture')?.querySelector('source[type="image/webp"]');
+                  const srcset = source ? source.getAttribute('srcset') || '' : '';
+                  return srcset.includes('-400.webp') && srcset.includes('-800.webp');
+                }),
+                labelMinContrast: labelContrasts.length ? Math.min(...labelContrasts) : 0,
+                animationName: trackStyle ? trackStyle.animationName : '',
+                animationDurationSec: trackStyle ? parseFloat(trackStyle.animationDuration) : 0,
+                heroFetchPriority: heroImg ? (heroImg.getAttribute('fetchpriority') || '') : '',
+                heroNotLazy: heroImg ? heroImg.getAttribute('loading') !== 'lazy' : false,
+                overflow: document.documentElement.scrollWidth <= window.innerWidth,
+              };
+            }"""
+        )
+
+        band_h = round(float(band_data.get("bandHeight", 999)), 1)
+        card_h = round(float(band_data.get("cardHeight", 0)), 1)
+        label_min = round(float(band_data.get("labelMinContrast", 0)), 2)
+        anim_dur = float(band_data.get("animationDurationSec", 0))
+
+        height_ok = band_data.get("bandExists") and band_h <= 240
+        card_h_ok = 150 <= card_h <= 180
+        label_ok = label_min >= 4.5
+        anim_ok = anim_dur >= 40 and anim_dur <= 60
+        lazy_ok = band_data.get("imgsLazy") and band_data.get("heroNotLazy")
+        lcp_ok = band_data.get("heroFetchPriority") == "high"
+
+        assert_metric("faz62_band_present", 1 if band_data.get("bandExists") else 0, "1", band_data.get("bandExists"))
+        assert_metric("faz62_band_height_px", band_h, "<= 240", height_ok)
+        assert_metric("faz62_card_height_px", card_h, "150-180", card_h_ok)
+        assert_metric("faz62_label_contrast_min", label_min, ">= 4.5", label_ok)
+        assert_metric("faz62_cards_from_content", band_data.get("cardCount", 0), "5", band_data.get("cardCount") == 5)
+        assert_metric("faz62_duplicate_aria_hidden", 1 if band_data.get("duplicateHidden") else 0, "5 hidden", band_data.get("duplicateHidden"))
+        assert_metric("faz62_imgs_lazy", 1 if band_data.get("imgsLazy") else 0, "lazy", band_data.get("imgsLazy"))
+        assert_metric("faz62_imgs_srcset_webp", 1 if band_data.get("webpSrcset") else 0, "400+800 webp", band_data.get("webpSrcset"))
+        assert_metric("faz62_animation_duration_sec", round(anim_dur, 1), "40-60", anim_ok)
+        assert_metric("faz62_hero_lcp_fetchpriority", band_data.get("heroFetchPriority", ""), "high", lcp_ok)
+        assert_metric("faz62_desktop_overflow", 1 if band_data.get("overflow") else 0, "0", band_data.get("overflow"))
+        ok = (
+            ok
+            and height_ok
+            and card_h_ok
+            and label_ok
+            and band_data.get("cardCount") == 5
+            and band_data.get("duplicateHidden")
+            and band_data.get("imgsLazy")
+            and band_data.get("webpSrcset")
+            and anim_ok
+            and lazy_ok
+            and lcp_ok
+            and band_data.get("overflow")
+        )
+
+        transform_check = page.evaluate(
+            """() => new Promise(resolve => {
+              const track = document.querySelector('.sektor-band-track');
+              if (!track) return resolve(false);
+              const anim = getComputedStyle(track).animationName;
+              const before = getComputedStyle(track).transform;
+              setTimeout(() => {
+                const after = getComputedStyle(track).transform;
+                resolve(anim !== 'none' && before !== after);
+              }, 600);
+            })"""
+        )
+        assert_metric("faz62_animation_uses_transform", 1 if transform_check else 0, "moving", transform_check)
+        ok = ok and transform_check
+
+        page.hover(".sektor-band")
+        page.wait_for_timeout(200)
+        pause_state = page.evaluate(
+            """() => {
+              const track = document.querySelector('.sektor-band-track');
+              return track ? getComputedStyle(track).animationPlayState : '';
+            }"""
+        )
+        pause_ok = pause_state == "paused"
+        assert_metric("faz62_hover_animation_paused", pause_state, "paused", pause_ok)
+        ok = ok and pause_ok
+
+        cls_score = page.evaluate(
+            """() => new Promise(resolve => {
+              let cls = 0;
+              const obs = new PerformanceObserver(list => {
+                for (const entry of list.getEntries()) {
+                  if (!entry.hadRecentInput) cls += entry.value;
+                }
+              });
+              obs.observe({ type: 'layout-shift', buffered: true });
+              setTimeout(() => { obs.disconnect(); resolve(cls); }, 1200);
+            })"""
+        )
+        cls_ok = float(cls_score) < 0.05
+        assert_metric("faz62_cls_score", round(float(cls_score), 4), "< 0.05", cls_ok)
+        ok = ok and cls_ok
+
+        for label, width, height in VIEWPORTS:
+            vp = browser.new_page(viewport={"width": width, "height": height})
+            vp.goto(BASE + "/", wait_until="networkidle")
+            vp.wait_for_timeout(400)
+            overflow = vp.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
+            assert_metric(f"faz62_overflow_{label}_{width}", 1 if overflow else 0, "0", overflow)
+            ok = ok and overflow
+            if width >= 1024:
+                anim_name = vp.evaluate(
+                    "() => { const t = document.querySelector('.sektor-band-track'); return t ? getComputedStyle(t).animationName : 'none'; }"
+                )
+                anim_on = anim_name not in ("none", "")
+                assert_metric(f"faz62_anim_desktop_{width}", anim_name, "sektor-band-scroll", anim_on)
+                ok = ok and anim_on
+            else:
+                anim_name = vp.evaluate(
+                    "() => { const t = document.querySelector('.sektor-band-track'); return t ? getComputedStyle(t).animationName : 'none'; }"
+                )
+                anim_off = anim_name in ("none", "")
+                assert_metric(f"faz62_anim_mobile_{width}", anim_name, "none", anim_off)
+                ok = ok and anim_off
+            vp.close()
+
+        fa_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        fa_page.emulate_media(reduced_motion="no-preference")
+        fa_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+        fa_page.wait_for_timeout(500)
+        fa_data = fa_page.evaluate(
+            """() => ({
+              dir: document.documentElement.getAttribute('dir') || '',
+              animDirection: (() => {
+                const t = document.querySelector('.sektor-band-track');
+                return t ? getComputedStyle(t).animationDirection : '';
+              })(),
+              overflow: document.documentElement.scrollWidth <= window.innerWidth,
+            })"""
+        )
+        fa_ok = fa_data["dir"] == "rtl" and fa_data["animDirection"] == "reverse" and fa_data["overflow"]
+        assert_metric("faz62_fa_rtl_anim_reverse", fa_data["animDirection"], "reverse", fa_data["animDirection"] == "reverse")
+        assert_metric("faz62_fa_overflow", 1 if fa_data["overflow"] else 0, "0", fa_data["overflow"])
+        ok = ok and fa_ok
+        fa_page.close()
+
+        rm_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        rm_page.emulate_media(reduced_motion="reduce")
+        rm_page.goto(BASE + "/", wait_until="networkidle")
+        rm_page.wait_for_timeout(400)
+        rm_anim = rm_page.evaluate(
+            "() => { const t = document.querySelector('.sektor-band-track'); return t ? getComputedStyle(t).animationName : 'none'; }"
+        )
+        rm_ok = rm_anim in ("none", "")
+        assert_metric("faz62_reduced_motion_no_anim", rm_anim, "none", rm_ok)
+        ok = ok and rm_ok
+        rm_page.close()
+
+        page.close()
+        browser.close()
+
+    return ok
+
+
+def capture_faz62_sektor_screenshots() -> list[str]:
+    """Faz 6.2: sektör foto bandı kanıt ekran görüntüleri (5 dil × 3 viewport)."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.wait_for_timeout(800)
+                intro = page.locator("#intro")
+                shot_name = f"faz6-sektor-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                intro.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
 def assert_faz55_multilang_frontend() -> bool:
     ok = True
     en_content = load_lang_content(CONTENT_EN_PATH)
@@ -2552,6 +2827,7 @@ def main() -> int:
         ok = assert_faz61_hero_photo() and ok
         ok = assert_faz61b_hero_stats_strip() and ok
         ok = assert_faz61e_hero_embedded_watermark() and ok
+        ok = assert_faz62_sektor_band() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -2563,12 +2839,14 @@ def main() -> int:
         faz6_wm_shots = capture_faz6_hero_wm_screenshots()
         faz6_wm2_shots = capture_faz6_hero_wm2_screenshots()
         faz6_final_shots = capture_faz6_hero_final_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots
+        faz62_shots = capture_faz62_sektor_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         results["faz6_hero_wm_screenshots"] = faz6_wm_shots
         results["faz6_hero_wm2_screenshots"] = faz6_wm2_shots
         results["faz6_hero_final_screenshots"] = faz6_final_shots
+        results["faz62_sektor_screenshots"] = faz62_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok

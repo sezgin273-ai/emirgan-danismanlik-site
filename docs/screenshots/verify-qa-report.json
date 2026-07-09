@@ -14,7 +14,97 @@
     "docs/screenshots/qa/qa-home-en-desktop-1440x900.png",
     "docs/screenshots/qa/qa-home-de-desktop-1440x900.png",
     "docs/screenshots/qa/qa-home-ru-desktop-1440x900.png",
-    "docs/screenshots/qa/qa-home-fa-desktop-1440x900.png"
+    "docs/screenshots/qa/qa-home-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-tr-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-en-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-de-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-ru-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-fa-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-en-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-de-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-en-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-de-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-fa-desktop-1440x900.png"
   ],
   "acceptance": {
     "contact_valid_post_status": {
@@ -478,28 +568,28 @@
       "passed": true
     },
     "homepage_total_resource_bytes_tr": {
-      "measured": 590714,
-      "limit": "<= 650000",
+      "measured": 921173,
+      "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_en": {
-      "measured": 590337,
-      "limit": "<= 650000",
+      "measured": 920799,
+      "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_de": {
-      "measured": 591044,
-      "limit": "<= 650000",
+      "measured": 921504,
+      "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_ru": {
-      "measured": 595021,
-      "limit": "<= 650000",
+      "measured": 925545,
+      "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_fa": {
-      "measured": 592516,
-      "limit": "<= 650000",
+      "measured": 923008,
+      "limit": "<= 1200000",
       "passed": true
     },
     "lang_contact_en_success_status": {
@@ -678,8 +768,423 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 590714,
-      "limit": "<= 650000",
+      "measured": 921173,
+      "limit": "<= 1200000",
+      "passed": true
+    },
+    "faz61_asset_hero-1920.webp_bytes": {
+      "measured": 19946,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz61_asset_hero-1280.webp_bytes": {
+      "measured": 10464,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz61_asset_hero-768.webp_bytes": {
+      "measured": 4618,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz61_asset_hero-1280.jpg_bytes": {
+      "measured": 25304,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz61_hero_photo_layer": {
+      "measured": 1,
+      "limit": "present",
+      "passed": true
+    },
+    "faz61_hero_img_fetchpriority": {
+      "measured": "high",
+      "limit": "high",
+      "passed": true
+    },
+    "faz61_hero_img_not_lazy": {
+      "measured": "",
+      "limit": "not lazy",
+      "passed": true
+    },
+    "faz61_hero_jpeg_fallback_src": {
+      "measured": 1,
+      "limit": "hero-1280.jpg",
+      "passed": true
+    },
+    "faz61_hero_webp_srcset": {
+      "measured": 1,
+      "limit": "768/1280/1920",
+      "passed": true
+    },
+    "faz61_hero_title_contrast_ratio": {
+      "measured": 16.14,
+      "limit": ">= 7.0",
+      "passed": true
+    },
+    "faz61_hero_description_contrast_ratio": {
+      "measured": 16.14,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61_hero_btn_gold_contrast_ratio": {
+      "measured": 6.21,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61_hero_btn_outline_contrast_ratio": {
+      "measured": 19.19,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61_hero_eyebrow_contrast_ratio": {
+      "measured": 6.21,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61_hero_watermark_hidden": {
+      "measured": "none",
+      "limit": "none",
+      "passed": true
+    },
+    "faz61b_hero_visual_card_removed": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz61b_hero_medallion_removed": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz61b_hero_stats_strip_present": {
+      "measured": 1,
+      "limit": "in hero-content",
+      "passed": true
+    },
+    "faz61b_hero_stats_strip_transparent": {
+      "measured": 1,
+      "limit": "transparent",
+      "passed": true
+    },
+    "faz61b_hero_stats_strip_nowrap": {
+      "measured": "nowrap",
+      "limit": "nowrap",
+      "passed": true
+    },
+    "faz61b_hero_stat_divider_width": {
+      "measured": "1px",
+      "limit": "1px",
+      "passed": true
+    },
+    "faz61b_hero_stat_values_content": {
+      "measured": 1,
+      "limit": "count from content",
+      "passed": true
+    },
+    "faz61b_hero_right_half_opaque_blocks": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz61b_hero_stat_value_contrast_min": {
+      "measured": 6.21,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61b_hero_stat_label_contrast_min": {
+      "measured": 16.14,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz61b_hero_watermark_dom_hidden": {
+      "measured": 1,
+      "limit": "present+display:none",
+      "passed": true
+    },
+    "faz61b_hero_stats_mobile_nowrap": {
+      "measured": "nowrap",
+      "limit": "nowrap",
+      "passed": true
+    },
+    "faz61b_hero_stats_mobile_single_row": {
+      "measured": 1,
+      "limit": "single row",
+      "passed": true
+    },
+    "faz61b_hero_stats_mobile_overflow": {
+      "measured": 1,
+      "limit": "no overflow",
+      "passed": true
+    },
+    "faz61b_hero_stats_fa_dir": {
+      "measured": "rtl",
+      "limit": "rtl",
+      "passed": true
+    },
+    "faz61b_hero_stats_fa_flex_direction": {
+      "measured": "row",
+      "limit": "row",
+      "passed": true
+    },
+    "faz61b_hero_stats_fa_mirrored": {
+      "measured": 1,
+      "limit": "mirrored",
+      "passed": true
+    },
+    "faz61b_hero_stats_fa_overflow": {
+      "measured": 1,
+      "limit": "no overflow",
+      "passed": true
+    },
+    "faz61e_hero_watermark_dom_present": {
+      "measured": 1,
+      "limit": "1",
+      "passed": true
+    },
+    "faz61e_hero_watermark_display_none": {
+      "measured": "none",
+      "limit": "none",
+      "passed": true
+    },
+    "faz61e_hero_title_contrast": {
+      "measured": 16.14,
+      "limit": ">= 7.0",
+      "passed": true
+    },
+    "faz61e_hero_desc_contrast": {
+      "measured": 16.14,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz62_asset_sektor-enerji-400.webp_bytes": {
+      "measured": 4916,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-enerji-800.webp_bytes": {
+      "measured": 12528,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-enerji-800.jpg_bytes": {
+      "measured": 23710,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-gayrimenkul-400.webp_bytes": {
+      "measured": 17496,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-gayrimenkul-800.webp_bytes": {
+      "measured": 42580,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-gayrimenkul-800.jpg_bytes": {
+      "measured": 58688,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-ticaret-400.webp_bytes": {
+      "measured": 7390,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-ticaret-800.webp_bytes": {
+      "measured": 17594,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-ticaret-800.jpg_bytes": {
+      "measured": 32896,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-insaat-400.webp_bytes": {
+      "measured": 8274,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-insaat-800.webp_bytes": {
+      "measured": 21768,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-insaat-800.jpg_bytes": {
+      "measured": 36455,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-yatirim-400.webp_bytes": {
+      "measured": 8720,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-yatirim-800.webp_bytes": {
+      "measured": 26722,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_asset_sektor-yatirim-800.jpg_bytes": {
+      "measured": 41377,
+      "limit": "<= 60000",
+      "passed": true
+    },
+    "faz62_assets_total_bytes": {
+      "measured": 361114,
+      "limit": "<= 400000",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_sektor-enerji.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_sektor-gayrimenkul.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_sektor-ticaret.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_sektor-insaat.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_sektor-yatirim.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_raw_not_in_web_hero-source.png": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz62_badge_keys_from_content": {
+      "measured": 5,
+      "limit": "5",
+      "passed": true
+    },
+    "faz62_band_present": {
+      "measured": 1,
+      "limit": "1",
+      "passed": true
+    },
+    "faz62_band_height_px": {
+      "measured": 168.0,
+      "limit": "<= 240",
+      "passed": true
+    },
+    "faz62_card_height_px": {
+      "measured": 160.0,
+      "limit": "150-180",
+      "passed": true
+    },
+    "faz62_label_contrast_min": {
+      "measured": 16.14,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz62_cards_from_content": {
+      "measured": 5,
+      "limit": "5",
+      "passed": true
+    },
+    "faz62_duplicate_aria_hidden": {
+      "measured": 1,
+      "limit": "5 hidden",
+      "passed": true
+    },
+    "faz62_imgs_lazy": {
+      "measured": 1,
+      "limit": "lazy",
+      "passed": true
+    },
+    "faz62_imgs_srcset_webp": {
+      "measured": 1,
+      "limit": "400+800 webp",
+      "passed": true
+    },
+    "faz62_animation_duration_sec": {
+      "measured": 50.0,
+      "limit": "40-60",
+      "passed": true
+    },
+    "faz62_hero_lcp_fetchpriority": {
+      "measured": "high",
+      "limit": "high",
+      "passed": true
+    },
+    "faz62_desktop_overflow": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz62_animation_uses_transform": {
+      "measured": 1,
+      "limit": "moving",
+      "passed": true
+    },
+    "faz62_hover_animation_paused": {
+      "measured": "paused",
+      "limit": "paused",
+      "passed": true
+    },
+    "faz62_cls_score": {
+      "measured": 0.0056,
+      "limit": "< 0.05",
+      "passed": true
+    },
+    "faz62_overflow_mobile_360": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz62_anim_mobile_360": {
+      "measured": "none",
+      "limit": "none",
+      "passed": true
+    },
+    "faz62_overflow_tablet_768": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz62_anim_mobile_768": {
+      "measured": "none",
+      "limit": "none",
+      "passed": true
+    },
+    "faz62_overflow_desktop_1440": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz62_anim_desktop_1440": {
+      "measured": "sektor-band-scroll",
+      "limit": "sektor-band-scroll",
+      "passed": true
+    },
+    "faz62_fa_rtl_anim_reverse": {
+      "measured": "reverse",
+      "limit": "reverse",
+      "passed": true
+    },
+    "faz62_fa_overflow": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz62_reduced_motion_no_anim": {
+      "measured": "none",
+      "limit": "none",
       "passed": true
     },
     "team_label_after_sort": {
@@ -708,7 +1213,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.94954,
+      "measured": -5.92893,
       "limit": "<= -2px",
       "passed": true
     },
@@ -717,9 +1222,9 @@
       "limit": "changed",
       "passed": true
     },
-    "hero_watermark_opacity": {
-      "measured": 0.05,
-      "limit": "0.03-0.08",
+    "hero_watermark_display_none": {
+      "measured": "none",
+      "limit": "none",
       "passed": true
     },
     "hero_watermark_pointer_events": {
@@ -1053,6 +1558,108 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 590714,
+  "homepage_total_resource_bytes": 921173,
+  "faz6_hero_screenshots": [
+    "docs/faz6/faz6-hero-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-fa-desktop-1440x900.png"
+  ],
+  "faz6_hero_rev_screenshots": [
+    "docs/faz6/faz6-hero-rev-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-rev-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-rev-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-rev-fa-desktop-1440x900.png"
+  ],
+  "faz6_hero_wm_screenshots": [
+    "docs/faz6/faz6-hero-wm-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm-fa-desktop-1440x900.png"
+  ],
+  "faz6_hero_wm2_screenshots": [
+    "docs/faz6/faz6-hero-wm2-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-wm2-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-wm2-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-wm2-fa-desktop-1440x900.png"
+  ],
+  "faz6_hero_final_screenshots": [
+    "docs/faz6/faz6-hero-final-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero-final-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero-final-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero-final-fa-desktop-1440x900.png"
+  ],
+  "faz62_sektor_screenshots": [
+    "docs/faz6/faz6-sektor-tr-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-en-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-de-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-ru-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-fa-mobile-360x740.png",
+    "docs/faz6/faz6-sektor-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-en-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-de-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-sektor-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-en-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-de-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-sektor-fa-desktop-1440x900.png"
+  ],
   "all_passed": true
 }
