@@ -75,7 +75,7 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
                     src="/assets/img/hero-1280.jpg"
                     alt=""
                     width="1280"
-                    height="716"
+                    height="715"
                     fetchpriority="high"
                     decoding="sync"
                 >

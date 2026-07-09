@@ -389,6 +389,7 @@ def assert_faz61_hero_photo() -> bool:
                 btnOutlineContrast: btnOutline ? contrast(getComputedStyle(btnOutline).color, getComputedStyle(btnOutline).backgroundColor) : 0,
                 eyebrowContrast: eyebrow ? contrast(getComputedStyle(eyebrow).color, heroBg) : 0,
                 watermarkExists: !!watermark,
+                watermarkDisplay: watermark ? getComputedStyle(watermark).display : '',
                 watermarkOpacity: watermark ? parseFloat(getComputedStyle(watermark).opacity) : 0,
                 watermarkPointerEvents: watermark ? getComputedStyle(watermark).pointerEvents : '',
               };
@@ -410,7 +411,7 @@ def assert_faz61_hero_photo() -> bool:
         eyebrow_c = round(float(hero_data.get("eyebrowContrast", 0)), 2)
         wm_ok = (
             hero_data.get("watermarkExists")
-            and 0.08 <= hero_data.get("watermarkOpacity", 0) <= 0.14
+            and hero_data.get("watermarkDisplay") == "none"
             and hero_data.get("watermarkPointerEvents") == "none"
         )
 
@@ -424,7 +425,7 @@ def assert_faz61_hero_photo() -> bool:
         assert_metric("faz61_hero_btn_gold_contrast_ratio", btn_gold_c, ">= 4.5", btn_gold_c >= 4.5)
         assert_metric("faz61_hero_btn_outline_contrast_ratio", btn_outline_c, ">= 4.5", btn_outline_c >= 4.5)
         assert_metric("faz61_hero_eyebrow_contrast_ratio", eyebrow_c, ">= 4.5", eyebrow_c >= 4.5)
-        assert_metric("faz61_hero_watermark_opacity", hero_data.get("watermarkOpacity", 0), "0.08-0.14", wm_ok)
+        assert_metric("faz61_hero_watermark_hidden", hero_data.get("watermarkDisplay", ""), "none", wm_ok)
         ok = (
             ok
             and photo_ok
@@ -482,6 +483,7 @@ def assert_faz61b_hero_stats_strip() -> bool:
               const values = Array.from(document.querySelectorAll('.hero-stat-value'));
               const labels = Array.from(document.querySelectorAll('.hero-stat-label'));
               const divider = document.querySelector('.hero-stat-divider');
+              const wmEl = document.querySelector('.hero-watermark');
               const heroRect = hero.getBoundingClientRect();
               const midX = heroRect.left + heroRect.width / 2;
               let opaqueRightBlocks = 0;
@@ -511,7 +513,8 @@ def assert_faz61b_hero_stats_strip() -> bool:
                 valueContrasts: values.map(v => contrast(getComputedStyle(v).color, heroBg)),
                 labelContrasts: labels.map(v => contrast(getComputedStyle(v).color, heroBg)),
                 opaqueRightBlocks,
-                watermarkExists: !!document.querySelector('.hero-watermark'),
+                watermarkExists: !!wmEl,
+                watermarkDisplay: wmEl ? getComputedStyle(wmEl).display : '',
               }};
             }}"""
         )
@@ -525,7 +528,7 @@ def assert_faz61b_hero_stats_strip() -> bool:
         right_clear = layout["opaqueRightBlocks"] == 0
         value_min = min(layout["valueContrasts"]) if layout["valueContrasts"] else 0
         label_min = min(layout["labelContrasts"]) if layout["labelContrasts"] else 0
-        wm_ok = layout["watermarkExists"]
+        wm_ok = layout["watermarkExists"] and layout.get("watermarkDisplay") == "none"
 
         assert_metric("faz61b_hero_visual_card_removed", layout["visualCardCount"], "0", layout["visualCardCount"] == 0)
         assert_metric("faz61b_hero_medallion_removed", layout["medallionCount"], "0", layout["medallionCount"] == 0)
@@ -537,7 +540,7 @@ def assert_faz61b_hero_stats_strip() -> bool:
         assert_metric("faz61b_hero_right_half_opaque_blocks", layout["opaqueRightBlocks"], "0", right_clear)
         assert_metric("faz61b_hero_stat_value_contrast_min", round(value_min, 2), ">= 4.5", value_min >= 4.5)
         assert_metric("faz61b_hero_stat_label_contrast_min", round(label_min, 2), ">= 4.5", label_min >= 4.5)
-        assert_metric("faz61b_hero_watermark_present", 1 if wm_ok else 0, "present", wm_ok)
+        assert_metric("faz61b_hero_watermark_dom_hidden", 1 if wm_ok else 0, "present+display:none", wm_ok)
         ok = (
             ok
             and card_gone
@@ -819,6 +822,61 @@ def assert_faz61d_hero_watermark_blend() -> bool:
     return ok
 
 
+def assert_faz61e_hero_embedded_watermark() -> bool:
+    """Faz 6.1E: filigran fotoğrafta gömülü; CSS watermark gizli."""
+    ok = True
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(800)
+
+        data = page.evaluate(
+            """() => {
+              const wm = document.querySelector('.hero-watermark');
+              const title = document.querySelector('.hero-title');
+              const desc = document.querySelector('.hero-description');
+              const hero = document.querySelector('.hero');
+              function parseRgb(c) {
+                const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
+              }
+              function lum(rgb) {
+                const a = rgb.map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+                return a[0]*0.2126 + a[1]*0.7152 + a[2]*0.0722;
+              }
+              function contrast(fg, bg) {
+                const l1 = lum(parseRgb(fg));
+                const l2 = lum(parseRgb(bg));
+                return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+              }
+              const heroBg = hero ? getComputedStyle(hero).backgroundColor : '';
+              const wmStyle = wm ? getComputedStyle(wm) : null;
+              return {
+                watermarkExists: !!wm,
+                watermarkDisplay: wmStyle ? wmStyle.display : '',
+                titleContrast: title ? contrast(getComputedStyle(title).color, heroBg) : 0,
+                descContrast: desc ? contrast(getComputedStyle(desc).color, heroBg) : 0,
+              };
+            }"""
+        )
+
+        hidden_ok = data.get("watermarkExists") and data.get("watermarkDisplay") == "none"
+        title_c = round(float(data.get("titleContrast", 0)), 2)
+        desc_c = round(float(data.get("descContrast", 0)), 2)
+
+        assert_metric("faz61e_hero_watermark_dom_present", 1 if data.get("watermarkExists") else 0, "1", data.get("watermarkExists"))
+        assert_metric("faz61e_hero_watermark_display_none", data.get("watermarkDisplay", ""), "none", hidden_ok)
+        assert_metric("faz61e_hero_title_contrast", title_c, ">= 7.0", title_c >= 7.0)
+        assert_metric("faz61e_hero_desc_contrast", desc_c, ">= 4.5", desc_c >= 4.5)
+        ok = ok and hidden_ok and title_c >= 7.0 and desc_c >= 4.5
+        page.close()
+        browser.close()
+
+    return ok
+
+
 def assert_faz61c_hero_watermark_texture() -> bool:
     """Faz 6.1C: küçük soluk sağ-alt watermark dokusu."""
     ok = True
@@ -988,6 +1046,31 @@ def capture_faz6_hero_wm2_screenshots() -> list[str]:
                 page.wait_for_timeout(800)
                 hero = page.locator("#hero")
                 shot_name = f"faz6-hero-wm2-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                hero.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
+def capture_faz6_hero_final_screenshots() -> list[str]:
+    """Faz 6.1E: gömülü filigranlı final hero ekran görüntüleri."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.wait_for_timeout(800)
+                hero = page.locator("#hero")
+                shot_name = f"faz6-hero-final-{lang}-{label}-{width}x{height}.png"
                 shot_path = out_dir / shot_name
                 hero.screenshot(path=str(shot_path))
                 shots.append(f"docs/faz6/{shot_name}")
@@ -2073,21 +2156,21 @@ def assert_visual_enrichment() -> bool:
         watermark = page.evaluate(
             """() => {
               const el = document.querySelector('.hero-watermark');
-              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
+              if (!el) return { exists: false, display: '', pointerEvents: '' };
               const s = getComputedStyle(el);
               return {
                 exists: true,
-                opacity: parseFloat(s.opacity),
+                display: s.display,
                 pointerEvents: s.pointerEvents,
               };
             }"""
         )
         wm_ok = (
             watermark.get("exists")
-            and 0.08 <= watermark.get("opacity", 0) <= 0.14
+            and watermark.get("display") == "none"
             and watermark.get("pointerEvents") == "none"
         )
-        assert_metric("hero_watermark_opacity", watermark.get("opacity", 0), "0.08-0.14", wm_ok)
+        assert_metric("hero_watermark_display_none", watermark.get("display", ""), "none", wm_ok)
         assert_metric("hero_watermark_pointer_events", watermark.get("pointerEvents", ""), "none", watermark.get("pointerEvents") == "none")
         ok = ok and wm_ok
 
@@ -2468,7 +2551,7 @@ def main() -> int:
         ok = total_bytes <= 1_200_000 and ok
         ok = assert_faz61_hero_photo() and ok
         ok = assert_faz61b_hero_stats_strip() and ok
-        ok = assert_faz61d_hero_watermark_blend() and ok
+        ok = assert_faz61e_hero_embedded_watermark() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -2479,11 +2562,13 @@ def main() -> int:
         faz6_rev_shots = capture_faz6_hero_rev_screenshots()
         faz6_wm_shots = capture_faz6_hero_wm_screenshots()
         faz6_wm2_shots = capture_faz6_hero_wm2_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots
+        faz6_final_shots = capture_faz6_hero_final_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         results["faz6_hero_wm_screenshots"] = faz6_wm_shots
         results["faz6_hero_wm2_screenshots"] = faz6_wm2_shots
+        results["faz6_hero_final_screenshots"] = faz6_final_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok

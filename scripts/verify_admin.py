@@ -427,19 +427,19 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
         wm_on = page.evaluate(
             """() => {
               const el = document.querySelector('.hero-watermark');
-              if (!el) return { exists: false, opacity: 0, pointerEvents: '' };
+              if (!el) return { exists: false, display: '', pointerEvents: '' };
               const s = getComputedStyle(el);
-              return { exists: true, opacity: parseFloat(s.opacity), pointerEvents: s.pointerEvents };
+              return { exists: true, display: s.display, pointerEvents: s.pointerEvents };
             }"""
         )
         on_ok = (
             wm_on_json
             and wm_on.get("exists")
-            and 0.08 <= wm_on.get("opacity", 0) <= 0.14
+            and wm_on.get("display") == "none"
             and wm_on.get("pointerEvents") == "none"
         )
         assert_metric("hero_watermark_form_on_json", 1 if wm_on_json else 0, "true", wm_on_json)
-        assert_metric("hero_watermark_form_on_frontend", 1 if on_ok else 0, "opacity 0.08-0.14", on_ok)
+        assert_metric("hero_watermark_form_on_frontend", 1 if on_ok else 0, "display:none", on_ok)
         ok = ok and on_ok
 
         save_content_direct(original)
