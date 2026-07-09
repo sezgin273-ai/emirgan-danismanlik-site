@@ -25,3 +25,6 @@ __pycache__/
 
 # Yerel araçlar (portable PHP vb.)
 .tools/
+
+# Faz 6 ham kaynak (web köküne kopyalanmaz)
+hero-source.png

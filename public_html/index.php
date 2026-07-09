@@ -64,6 +64,24 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
 <main id="main-content">
     <?php if (section_visible($content, 'hero')): ?>
     <section class="hero section-dark" id="hero" aria-labelledby="hero-heading">
+        <div class="hero-photo" aria-hidden="true">
+            <picture>
+                <source
+                    type="image/webp"
+                    srcset="/assets/img/hero-768.webp 768w, /assets/img/hero-1280.webp 1280w, /assets/img/hero-1920.webp 1920w"
+                    sizes="100vw"
+                >
+                <img
+                    src="/assets/img/hero-1280.jpg"
+                    alt=""
+                    width="1280"
+                    height="716"
+                    fetchpriority="high"
+                    decoding="sync"
+                >
+            </picture>
+        </div>
+        <div class="hero-overlay" aria-hidden="true"></div>
         <?php if (hero_watermark_enabled($content)): ?>
         <div class="hero-watermark" aria-hidden="true" style="background-image: url('<?= e($assets['emblem']) ?>')"></div>
         <?php endif; ?>
