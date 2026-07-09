@@ -549,7 +549,7 @@ section {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   pointer-events: none;
   background:
     linear-gradient(
@@ -562,16 +562,40 @@ section {
 
 .hero-watermark {
   position: absolute;
-  bottom: -8%;
-  right: -12%;
-  width: min(22vh, 14rem);
-  height: min(22vh, 14rem);
+  top: 50%;
+  right: 10%;
+  transform: translateY(-42%);
+  width: min(55vh, 30rem);
+  height: min(55vh, 30rem);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.03;
+  opacity: 0.1;
+  mix-blend-mode: soft-light;
   pointer-events: none;
-  z-index: 2;
+  z-index: 1;
+}
+
+@media (max-width: 1023px) {
+  .hero-watermark {
+    top: auto;
+    bottom: 5%;
+    right: -18%;
+    transform: none;
+    width: min(22vh, 11rem);
+    height: min(22vh, 11rem);
+    opacity: 0.09;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-watermark {
+    bottom: 2%;
+    right: -22%;
+    width: min(14vh, 3.75rem);
+    height: min(14vh, 3.75rem);
+    opacity: 0.08;
+  }
 }
 
 .hero::before {
@@ -1653,7 +1677,19 @@ body.display-hero-emblem-large .hero-medallion {
 
 [dir="rtl"] .hero-watermark {
   right: auto;
-  left: -12%;
+  left: 10%;
+}
+
+@media (max-width: 1023px) {
+  [dir="rtl"] .hero-watermark {
+    left: -24%;
+  }
+}
+
+@media (max-width: 767px) {
+  [dir="rtl"] .hero-watermark {
+    left: -22%;
+  }
 }
 
 [dir="rtl"] .hero-title-line {
