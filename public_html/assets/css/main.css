@@ -562,15 +562,14 @@ section {
 
 .hero-watermark {
   position: absolute;
-  top: 50%;
-  right: -5%;
-  transform: translateY(-50%);
-  width: min(75vh, 42rem);
-  height: min(75vh, 42rem);
+  bottom: -8%;
+  right: -12%;
+  width: min(22vh, 14rem);
+  height: min(22vh, 14rem);
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.05;
+  opacity: 0.03;
   pointer-events: none;
   z-index: 2;
 }
@@ -1654,7 +1653,7 @@ body.display-hero-emblem-large .hero-medallion {
 
 [dir="rtl"] .hero-watermark {
   right: auto;
-  left: -5%;
+  left: -12%;
 }
 
 [dir="rtl"] .hero-title-line {

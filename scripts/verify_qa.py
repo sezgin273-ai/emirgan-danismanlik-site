@@ -410,7 +410,7 @@ def assert_faz61_hero_photo() -> bool:
         eyebrow_c = round(float(hero_data.get("eyebrowContrast", 0)), 2)
         wm_ok = (
             hero_data.get("watermarkExists")
-            and 0.03 <= hero_data.get("watermarkOpacity", 0) <= 0.08
+            and 0 < hero_data.get("watermarkOpacity", 0) <= 0.03
             and hero_data.get("watermarkPointerEvents") == "none"
         )
 
@@ -424,7 +424,7 @@ def assert_faz61_hero_photo() -> bool:
         assert_metric("faz61_hero_btn_gold_contrast_ratio", btn_gold_c, ">= 4.5", btn_gold_c >= 4.5)
         assert_metric("faz61_hero_btn_outline_contrast_ratio", btn_outline_c, ">= 4.5", btn_outline_c >= 4.5)
         assert_metric("faz61_hero_eyebrow_contrast_ratio", eyebrow_c, ">= 4.5", eyebrow_c >= 4.5)
-        assert_metric("faz61_hero_watermark_opacity", hero_data.get("watermarkOpacity", 0), "0.03-0.08", wm_ok)
+        assert_metric("faz61_hero_watermark_opacity", hero_data.get("watermarkOpacity", 0), "<= 0.03", wm_ok)
         ok = (
             ok
             and photo_ok
@@ -626,6 +626,123 @@ def assert_faz61b_hero_stats_strip() -> bool:
     return ok
 
 
+def measure_hero_watermark_texture(page) -> dict | None:
+    return page.evaluate(
+        """() => {
+          const hero = document.querySelector('.hero');
+          const wm = document.querySelector('.hero-watermark');
+          if (!hero || !wm) return null;
+          const hr = hero.getBoundingClientRect();
+          const wr = wm.getBoundingClientRect();
+          const style = getComputedStyle(wm);
+          const opacity = parseFloat(style.opacity);
+          const visibleLeft = Math.max(wr.left, hr.left);
+          const visibleRight = Math.min(wr.right, hr.right);
+          const visibleTop = Math.max(wr.top, hr.top);
+          const visibleBottom = Math.min(wr.bottom, hr.bottom);
+          const visibleWidth = Math.max(0, visibleRight - visibleLeft);
+          const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+          const visibleArea = visibleWidth * visibleHeight;
+          const heroArea = hr.width * hr.height;
+          const visiblePct = heroArea > 0 ? (visibleArea / heroArea) * 100 : 0;
+          const topPct = hr.height > 0 ? ((wr.top - hr.top) / hr.height) * 100 : 0;
+          const overflowRight = Math.max(0, wr.right - hr.right);
+          const overflowLeft = Math.max(0, hr.left - wr.left);
+          const overflowRightPct = wr.width > 0 ? (overflowRight / wr.width) * 100 : 0;
+          const overflowLeftPct = wr.width > 0 ? (overflowLeft / wr.width) * 100 : 0;
+          return {
+            opacity,
+            visiblePct,
+            topPct,
+            overflowRightPct,
+            overflowLeftPct,
+            heroWidth: hr.width,
+            heroHeight: hr.height,
+            wmWidth: wr.width,
+            wmHeight: wr.height,
+          };
+        }"""
+    )
+
+
+def assert_faz61c_hero_watermark_texture() -> bool:
+    """Faz 6.1C: küçük soluk sağ-alt watermark dokusu."""
+    ok = True
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(800)
+        metrics = measure_hero_watermark_texture(page)
+        if not metrics:
+            assert_metric("faz61c_hero_watermark_present", 0, "1", False)
+            return False
+
+        opacity = round(float(metrics["opacity"]), 4)
+        visible_pct = round(float(metrics["visiblePct"]), 2)
+        top_pct = round(float(metrics["topPct"]), 2)
+        overflow_right_pct = round(float(metrics["overflowRightPct"]), 2)
+
+        opacity_ok = 0 < opacity <= 0.03
+        visible_ok = visible_pct <= 12.0
+        top_ok = top_pct >= 45.0
+        overflow_ok = overflow_right_pct >= 25.0
+
+        assert_metric("faz61c_hero_watermark_opacity", opacity, "<= 0.03", opacity_ok)
+        assert_metric("faz61c_hero_watermark_visible_area_pct", visible_pct, "<= 12", visible_ok)
+        assert_metric("faz61c_hero_watermark_top_pct", top_pct, ">= 45", top_ok)
+        assert_metric("faz61c_hero_watermark_overflow_right_pct", overflow_right_pct, ">= 25", overflow_ok)
+        ok = ok and opacity_ok and visible_ok and top_ok and overflow_ok
+        page.close()
+
+        for label, width, height in VIEWPORTS:
+            fa_page = browser.new_page(viewport={"width": width, "height": height})
+            fa_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+            fa_page.wait_for_timeout(500)
+            fa_metrics = measure_hero_watermark_texture(fa_page)
+            fa_overflow = fa_page.evaluate(
+                "() => document.documentElement.scrollWidth <= window.innerWidth"
+            )
+            if fa_metrics:
+                fa_overflow_left = round(float(fa_metrics["overflowLeftPct"]), 2)
+                fa_top = round(float(fa_metrics["topPct"]), 2)
+                fa_visible = round(float(fa_metrics["visiblePct"]), 2)
+                fa_mirror_ok = fa_overflow_left >= 25.0
+                assert_metric(
+                    f"faz61c_hero_watermark_fa_overflow_left_pct_{label}",
+                    fa_overflow_left,
+                    ">= 25",
+                    fa_mirror_ok,
+                )
+                assert_metric(
+                    f"faz61c_hero_watermark_fa_top_pct_{label}",
+                    fa_top,
+                    ">= 45",
+                    fa_top >= 45.0,
+                )
+                assert_metric(
+                    f"faz61c_hero_watermark_fa_visible_pct_{label}",
+                    fa_visible,
+                    "<= 12",
+                    fa_visible <= 12.0,
+                )
+                ok = ok and fa_mirror_ok and fa_top >= 45.0 and fa_visible <= 12.0
+            assert_metric(
+                f"faz61c_hero_watermark_fa_overflow_x_{label}",
+                1 if fa_overflow else 0,
+                "no horizontal overflow",
+                fa_overflow,
+            )
+            ok = ok and fa_overflow
+            fa_page.close()
+
+        browser.close()
+
+    return ok
+
+
 def capture_faz6_hero_screenshots() -> list[str]:
     """Faz 6.1: hero kanıt ekran görüntüleri (5 dil × 3 viewport)."""
     shots: list[str] = []
@@ -667,6 +784,31 @@ def capture_faz6_hero_rev_screenshots() -> list[str]:
                 page.wait_for_timeout(800)
                 hero = page.locator("#hero")
                 shot_name = f"faz6-hero-rev-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                hero.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
+def capture_faz6_hero_wm_screenshots() -> list[str]:
+    """Faz 6.1C: watermark rötuş kanıt ekran görüntüleri."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.wait_for_timeout(800)
+                hero = page.locator("#hero")
+                shot_name = f"faz6-hero-wm-{lang}-{label}-{width}x{height}.png"
                 shot_path = out_dir / shot_name
                 hero.screenshot(path=str(shot_path))
                 shots.append(f"docs/faz6/{shot_name}")
@@ -1763,10 +1905,10 @@ def assert_visual_enrichment() -> bool:
         )
         wm_ok = (
             watermark.get("exists")
-            and 0.03 <= watermark.get("opacity", 0) <= 0.08
+            and 0 < watermark.get("opacity", 0) <= 0.03
             and watermark.get("pointerEvents") == "none"
         )
-        assert_metric("hero_watermark_opacity", watermark.get("opacity", 0), "0.03-0.08", wm_ok)
+        assert_metric("hero_watermark_opacity", watermark.get("opacity", 0), "<= 0.03", wm_ok)
         assert_metric("hero_watermark_pointer_events", watermark.get("pointerEvents", ""), "none", watermark.get("pointerEvents") == "none")
         ok = ok and wm_ok
 
@@ -2147,6 +2289,7 @@ def main() -> int:
         ok = total_bytes <= 1_200_000 and ok
         ok = assert_faz61_hero_photo() and ok
         ok = assert_faz61b_hero_stats_strip() and ok
+        ok = assert_faz61c_hero_watermark_texture() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -2155,9 +2298,11 @@ def main() -> int:
         ok = viewport_ok and ok
         faz6_shots = capture_faz6_hero_screenshots()
         faz6_rev_shots = capture_faz6_hero_rev_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots
+        faz6_wm_shots = capture_faz6_hero_wm_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
+        results["faz6_hero_wm_screenshots"] = faz6_wm_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok
