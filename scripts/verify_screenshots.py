@@ -107,30 +107,32 @@ def emblem_pipeline_assertions(metrics: dict) -> bool:
     return ok
 
 
-def measure_hero_emblem(page) -> dict:
+def measure_hero_stats_strip(page) -> dict:
     page.locator("#hero").scroll_into_view_if_needed()
     page.wait_for_timeout(150)
     return page.evaluate(
         """() => {
-          const img = document.querySelector('.hero-emblem');
-          const medallion = document.querySelector('.hero-medallion');
+          const strip = document.querySelector('.hero-stats-strip');
+          const stats = [...document.querySelectorAll('.hero-stat')];
+          const divider = document.querySelector('.hero-stat-divider');
           const vp = { w: window.innerWidth, h: window.innerHeight };
-          if (!img) return null;
-          const r = img.getBoundingClientRect();
-          const mr = medallion ? medallion.getBoundingClientRect() : r;
-          const clipMargin = 3;
-          const parentClip = r.left < mr.left - clipMargin || r.right > mr.right + clipMargin
-            || r.top < mr.top - clipMargin || r.bottom > mr.bottom + clipMargin;
-          const viewportClip = r.top < -clipMargin || r.left < -clipMargin
-            || r.bottom > vp.h + clipMargin || r.right > vp.w + clipMargin;
-          const rot = getComputedStyle(img).transform;
-          const hasRotation = rot && rot !== 'none' && !/^matrix\\(1, 0, 0, 1/.test(rot);
+          if (!strip || stats.length < 2) return null;
+          const sr = strip.getBoundingClientRect();
+          const viewportClip = sr.top < -3 || sr.left < -3
+            || sr.bottom > vp.h + 3 || sr.right > vp.w + 3;
+          const style = getComputedStyle(strip);
+          const bg = style.backgroundColor;
+          const bgMatch = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/);
+          const bgAlpha = bgMatch && bgMatch[4] !== undefined ? parseFloat(bgMatch[4]) : (bgMatch ? 1 : 0);
+          const transparent = bg === 'transparent' || bgAlpha === 0;
           return {
-            top: r.top, left: r.left, bottom: r.bottom, right: r.right,
-            width: r.width, height: r.height,
-            clipped: parentClip || viewportClip || r.width < 20 || r.height < 20,
-            hasRotation,
-            aspect: r.width / (r.height || 1)
+            top: sr.top, left: sr.left, bottom: sr.bottom, right: sr.right,
+            width: sr.width, height: sr.height,
+            clipped: viewportClip || sr.width < 20 || sr.height < 10,
+            statCount: stats.length,
+            dividerWidth: divider ? getComputedStyle(divider).width : '',
+            nowrap: style.flexWrap === 'nowrap',
+            transparent,
           };
         }"""
     )
@@ -257,23 +259,29 @@ def run_viewport(page, width: int, name: str, results: dict) -> bool:
     page.goto(BASE + "/?lang=tr", wait_until="networkidle", timeout=30000)
     page.wait_for_timeout(1200)
 
-    hero = measure_hero_emblem(page)
+    hero = measure_hero_stats_strip(page)
     if not hero:
         ok = False
-        assert_metric(f"hero_emblem_exists_{name}", 0, "present", False)
+        assert_metric(f"hero_stats_strip_exists_{name}", 0, "present", False)
     else:
         clipped = hero["clipped"]
         assert_metric(
-            f"hero_emblem_in_viewport_{name}",
+            f"hero_stats_strip_in_viewport_{name}",
             0 if clipped else 1,
             "not clipped",
             not clipped,
         )
         assert_metric(
-            f"hero_no_rotation_{name}",
-            1 if hero.get("hasRotation") else 0,
-            "no rotation",
-            not hero.get("hasRotation"),
+            f"hero_stats_strip_nowrap_{name}",
+            1 if hero.get("nowrap") else 0,
+            "nowrap",
+            hero.get("nowrap"),
+        )
+        assert_metric(
+            f"hero_stats_strip_transparent_{name}",
+            1 if hero.get("transparent") else 0,
+            "transparent",
+            hero.get("transparent"),
         )
         results[f"hero_{name}"] = hero
 

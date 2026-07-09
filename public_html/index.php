@@ -100,24 +100,15 @@ $contactHoursTitle = $contactHoursRows !== [] ? trim((string) ($contact['hours']
                     <a class="btn btn-gold" href="#contact"><?= e($contact['heading']) ?></a>
                     <a class="btn btn-outline-light" href="#services"><?= e($services['title']) ?></a>
                 </div>
-            </div>
-
-            <div class="hero-visual reveal" aria-label="<?= e($ui['hero_visual_label']) ?>">
-                <div class="hero-visual-card">
-                    <div class="hero-medallion <?= e(display_size_class($content, 'hero_emblem')) ?>" aria-hidden="true">
-                        <span class="hero-medallion-ring hero-medallion-ring--outer"></span>
-                        <span class="hero-medallion-ring hero-medallion-ring--inner"></span>
-                        <img src="<?= e($assets['emblem']) ?>" alt="" class="hero-emblem">
+                <div class="hero-stats-strip reveal" aria-label="<?= e($ui['hero_visual_label']) ?>">
+                    <div class="hero-stat">
+                        <span class="hero-stat-value"><?= count($services['items']) ?></span>
+                        <span class="hero-stat-label"><?= e($services['title']) ?></span>
                     </div>
-                    <div class="hero-stats">
-                        <div class="hero-stat">
-                            <span class="hero-stat-value"><?= count($services['items']) ?></span>
-                            <span class="hero-stat-label"><?= e($services['title']) ?></span>
-                        </div>
-                        <div class="hero-stat">
-                            <span class="hero-stat-value"><?= count($team['members']) ?></span>
-                            <span class="hero-stat-label"><?= e($team['title']) ?></span>
-                        </div>
+                    <div class="hero-stat-divider" aria-hidden="true"></div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-value"><?= count($team['members']) ?></span>
+                        <span class="hero-stat-label"><?= e($team['title']) ?></span>
                     </div>
                 </div>
             </div>

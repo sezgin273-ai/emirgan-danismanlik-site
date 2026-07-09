@@ -446,6 +446,186 @@ def assert_faz61_hero_photo() -> bool:
     return ok
 
 
+def assert_faz61b_hero_stats_strip() -> bool:
+    """Faz 6.1B: sağ kart kaldırıldı, sayaç şeridi sol sütunda."""
+    ok = True
+    tr_content = load_content()
+    services_count = len(tr_content["services"]["items"])
+    team_count = len(tr_content["team"]["members"])
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(800)
+
+        layout = page.evaluate(
+            f"""() => {{
+              function parseRgb(c) {{
+                const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
+              }}
+              function lum(rgb) {{
+                const a = rgb.map(v => {{ v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); }});
+                return a[0]*0.2126 + a[1]*0.7152 + a[2]*0.0722;
+              }}
+              function contrast(fg, bg) {{
+                const l1 = lum(parseRgb(fg));
+                const l2 = lum(parseRgb(bg));
+                return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+              }}
+              const hero = document.querySelector('.hero');
+              const heroBg = hero ? getComputedStyle(hero).backgroundColor : '';
+              const strip = document.querySelector('.hero-stats-strip');
+              const stripStyle = strip ? getComputedStyle(strip) : null;
+              const values = Array.from(document.querySelectorAll('.hero-stat-value'));
+              const labels = Array.from(document.querySelectorAll('.hero-stat-label'));
+              const divider = document.querySelector('.hero-stat-divider');
+              const heroRect = hero.getBoundingClientRect();
+              const midX = heroRect.left + heroRect.width / 2;
+              let opaqueRightBlocks = 0;
+              hero.querySelectorAll('*').forEach(el => {{
+                if (el.classList.contains('hero-photo') || el.classList.contains('hero-overlay') || el.classList.contains('hero-watermark')) return;
+                const style = getComputedStyle(el);
+                const rect = el.getBoundingClientRect();
+                if (rect.width < 48 || rect.height < 48) return;
+                if (rect.left + rect.width * 0.5 < midX) return;
+                const bg = style.backgroundColor;
+                const m = bg.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)(?:,\\s*([\\d.]+))?\\)/);
+                if (!m) return;
+                const alpha = m[4] !== undefined ? parseFloat(m[4]) : 1;
+                const opacity = parseFloat(style.opacity || '1');
+                if (alpha * opacity > 0.12) opaqueRightBlocks++;
+              }});
+              return {{
+                visualCardCount: document.querySelectorAll('.hero-visual-card').length,
+                medallionCount: document.querySelectorAll('.hero-medallion').length,
+                stripExists: !!strip,
+                stripInContent: !!document.querySelector('.hero-content .hero-stats-strip'),
+                stripBg: stripStyle ? stripStyle.backgroundColor : '',
+                stripFlexWrap: stripStyle ? stripStyle.flexWrap : '',
+                dividerWidth: divider ? getComputedStyle(divider).width : '',
+                valueTexts: values.map(v => v.textContent.trim()),
+                labelTexts: labels.map(v => v.textContent.trim()),
+                valueContrasts: values.map(v => contrast(getComputedStyle(v).color, heroBg)),
+                labelContrasts: labels.map(v => contrast(getComputedStyle(v).color, heroBg)),
+                opaqueRightBlocks,
+                watermarkExists: !!document.querySelector('.hero-watermark'),
+              }};
+            }}"""
+        )
+
+        card_gone = layout["visualCardCount"] == 0 and layout["medallionCount"] == 0
+        strip_ok = layout["stripExists"] and layout["stripInContent"]
+        strip_transparent = layout["stripBg"] in ("rgba(0, 0, 0, 0)", "transparent")
+        nowrap_ok = layout["stripFlexWrap"] == "nowrap"
+        divider_ok = layout["dividerWidth"] == "1px"
+        values_ok = layout["valueTexts"] == [str(services_count), str(team_count)]
+        right_clear = layout["opaqueRightBlocks"] == 0
+        value_min = min(layout["valueContrasts"]) if layout["valueContrasts"] else 0
+        label_min = min(layout["labelContrasts"]) if layout["labelContrasts"] else 0
+        wm_ok = layout["watermarkExists"]
+
+        assert_metric("faz61b_hero_visual_card_removed", layout["visualCardCount"], "0", layout["visualCardCount"] == 0)
+        assert_metric("faz61b_hero_medallion_removed", layout["medallionCount"], "0", layout["medallionCount"] == 0)
+        assert_metric("faz61b_hero_stats_strip_present", 1 if strip_ok else 0, "in hero-content", strip_ok)
+        assert_metric("faz61b_hero_stats_strip_transparent", 1 if strip_transparent else 0, "transparent", strip_transparent)
+        assert_metric("faz61b_hero_stats_strip_nowrap", layout["stripFlexWrap"], "nowrap", nowrap_ok)
+        assert_metric("faz61b_hero_stat_divider_width", layout["dividerWidth"], "1px", divider_ok)
+        assert_metric("faz61b_hero_stat_values_content", 1 if values_ok else 0, "count from content", values_ok)
+        assert_metric("faz61b_hero_right_half_opaque_blocks", layout["opaqueRightBlocks"], "0", right_clear)
+        assert_metric("faz61b_hero_stat_value_contrast_min", round(value_min, 2), ">= 4.5", value_min >= 4.5)
+        assert_metric("faz61b_hero_stat_label_contrast_min", round(label_min, 2), ">= 4.5", label_min >= 4.5)
+        assert_metric("faz61b_hero_watermark_present", 1 if wm_ok else 0, "present", wm_ok)
+        ok = (
+            ok
+            and card_gone
+            and strip_ok
+            and strip_transparent
+            and nowrap_ok
+            and divider_ok
+            and values_ok
+            and right_clear
+            and value_min >= 4.5
+            and label_min >= 4.5
+            and wm_ok
+        )
+        page.close()
+
+        mobile = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile.goto(BASE + "/", wait_until="networkidle")
+        mobile.wait_for_timeout(500)
+        mobile_layout = mobile.evaluate(
+            """() => {
+              const strip = document.querySelector('.hero-stats-strip');
+              const style = strip ? getComputedStyle(strip) : null;
+              const stats = Array.from(document.querySelectorAll('.hero-stat'));
+              let singleRow = true;
+              if (stats.length >= 2) {
+                const tops = stats.map(s => s.getBoundingClientRect().top);
+                singleRow = Math.abs(tops[0] - tops[1]) <= 4;
+              }
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return {
+                flexWrap: style ? style.flexWrap : '',
+                singleRow,
+                overflow,
+              };
+            }"""
+        )
+        mobile_ok = mobile_layout["flexWrap"] == "nowrap" and mobile_layout["singleRow"] and mobile_layout["overflow"]
+        assert_metric("faz61b_hero_stats_mobile_nowrap", mobile_layout["flexWrap"], "nowrap", mobile_layout["flexWrap"] == "nowrap")
+        assert_metric("faz61b_hero_stats_mobile_single_row", 1 if mobile_layout["singleRow"] else 0, "single row", mobile_layout["singleRow"])
+        assert_metric("faz61b_hero_stats_mobile_overflow", 1 if mobile_layout["overflow"] else 0, "no overflow", mobile_layout["overflow"])
+        ok = ok and mobile_ok
+        mobile.close()
+
+        fa_page = browser.new_page(viewport={"width": 768, "height": 1024})
+        fa_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+        fa_page.wait_for_timeout(500)
+        fa_layout = fa_page.evaluate(
+            """() => {
+              const strip = document.querySelector('.hero-stats-strip');
+              const style = strip ? getComputedStyle(strip) : null;
+              const divider = document.querySelector('.hero-stat-divider');
+              const stats = Array.from(document.querySelectorAll('.hero-stat'));
+              const dir = document.documentElement.getAttribute('dir') || '';
+              let mirrored = false;
+              if (stats.length >= 2 && strip) {
+                const s0 = stats[0].getBoundingClientRect();
+                const s1 = stats[1].getBoundingClientRect();
+                mirrored = s0.left > s1.left;
+              }
+              const overflow = document.documentElement.scrollWidth <= window.innerWidth;
+              return {
+                dir,
+                flexDirection: style ? style.flexDirection : '',
+                mirrored,
+                dividerWidth: divider ? getComputedStyle(divider).width : '',
+                overflow,
+              };
+            }"""
+        )
+        fa_ok = (
+            fa_layout["dir"] == "rtl"
+            and fa_layout["flexDirection"] == "row"
+            and fa_layout["mirrored"]
+            and fa_layout["dividerWidth"] == "1px"
+            and fa_layout["overflow"]
+        )
+        assert_metric("faz61b_hero_stats_fa_dir", fa_layout["dir"], "rtl", fa_layout["dir"] == "rtl")
+        assert_metric("faz61b_hero_stats_fa_flex_direction", fa_layout["flexDirection"], "row", fa_layout["flexDirection"] == "row")
+        assert_metric("faz61b_hero_stats_fa_mirrored", 1 if fa_layout["mirrored"] else 0, "mirrored", fa_layout["mirrored"])
+        assert_metric("faz61b_hero_stats_fa_overflow", 1 if fa_layout["overflow"] else 0, "no overflow", fa_layout["overflow"])
+        ok = ok and fa_ok
+        fa_page.close()
+
+        browser.close()
+
+    return ok
+
+
 def capture_faz6_hero_screenshots() -> list[str]:
     """Faz 6.1: hero kanıt ekran görüntüleri (5 dil × 3 viewport)."""
     shots: list[str] = []
@@ -462,6 +642,31 @@ def capture_faz6_hero_screenshots() -> list[str]:
                 page.wait_for_timeout(800)
                 hero = page.locator("#hero")
                 shot_name = f"faz6-hero-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                hero.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
+def capture_faz6_hero_rev_screenshots() -> list[str]:
+    """Faz 6.1B: hero revizyon kanıt ekran görüntüleri."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.wait_for_timeout(800)
+                hero = page.locator("#hero")
+                shot_name = f"faz6-hero-rev-{lang}-{label}-{width}x{height}.png"
                 shot_path = out_dir / shot_name
                 hero.screenshot(path=str(shot_path))
                 shots.append(f"docs/faz6/{shot_name}")
@@ -1941,6 +2146,7 @@ def main() -> int:
         results["homepage_total_resource_bytes"] = total_bytes
         ok = total_bytes <= 1_200_000 and ok
         ok = assert_faz61_hero_photo() and ok
+        ok = assert_faz61b_hero_stats_strip() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -1948,8 +2154,10 @@ def main() -> int:
         viewport_ok, shots = assert_viewport_qa()
         ok = viewport_ok and ok
         faz6_shots = capture_faz6_hero_screenshots()
-        results["screenshots"] = shots + faz6_shots
+        faz6_rev_shots = capture_faz6_hero_rev_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots
         results["faz6_hero_screenshots"] = faz6_shots
+        results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok

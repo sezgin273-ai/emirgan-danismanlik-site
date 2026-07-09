@@ -407,14 +407,12 @@ def assert_faz46b_checkbox_and_lists(test_password: str, original_content: dict)
             """() => ({
               watermark: document.querySelector('.hero-watermark'),
               titleColor: getComputedStyle(document.querySelector('.hero-title')).color,
-              emblem: document.querySelector('.hero-emblem'),
             })"""
         )
         off_ok = (
             wm_off_json
             and wm_off["watermark"] is None
             and wm_off["titleColor"] == "rgb(248, 244, 240)"
-            and wm_off["emblem"] is not None
         )
         assert_metric("hero_watermark_form_off_json", 1 if wm_off_json else 0, "false", wm_off_json)
         assert_metric("hero_watermark_form_off_frontend", 1 if off_ok else 0, "no layer + color", off_ok)
