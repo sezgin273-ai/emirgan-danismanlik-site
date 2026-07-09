@@ -227,22 +227,33 @@ def test_js_resilience(browser, results: dict) -> bool:
           const els = document.querySelectorAll('.reveal');
           let visible = 0;
           els.forEach(el => { if (parseFloat(getComputedStyle(el).opacity) > 0.5) visible++; });
+          const serviceCards = document.querySelectorAll('.service-card');
+          const serviceVisible = Array.from(serviceCards).every(
+            c => parseFloat(getComputedStyle(c).opacity) > 0.5
+          );
           return {
             total: els.length,
             visible,
+            serviceCount: serviceCards.length,
+            serviceVisible,
             hasJsClass: document.documentElement.classList.contains('js'),
           };
         }"""
     )
     results["js_resilience"] = state
-    all_visible = state["visible"] == state["total"] and state["total"] > 24
+    all_visible = (
+        state["visible"] == state["total"]
+        and state["total"] >= 15
+        and state["serviceCount"] == 7
+        and state["serviceVisible"]
+    )
     assert_metric(
         "js_blocked_reveal_visible_count",
-        f"{state['visible']}/{state['total']}",
+        f"{state['visible']}/{state['total']}+svc{state['serviceCount']}",
         "all visible",
         all_visible,
     )
-    assert_metric("js_blocked_reveal_total", state["total"], "> 24", state["total"] > 24)
+    assert_metric("js_blocked_reveal_total", state["total"], ">= 15", state["total"] >= 15)
     page.close()
     return all_visible
 

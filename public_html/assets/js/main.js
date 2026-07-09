@@ -47,8 +47,59 @@
     });
   };
 
+  const initServiceStagger = () => {
+    const cards = document.querySelectorAll('.service-card[data-stagger-index]');
+    if (cards.length === 0) {
+      return;
+    }
+
+    const revealCard = (card, index) => {
+      card.style.setProperty('--stagger-delay', `${index * 70}ms`);
+      card.classList.add('is-visible');
+    };
+
+    if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+      cards.forEach((card) => {
+        revealCard(card, parseInt(card.getAttribute('data-stagger-index') || '0', 10));
+      });
+      return;
+    }
+
+    document.documentElement.classList.add('js-service-stagger');
+
+    const staggerObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) {
+            return;
+          }
+          const card = entry.target;
+          const index = parseInt(card.getAttribute('data-stagger-index') || '0', 10);
+          revealCard(card, index);
+          observer.unobserve(card);
+        });
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -4% 0px' }
+    );
+
+    cards.forEach((card) => {
+      staggerObserver.observe(card);
+    });
+
+    requestAnimationFrame(() => {
+      cards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          const index = parseInt(card.getAttribute('data-stagger-index') || '0', 10);
+          revealCard(card, index);
+        }
+      });
+    });
+  };
+
   const boot = () => {
     initReveal();
+    initServiceStagger();
     // Son çare: gizli kalan reveal öğelerini 1 sn sonra göster
     window.setTimeout(() => {
       document.querySelectorAll('.reveal:not(.is-visible)').forEach(showReveal);

@@ -1355,6 +1355,271 @@ def capture_faz62_sektor_screenshots() -> list[str]:
     return shots
 
 
+def assert_faz63_sektor_network_audit() -> bool:
+    """Faz 6.3 devir: sektör bandında gerçek indirilen varyantları ölç."""
+    ok = True
+    records: list[tuple[str, int]] = []
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+
+        def on_response(response) -> None:
+            if "/assets/img/sektor/" not in response.url or response.status != 200:
+                return
+            name = response.url.split("/")[-1]
+            try:
+                size = len(response.body())
+            except Exception:
+                size = 0
+            records.append((name, size))
+
+        page.on("response", on_response)
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.wait_for_timeout(400)
+        page.locator(".sektor-band").scroll_into_view_if_needed()
+        page.wait_for_timeout(2000)
+        dpr = float(page.evaluate("window.devicePixelRatio"))
+        browser.close()
+
+    by_name: dict[str, int] = {}
+    for name, size in records:
+        by_name[name] = by_name.get(name, 0) + size
+
+    total = sum(by_name.values())
+    count_ok = len(by_name) == 5
+    webp_ok = all(n.endswith("-400.webp") for n in by_name)
+    no_jpeg = not any(n.endswith(".jpg") for n in by_name)
+    no_800 = not any("-800." in n for n in by_name)
+
+    assert_metric("faz63_sektor_download_count", len(by_name), "5", count_ok)
+    assert_metric("faz63_sektor_download_400webp_only", 1 if webp_ok else 0, "400webp", webp_ok)
+    assert_metric("faz63_sektor_no_jpeg_fallback", 1 if no_jpeg else 0, "no jpg", no_jpeg)
+    assert_metric("faz63_sektor_no_800_variant", 1 if no_800 else 0, "no 800", no_800)
+    assert_metric("faz63_sektor_download_total_bytes", total, "> 0", total > 0)
+    assert_metric("faz63_sektor_device_pixel_ratio", round(dpr, 2), "1.0", dpr == 1.0)
+    for name, size in sorted(by_name.items()):
+        assert_metric(f"faz63_sektor_downloaded_{name}_bytes", size, "> 0", size > 0)
+
+    ok = ok and count_ok and webp_ok and no_jpeg and no_800 and total > 0
+    return ok
+
+
+def assert_faz63_hizmetler() -> bool:
+    """Faz 6.3: Hizmetlerimiz 7 kart — grid, hover, stagger reveal, CLS."""
+    ok = True
+    tr_services = load_content()["services"]["items"]
+    items_ok = len(tr_services) == 7
+    assert_metric("faz63_service_items_from_content", len(tr_services), "7", items_ok)
+    ok = ok and items_ok
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.locator("#services").scroll_into_view_if_needed()
+        page.wait_for_timeout(1500)
+
+        layout = page.evaluate(
+            """() => {
+              const cards = Array.from(document.querySelectorAll('.service-card'));
+              const row1 = cards.slice(0, 4).map(c => c.getBoundingClientRect().height);
+              const row2 = cards.slice(4, 7).map(c => c.getBoundingClientRect().height);
+              const row1Equal = row1.length === 4 && Math.max(...row1) - Math.min(...row1) <= 2;
+              const row2Equal = row2.length === 3 && Math.max(...row2) - Math.min(...row2) <= 2;
+              const accent = document.querySelector('.service-accent');
+              const accentStyle = accent ? getComputedStyle(accent) : null;
+              const cardWidth = cards[0] ? cards[0].getBoundingClientRect().width : 0;
+              const accentWidth = accent ? accent.getBoundingClientRect().width : 0;
+              const delays = cards.map(c => getComputedStyle(c).getPropertyValue('--stagger-delay').trim());
+              const visibleCount = cards.filter(c => c.classList.contains('is-visible')).length;
+              return {
+                cardCount: cards.length,
+                visibleCount,
+                row1Equal,
+                row2Equal,
+                accentWidthPct: cardWidth > 0 ? (accentWidth / cardWidth) * 100 : 0,
+                accentLeft: accentStyle ? accentStyle.left : '',
+                accentRight: accentStyle ? accentStyle.right : '',
+                delay0: delays[0] || '',
+                delay1: delays[1] || '',
+                gridCols: getComputedStyle(document.querySelector('.services-grid')).gridTemplateColumns,
+              };
+            }"""
+        )
+
+        cards_ok = layout["cardCount"] == 7 and layout["visibleCount"] == 7
+        accent_pct = round(float(layout["accentWidthPct"]), 1)
+        accent_ok = 35 <= accent_pct <= 45
+        delay_step = 0
+        if layout["delay0"].endswith("ms") and layout["delay1"].endswith("ms"):
+            delay_step = int(layout["delay1"].replace("ms", "")) - int(layout["delay0"].replace("ms", ""))
+        delay_ok = 60 <= delay_step <= 80
+
+        assert_metric("faz63_service_card_count", layout["cardCount"], "7", layout["cardCount"] == 7)
+        assert_metric("faz63_service_cards_revealed", layout["visibleCount"], "7", layout["visibleCount"] == 7)
+        assert_metric("faz63_service_row1_equal_heights", 1 if layout["row1Equal"] else 0, "equal", layout["row1Equal"])
+        assert_metric("faz63_service_row2_equal_heights", 1 if layout["row2Equal"] else 0, "equal", layout["row2Equal"])
+        assert_metric("faz63_service_accent_width_pct", accent_pct, "~40", accent_ok)
+        assert_metric("faz63_service_stagger_delay_step_ms", delay_step, "60-80", delay_ok)
+        ok = ok and cards_ok and layout["row1Equal"] and layout["row2Equal"] and accent_ok and delay_ok
+
+        page.emulate_media(reduced_motion="no-preference")
+        card = page.locator(".service-card").first
+        card.hover()
+        page.wait_for_timeout(250)
+        hover = card.evaluate(
+            """el => {
+              const style = getComputedStyle(el);
+              let translateY = 0;
+              const t = style.transform;
+              if (t && t !== 'none') {
+                const m = t.match(/matrix\\(([^)]+)\\)/);
+                if (m) {
+                  const vals = m[1].split(',').map(s => parseFloat(s.trim()));
+                  translateY = vals.length === 6 ? vals[5] : (vals[13] || 0);
+                }
+              }
+              const accent = el.querySelector('.service-accent');
+              const accentW = accent ? accent.getBoundingClientRect().width : 0;
+              const cardW = el.getBoundingClientRect().width;
+              return {
+                translateY,
+                accentHoverPct: cardW > 0 ? (accentW / cardW) * 100 : 0,
+              };
+            }"""
+        )
+        hover_y = round(float(hover["translateY"]), 1)
+        hover_y_ok = hover_y <= -3.5 and hover_y >= -4.5
+        accent_hover_ok = hover["accentHoverPct"] >= 95
+        assert_metric("faz63_service_hover_translate_y", hover_y, "-4px", hover_y_ok)
+        assert_metric("faz63_service_accent_hover_full", round(hover["accentHoverPct"], 1), "~100", accent_hover_ok)
+        ok = ok and hover_y_ok and accent_hover_ok
+
+        cls_score = page.evaluate(
+            """() => new Promise(resolve => {
+              let cls = 0;
+              const obs = new PerformanceObserver(list => {
+                for (const entry of list.getEntries()) {
+                  if (!entry.hadRecentInput) cls += entry.value;
+                }
+              });
+              obs.observe({ type: 'layout-shift', buffered: true });
+              setTimeout(() => { obs.disconnect(); resolve(cls); }, 1200);
+            })"""
+        )
+        cls_ok = float(cls_score) < 0.05
+        assert_metric("faz63_service_cls_score", round(float(cls_score), 4), "< 0.05", cls_ok)
+        ok = ok and cls_ok
+
+        for label, width, height in VIEWPORTS:
+            vp = browser.new_page(viewport={"width": width, "height": height})
+            vp.goto(BASE + "/", wait_until="networkidle")
+            vp.locator("#services").scroll_into_view_if_needed()
+            vp.wait_for_timeout(1200)
+            overflow = vp.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
+            assert_metric(f"faz63_overflow_{label}_{width}", 1 if overflow else 0, "0", overflow)
+            ok = ok and overflow
+            vp.close()
+
+        fa_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        fa_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+        fa_page.locator("#services").scroll_into_view_if_needed()
+        fa_page.wait_for_timeout(1200)
+        fa_data = fa_page.evaluate(
+            """() => {
+              const accent = document.querySelector('.service-accent');
+              const style = accent ? getComputedStyle(accent) : null;
+              return {
+                dir: document.documentElement.getAttribute('dir') || '',
+                accentRight: style ? style.right : '',
+                accentLeft: style ? style.left : '',
+                overflow: document.documentElement.scrollWidth <= window.innerWidth,
+              };
+            }"""
+        )
+        fa_ok = fa_data["dir"] == "rtl" and fa_data["accentRight"] == "0px" and fa_data["overflow"]
+        assert_metric("faz63_fa_rtl_accent_mirrored", fa_data["accentRight"], "0px", fa_data["accentRight"] == "0px")
+        assert_metric("faz63_fa_overflow", 1 if fa_data["overflow"] else 0, "0", fa_data["overflow"])
+        ok = ok and fa_ok
+        fa_page.close()
+
+        rm_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        rm_page.emulate_media(reduced_motion="reduce")
+        rm_page.goto(BASE + "/", wait_until="networkidle")
+        rm_page.locator("#services").scroll_into_view_if_needed()
+        rm_page.wait_for_timeout(800)
+        rm_visible = rm_page.evaluate(
+            "() => document.querySelectorAll('.service-card.is-visible').length"
+        )
+        rm_ok = rm_visible == 7
+        assert_metric("faz63_reduced_motion_all_visible", rm_visible, "7", rm_ok)
+        ok = ok and rm_ok
+        rm_page.close()
+
+        nojs_context = browser.new_context(java_script_enabled=False, viewport={"width": 1440, "height": 900})
+        nojs_page = nojs_context.new_page()
+        nojs_page.goto(BASE + "/", wait_until="networkidle")
+        nojs_visible = nojs_page.evaluate(
+            """() => {
+              const cards = document.querySelectorAll('.service-card');
+              return cards.length === 7 && Array.from(cards).every(c => getComputedStyle(c).opacity === '1');
+            }"""
+        )
+        assert_metric("faz63_nojs_cards_not_hidden", 1 if nojs_visible else 0, "visible", nojs_visible)
+        ok = ok and nojs_visible
+        nojs_page.close()
+        nojs_context.close()
+
+        page.close()
+        browser.close()
+
+    return ok
+
+
+def capture_faz63_hizmetler_screenshots() -> list[str]:
+    """Faz 6.3: Hizmetlerimiz bölümü kanıt ekran görüntüleri (reveal sonrası)."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.locator("#services").scroll_into_view_if_needed()
+                for i in range(7):
+                    page.locator(f'.service-card[data-stagger-index="{i}"]').scroll_into_view_if_needed()
+                    page.wait_for_timeout(350)
+                page.wait_for_timeout(800)
+                visible_count = page.evaluate(
+                    "() => document.querySelectorAll('.service-card.is-visible').length"
+                )
+                if visible_count < 7:
+                    page.evaluate(
+                        """() => {
+                          document.querySelectorAll('.service-card[data-stagger-index]').forEach((card) => {
+                            const index = parseInt(card.getAttribute('data-stagger-index') || '0', 10);
+                            card.style.setProperty('--stagger-delay', `${index * 70}ms`);
+                            card.classList.add('is-visible');
+                          });
+                        }"""
+                    )
+                    page.wait_for_timeout(600)
+                services = page.locator("#services")
+                shot_name = f"faz6-hizmetler-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                services.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
 def assert_faz55_multilang_frontend() -> bool:
     ok = True
     en_content = load_lang_content(CONTENT_EN_PATH)
@@ -2376,6 +2641,8 @@ def assert_visual_enrichment() -> bool:
         page = browser.new_page(viewport={"width": 1440, "height": 900})
         page.goto(BASE + "/", wait_until="networkidle")
         page.wait_for_timeout(1200)
+        page.locator("#services").scroll_into_view_if_needed()
+        page.wait_for_timeout(800)
 
         service_data = page.evaluate(
             """() => {
@@ -2514,11 +2781,21 @@ def assert_visual_enrichment() -> bool:
               const els = document.querySelectorAll('.reveal');
               let v = 0;
               els.forEach(el => { if (parseFloat(getComputedStyle(el).opacity) > 0.5) v++; });
-              return { total: els.length, visible: v };
+              const serviceVisible = document.querySelectorAll('.service-card.is-visible').length;
+              return { total: els.length, visible: v, serviceVisible };
             }"""
         )
-        reveal_ok = reveal["visible"] == reveal["total"] and reveal["total"] > 24
-        assert_metric("homepage_reveal_visible", f"{reveal['visible']}/{reveal['total']}", "all visible", reveal_ok)
+        reveal_ok = (
+            reveal["visible"] == reveal["total"]
+            and reveal["total"] >= 15
+            and reveal["serviceVisible"] == 7
+        )
+        assert_metric(
+            "homepage_reveal_visible",
+            f"{reveal['visible']}/{reveal['total']}+svc{reveal['serviceVisible']}",
+            "all visible",
+            reveal_ok,
+        )
         ok = ok and reveal_ok
 
         page.close()
@@ -2828,6 +3105,8 @@ def main() -> int:
         ok = assert_faz61b_hero_stats_strip() and ok
         ok = assert_faz61e_hero_embedded_watermark() and ok
         ok = assert_faz62_sektor_band() and ok
+        ok = assert_faz63_sektor_network_audit() and ok
+        ok = assert_faz63_hizmetler() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -2840,13 +3119,15 @@ def main() -> int:
         faz6_wm2_shots = capture_faz6_hero_wm2_screenshots()
         faz6_final_shots = capture_faz6_hero_final_screenshots()
         faz62_shots = capture_faz62_sektor_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots
+        faz63_shots = capture_faz63_hizmetler_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots + faz63_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         results["faz6_hero_wm_screenshots"] = faz6_wm_shots
         results["faz6_hero_wm2_screenshots"] = faz6_wm2_shots
         results["faz6_hero_final_screenshots"] = faz6_final_shots
         results["faz62_sektor_screenshots"] = faz62_shots
+        results["faz63_hizmetler_screenshots"] = faz63_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok

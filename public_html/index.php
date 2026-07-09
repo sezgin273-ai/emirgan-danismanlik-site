@@ -204,8 +204,11 @@ function sektor_image_slug(string $icon): string
             </div>
             <div class="services-grid">
                 <?php foreach ($services['items'] as $index => $service): ?>
-                    <article class="service-card reveal" style="--reveal-delay: <?= $index * 80 ?>ms">
-                        <div class="service-icon <?= e(display_size_class($content, 'service_icon')) ?>"><?= service_icon($service['icon']) ?></div>
+                    <article class="service-card" data-stagger-index="<?= (int) $index ?>">
+                        <span class="service-accent" aria-hidden="true"></span>
+                        <div class="service-icon-wrap">
+                            <div class="service-icon <?= e(display_size_class($content, 'service_icon')) ?>"><?= service_icon($service['icon']) ?></div>
+                        </div>
                         <h3 class="service-title"><?= e($service['title']) ?></h3>
                         <p class="service-description"><?= e($service['description']) ?></p>
                     </article>
