@@ -35,5 +35,15 @@ sektor-insaat.png
 sektor-yatirim.png
 about-source.png
 
+# Faz 6 kaynak görsel yedekleri (repo'da tutulur; kök ignore istisnası)
+!docs/kaynak-gorseller/
+!docs/kaynak-gorseller/hero-source.png
+!docs/kaynak-gorseller/about-source.png
+!docs/kaynak-gorseller/sektor-enerji.png
+!docs/kaynak-gorseller/sektor-gayrimenkul.png
+!docs/kaynak-gorseller/sektor-ticaret.png
+!docs/kaynak-gorseller/sektor-insaat.png
+!docs/kaynak-gorseller/sektor-yatirim.png
+
 # Verify çalıştırma logları (commit dışı)
 docs/screenshots/verify-qa-run*.log
