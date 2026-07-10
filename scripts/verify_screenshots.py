@@ -141,23 +141,25 @@ def measure_hero_stats_strip(page) -> dict:
 def measure_about(page) -> dict | None:
     return page.evaluate(
         """() => {
-          const left = document.querySelector('.about-text');
-          const right = document.querySelector('.about-cards');
+          const editorial = document.querySelector('.about-editorial');
+          const text = document.querySelector('.about-text');
+          const photo = document.querySelector('.about-photo');
           const cards = [...document.querySelectorAll('.vision-mission-card')];
-          if (!left || !right || cards.length < 2) return null;
-          const lr = left.getBoundingClientRect();
-          const rr = right.getBoundingClientRect();
+          if (!editorial || !text || !photo || cards.length < 2) return null;
+          const tr = text.getBoundingClientRect();
+          const pr = photo.getBoundingClientRect();
           const c0 = cards[0].getBoundingClientRect();
           const c1 = cards[1].getBoundingClientRect();
-          const leftCenter = lr.top + lr.height / 2;
-          const rightCenter = rr.top + rr.height / 2;
-          const cols = getComputedStyle(document.querySelector('.about-grid')).gridTemplateColumns.split(' ');
+          const cols = getComputedStyle(editorial).gridTemplateColumns.split(' ').filter(Boolean);
           const colRatio = cols.length >= 2 ? parseFloat(cols[0]) / parseFloat(cols[1]) : 0;
+          const textCenter = tr.top + tr.height / 2;
+          const photoCenter = pr.top + pr.height / 2;
           return {
-            vertical_center_delta: Math.abs(leftCenter - rightCenter),
+            vertical_center_delta: Math.abs(textCenter - photoCenter),
             card_height_delta: Math.abs(c0.height - c1.height),
             column_ratio: colRatio,
-            alignItems: getComputedStyle(document.querySelector('.about-grid')).alignItems
+            alignItems: getComputedStyle(editorial).alignItems,
+            side_by_side: tr.right <= pr.left + 4,
           };
         }"""
     )
@@ -310,11 +312,23 @@ def run_viewport(page, width: int, name: str, results: dict) -> bool:
             assert_metric(
                 "about_column_ratio",
                 about["column_ratio"],
-                "~1.618 (±0.08)",
-                abs(about["column_ratio"] - 1.618) < 0.08,
+                "~1.25 (±0.08)",
+                abs(about["column_ratio"] - 1.25) < 0.08,
+            )
+            assert_metric(
+                "about_editorial_side_by_side",
+                1 if about.get("side_by_side") else 0,
+                "text|photo",
+                about.get("side_by_side"),
             )
             results["about_desktop"] = about
-            ok = ok and vcd <= 8 and chd <= 4 and abs(about["column_ratio"] - 1.618) < 0.08
+            ok = (
+                ok
+                and vcd <= 8
+                and chd <= 4
+                and abs(about["column_ratio"] - 1.25) < 0.08
+                and about.get("side_by_side")
+            )
 
         page.locator("#contact").scroll_into_view_if_needed()
         page.wait_for_timeout(200)

@@ -1620,6 +1620,329 @@ def capture_faz63_hizmetler_screenshots() -> list[str]:
     return shots
 
 
+def assert_faz64_hakkimizda() -> bool:
+    """Faz 6.4: Hakkımızda editorial yerleşim — görsel, iki sütun, Vizyon/Misyon reveal."""
+    ok = True
+    hakkimizda_dir = ROOT / "public_html/assets/img/hakkimizda"
+    asset_specs = [
+        ("hakkimizda-600.webp", 150_000),
+        ("hakkimizda-1200.webp", 150_000),
+        ("hakkimizda-1200.jpg", 150_000),
+    ]
+    total_bytes = 0
+    for name, max_single in asset_specs:
+        path = hakkimizda_dir / name
+        exists = path.is_file() and path.stat().st_size > 0
+        size = path.stat().st_size if exists else 0
+        total_bytes += size
+        single_ok = exists and size <= max_single
+        assert_metric(f"faz64_asset_{name}_bytes", size, f"<= {max_single}", single_ok)
+        ok = ok and single_ok
+    total_ok = total_bytes <= 300_000
+    assert_metric("faz64_assets_total_bytes", total_bytes, "<= 300000", total_ok)
+    ok = ok and total_ok
+
+    raw_in_web = (ROOT / "public_html/about-source.png").exists()
+    assert_metric("faz64_raw_not_in_web_about_source", 0 if raw_in_web else 1, "absent", not raw_in_web)
+    ok = ok and not raw_in_web
+
+    gitignore_text = (ROOT / ".gitignore").read_text(encoding="utf-8")
+    gi_ok = "about-source.png" in gitignore_text
+    assert_metric("faz64_about_source_gitignored", 1 if gi_ok else 0, "listed", gi_ok)
+    ok = ok and gi_ok
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        errors: list[str] = []
+        page = browser.new_page(viewport={"width": 1440, "height": 900})
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
+        page.goto(BASE + "/", wait_until="networkidle")
+        page.locator("#about").scroll_into_view_if_needed()
+        page.wait_for_timeout(1500)
+
+        layout = page.evaluate(
+            """() => {
+              function parseRgb(c) {
+                const m = c.match(/rgba?\\((\\d+),\\s*(\\d+),\\s*(\\d+)/);
+                return m ? [+m[1], +m[2], +m[3]] : [0, 0, 0];
+              }
+              function lum(rgb) {
+                const a = rgb.map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4); });
+                return a[0]*0.2126 + a[1]*0.7152 + a[2]*0.0722;
+              }
+              function contrast(fg, bg) {
+                const l1 = lum(parseRgb(fg));
+                const l2 = lum(parseRgb(bg));
+                return (Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+              }
+              const editorial = document.querySelector('.about-editorial');
+              const text = document.querySelector('.about-text');
+              const photo = document.querySelector('.about-photo');
+              const frame = document.querySelector('.about-photo-frame');
+              const img = document.querySelector('.about-photo img');
+              const cards = Array.from(document.querySelectorAll('.vision-mission-card'));
+              if (!editorial || !text || !photo || !frame || !img || cards.length < 2) {
+                return { ok: false };
+              }
+              const tr = text.getBoundingClientRect();
+              const pr = photo.getBoundingClientRect();
+              const cols = getComputedStyle(editorial).gridTemplateColumns;
+              const twoCol = cols.split(' ').filter(Boolean).length >= 2;
+              const sideBySide = twoCol && tr.right <= pr.left + 4;
+              const frameStyle = getComputedStyle(frame);
+              const frameBefore = frame ? getComputedStyle(frame, '::before').borderTopColor : '';
+              const title = document.querySelector('#about-heading');
+              const body = document.querySelector('.about-text p');
+              const titleC = title ? contrast(getComputedStyle(title).color, getComputedStyle(document.querySelector('#about')).backgroundColor) : 0;
+              const bodyC = body ? contrast(getComputedStyle(body).color, getComputedStyle(document.querySelector('#about')).backgroundColor) : 0;
+              const delays = cards.map(c => getComputedStyle(c).getPropertyValue('--reveal-delay').trim());
+              const visibleCards = cards.filter(c => c.classList.contains('is-visible')).length;
+              const revealStyles = cards.map(c => {
+                const s = getComputedStyle(c);
+                return { opacity: s.opacity, transform: s.transform };
+              });
+              return {
+                ok: true,
+                twoCol,
+                sideBySide,
+                textLeft: tr.left,
+                photoLeft: pr.left,
+                frameBorder: frameStyle.borderTopColor,
+                frameBorderWidth: frameStyle.borderTopWidth,
+                imgLoading: img.getAttribute('loading') || '',
+                imgDecoding: img.getAttribute('decoding') || '',
+                imgWidth: img.getAttribute('width') || '',
+                imgHeight: img.getAttribute('height') || '',
+                imgAlt: img.getAttribute('alt'),
+                imgAriaHidden: img.getAttribute('aria-hidden'),
+                imgSrc: img.getAttribute('src') || '',
+                srcset: document.querySelector('.about-photo source')?.getAttribute('srcset') || '',
+                heroPreload: !!document.querySelector('link[rel="preload"][href*="hakkimizda"]'),
+                titleContrast: titleC,
+                bodyContrast: bodyC,
+                delay0: delays[0] || '',
+                delay1: delays[1] || '',
+                visibleCards,
+                revealStyles,
+                cardCount: cards.length,
+              };
+            }"""
+        )
+
+        if not layout.get("ok"):
+            assert_metric("faz64_about_layout_present", 0, "1", False)
+            ok = False
+        else:
+            layout_ok = layout["twoCol"] and layout["sideBySide"]
+            border_ok = layout["frameBorder"] == "rgb(184, 148, 80)" and layout["frameBorderWidth"] == "1px"
+            img_ok = (
+                layout["imgLoading"] == "lazy"
+                and layout["imgDecoding"] == "async"
+                and layout["imgWidth"] == "1200"
+                and layout["imgHeight"] == "800"
+                and layout["imgAlt"] == ""
+                and layout["imgAriaHidden"] == "true"
+                and "hakkimizda-1200.jpg" in layout["imgSrc"]
+                and "hakkimizda-600.webp" in layout["srcset"]
+                and "hakkimizda-1200.webp" in layout["srcset"]
+            )
+            delay_step = 0
+            if layout["delay0"].endswith("ms") and layout["delay1"].endswith("ms"):
+                delay_step = int(layout["delay1"].replace("ms", "")) - int(layout["delay0"].replace("ms", ""))
+            delay_ok = 60 <= delay_step <= 80
+            title_c = round(float(layout["titleContrast"]), 2)
+            body_c = round(float(layout["bodyContrast"]), 2)
+            contrast_ok = title_c >= 4.5 and body_c >= 4.5
+            cards_ok = layout["visibleCards"] == 2 and layout["cardCount"] == 2
+            anim_ok = all(
+                s["opacity"] == "1" and (s["transform"] == "none" or "matrix" in s["transform"])
+                for s in layout["revealStyles"]
+            )
+
+            assert_metric("faz64_about_two_column_desktop", 1 if layout_ok else 0, "text|photo", layout_ok)
+            assert_metric("faz64_about_photo_frame_gold_border", layout["frameBorder"], "rgb(184, 148, 80)", border_ok)
+            assert_metric("faz64_about_img_lazy_async_dims", 1 if img_ok else 0, "lazy+async+1200x800", img_ok)
+            assert_metric("faz64_about_no_preload", 1 if not layout["heroPreload"] else 0, "no preload", not layout["heroPreload"])
+            assert_metric("faz64_about_title_contrast", title_c, ">= 4.5", title_c >= 4.5)
+            assert_metric("faz64_about_body_contrast", body_c, ">= 4.5", body_c >= 4.5)
+            assert_metric("faz64_vm_stagger_delay_step_ms", delay_step, "60-80", delay_ok)
+            assert_metric("faz64_vm_cards_revealed", layout["visibleCards"], "2", cards_ok)
+            assert_metric("faz64_vm_reveal_transform_opacity_only", 1 if anim_ok else 0, "visible", anim_ok)
+            assert_metric("faz64_about_console_errors", len(errors), "0", len(errors) == 0)
+            ok = (
+                ok
+                and layout_ok
+                and border_ok
+                and img_ok
+                and delay_ok
+                and contrast_ok
+                and cards_ok
+                and anim_ok
+                and len(errors) == 0
+            )
+
+        cls_score = page.evaluate(
+            """() => new Promise(resolve => {
+              let cls = 0;
+              const obs = new PerformanceObserver(list => {
+                for (const entry of list.getEntries()) {
+                  if (!entry.hadRecentInput) cls += entry.value;
+                }
+              });
+              obs.observe({ type: 'layout-shift', buffered: true });
+              setTimeout(() => { obs.disconnect(); resolve(cls); }, 1200);
+            })"""
+        )
+        cls_ok = float(cls_score) < 0.05
+        assert_metric("faz64_about_cls_score", round(float(cls_score), 4), "< 0.05", cls_ok)
+        ok = ok and cls_ok
+
+        mobile_page = browser.new_page(viewport={"width": 360, "height": 740})
+        mobile_page.goto(BASE + "/", wait_until="networkidle")
+        mobile_page.locator("#about").scroll_into_view_if_needed()
+        mobile_page.wait_for_timeout(1000)
+        mobile_order = mobile_page.evaluate(
+            """() => {
+              const text = document.querySelector('.about-text');
+              const photo = document.querySelector('.about-photo');
+              if (!text || !photo) return { ok: false };
+              const tr = text.getBoundingClientRect();
+              const pr = photo.getBoundingClientRect();
+              return { ok: true, photoAfterText: pr.top >= tr.bottom - 4 };
+            }"""
+        )
+        mobile_ok = mobile_order.get("ok") and mobile_order.get("photoAfterText")
+        assert_metric("faz64_mobile_photo_after_text", 1 if mobile_ok else 0, "stacked", mobile_ok)
+        ok = ok and mobile_ok
+        mobile_page.close()
+
+        for label, width, height in VIEWPORTS:
+            vp = browser.new_page(viewport={"width": width, "height": height})
+            vp.goto(BASE + "/", wait_until="networkidle")
+            vp.locator("#about").scroll_into_view_if_needed()
+            vp.wait_for_timeout(800)
+            overflow = vp.evaluate("() => document.documentElement.scrollWidth <= window.innerWidth")
+            assert_metric(f"faz64_overflow_{label}_{width}", 1 if overflow else 0, "0", overflow)
+            ok = ok and overflow
+            vp.close()
+
+        fa_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        fa_page.goto(BASE + "/?lang=fa", wait_until="networkidle")
+        fa_page.locator("#about").scroll_into_view_if_needed()
+        fa_page.wait_for_timeout(1200)
+        fa_data = fa_page.evaluate(
+            """() => {
+              const editorial = document.querySelector('.about-editorial');
+              const text = document.querySelector('.about-text');
+              const photo = document.querySelector('.about-photo');
+              const frame = document.querySelector('.about-photo-frame');
+              const tr = text?.getBoundingClientRect();
+              const pr = photo?.getBoundingClientRect();
+              const before = frame ? getComputedStyle(frame, '::before') : null;
+              return {
+                dir: document.documentElement.getAttribute('dir') || '',
+                mirrored: tr && pr ? tr.left > pr.left : false,
+                beforeLeft: before ? before.left : '',
+                beforeRight: before ? before.right : '',
+                overflow: document.documentElement.scrollWidth <= window.innerWidth,
+                twoCol: editorial ? getComputedStyle(editorial).gridTemplateColumns.split(' ').length >= 2 : false,
+              };
+            }"""
+        )
+        fa_ok = (
+            fa_data["dir"] == "rtl"
+            and fa_data["mirrored"]
+            and fa_data["twoCol"]
+            and fa_data["overflow"]
+        )
+        assert_metric("faz64_fa_rtl_two_column", 1 if fa_data["twoCol"] else 0, "2 cols", fa_data["twoCol"])
+        assert_metric("faz64_fa_rtl_mirrored", 1 if fa_data["mirrored"] else 0, "text right", fa_data["mirrored"])
+        assert_metric("faz64_fa_overflow", 1 if fa_data["overflow"] else 0, "0", fa_data["overflow"])
+        ok = ok and fa_ok
+        fa_page.close()
+
+        rm_page = browser.new_page(viewport={"width": 1440, "height": 900})
+        rm_page.emulate_media(reduced_motion="reduce")
+        rm_page.goto(BASE + "/", wait_until="networkidle")
+        rm_page.locator("#about").scroll_into_view_if_needed()
+        rm_page.wait_for_timeout(800)
+        rm_visible = rm_page.evaluate(
+            """() => {
+              const cards = document.querySelectorAll('.vision-mission-card.is-visible');
+              const reveals = document.querySelectorAll('#about .reveal');
+              const allVisible = Array.from(reveals).every(el => parseFloat(getComputedStyle(el).opacity) > 0.5);
+              return { cards: cards.length, allVisible };
+            }"""
+        )
+        rm_ok = rm_visible["cards"] == 2 and rm_visible["allVisible"]
+        assert_metric("faz64_reduced_motion_all_visible", 1 if rm_ok else 0, "2 cards + reveals", rm_ok)
+        ok = ok and rm_ok
+        rm_page.close()
+
+        nojs_context = browser.new_context(java_script_enabled=False, viewport={"width": 1440, "height": 900})
+        nojs_page = nojs_context.new_page()
+        nojs_page.goto(BASE + "/", wait_until="networkidle")
+        nojs_visible = nojs_page.evaluate(
+            """() => {
+              const reveals = document.querySelectorAll('#about .reveal');
+              const cards = document.querySelectorAll('.vision-mission-card');
+              const img = document.querySelector('.about-photo img');
+              return reveals.length >= 3
+                && Array.from(reveals).every(el => parseFloat(getComputedStyle(el).opacity) === 1)
+                && cards.length === 2
+                && !!img
+                && img.getBoundingClientRect().width > 0;
+            }"""
+        )
+        assert_metric("faz64_nojs_about_fully_visible", 1 if nojs_visible else 0, "visible", nojs_visible)
+        ok = ok and nojs_visible
+        nojs_page.close()
+        nojs_context.close()
+
+        page.close()
+        browser.close()
+
+    return ok
+
+
+def capture_faz64_hakkimizda_screenshots() -> list[str]:
+    """Faz 6.4: Hakkımızda + Vizyon/Misyon reveal sonrası kanıt ekran görüntüleri."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.locator("#about").scroll_into_view_if_needed()
+                page.wait_for_timeout(1500)
+                visible_cards = page.evaluate(
+                    "() => document.querySelectorAll('.vision-mission-card.is-visible').length"
+                )
+                if visible_cards < 2:
+                    page.evaluate(
+                        """() => {
+                          document.querySelectorAll('#about .reveal').forEach((el) => {
+                            el.classList.add('is-visible');
+                          });
+                        }"""
+                    )
+                    page.wait_for_timeout(600)
+                about = page.locator("#about")
+                shot_name = f"faz6-hakkimizda-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                about.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
 def assert_faz55_multilang_frontend() -> bool:
     ok = True
     en_content = load_lang_content(CONTENT_EN_PATH)
@@ -3107,6 +3430,7 @@ def main() -> int:
         ok = assert_faz62_sektor_band() and ok
         ok = assert_faz63_sektor_network_audit() and ok
         ok = assert_faz63_hizmetler() and ok
+        ok = assert_faz64_hakkimizda() and ok
         ok = assert_team_reorder_delete_guard() and ok
         ok = assert_visual_enrichment() and ok
         ok = assert_faz47_contact_layout() and ok
@@ -3120,7 +3444,8 @@ def main() -> int:
         faz6_final_shots = capture_faz6_hero_final_screenshots()
         faz62_shots = capture_faz62_sektor_screenshots()
         faz63_shots = capture_faz63_hizmetler_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots + faz63_shots
+        faz64_shots = capture_faz64_hakkimizda_screenshots()
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots + faz63_shots + faz64_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         results["faz6_hero_wm_screenshots"] = faz6_wm_shots
@@ -3128,6 +3453,7 @@ def main() -> int:
         results["faz6_hero_final_screenshots"] = faz6_final_shots
         results["faz62_sektor_screenshots"] = faz62_shots
         results["faz63_hizmetler_screenshots"] = faz63_shots
+        results["faz64_hakkimizda_screenshots"] = faz64_shots
         ok = assert_scope_unchanged() and ok
         ok = assert_faz51_scope_css() and ok
         ok = assert_content_json_scope() and ok

@@ -33,6 +33,7 @@ sektor-gayrimenkul.png
 sektor-ticaret.png
 sektor-insaat.png
 sektor-yatirim.png
+about-source.png
 
 # Verify çalıştırma logları (commit dışı)
 docs/screenshots/verify-qa-run*.log

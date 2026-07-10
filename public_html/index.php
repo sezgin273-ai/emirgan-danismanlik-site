@@ -221,7 +221,7 @@ function sektor_image_slug(string $icon): string
     <?php if (section_visible($content, 'about')): ?>
     <section class="about section-light" id="about" aria-labelledby="about-heading">
         <div class="container">
-            <div class="about-grid">
+            <div class="about-editorial">
                 <div class="about-text reveal">
                     <div class="gold-divider" aria-hidden="true"></div>
                     <h2 id="about-heading" class="section-title"><?= e($about['title']) ?></h2>
@@ -230,16 +230,36 @@ function sektor_image_slug(string $icon): string
                         <p><?= e($paragraph) ?></p>
                     <?php endforeach; ?>
                 </div>
-                <div class="about-cards reveal">
-                    <article class="vision-mission-card">
-                        <h3><?= e($vision['title']) ?></h3>
-                        <p><?= e($vision['text']) ?></p>
-                    </article>
-                    <article class="vision-mission-card">
-                        <h3><?= e($mission['title']) ?></h3>
-                        <p><?= e($mission['text']) ?></p>
-                    </article>
-                </div>
+                <figure class="about-photo reveal" aria-hidden="true">
+                    <div class="about-photo-frame">
+                        <picture>
+                            <source
+                                type="image/webp"
+                                srcset="/assets/img/hakkimizda/hakkimizda-600.webp 600w, /assets/img/hakkimizda/hakkimizda-1200.webp 1200w"
+                                sizes="(min-width: 1024px) 42vw, 100vw"
+                            >
+                            <img
+                                src="/assets/img/hakkimizda/hakkimizda-1200.jpg"
+                                alt=""
+                                aria-hidden="true"
+                                width="1200"
+                                height="800"
+                                loading="lazy"
+                                decoding="async"
+                            >
+                        </picture>
+                    </div>
+                </figure>
+            </div>
+            <div class="about-cards">
+                <article class="vision-mission-card reveal" style="--reveal-delay: 0ms">
+                    <h3><?= e($vision['title']) ?></h3>
+                    <p><?= e($vision['text']) ?></p>
+                </article>
+                <article class="vision-mission-card reveal" style="--reveal-delay: 70ms">
+                    <h3><?= e($mission['title']) ?></h3>
+                    <p><?= e($mission['text']) ?></p>
+                </article>
             </div>
         </div>
     </section>
