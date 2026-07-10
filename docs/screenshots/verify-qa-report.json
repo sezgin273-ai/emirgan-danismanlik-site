@@ -90,6 +90,21 @@
     "docs/faz6/faz6-hero-final-de-desktop-1440x900.png",
     "docs/faz6/faz6-hero-final-ru-desktop-1440x900.png",
     "docs/faz6/faz6-hero-final-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-fa-desktop-1440x900.png",
     "docs/faz6/faz6-sektor-tr-mobile-360x740.png",
     "docs/faz6/faz6-sektor-en-mobile-360x740.png",
     "docs/faz6/faz6-sektor-de-mobile-360x740.png",
@@ -104,7 +119,37 @@
     "docs/faz6/faz6-sektor-en-desktop-1440x900.png",
     "docs/faz6/faz6-sektor-de-desktop-1440x900.png",
     "docs/faz6/faz6-sektor-ru-desktop-1440x900.png",
-    "docs/faz6/faz6-sektor-fa-desktop-1440x900.png"
+    "docs/faz6/faz6-sektor-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-en-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-de-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-fa-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-en-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-de-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-fa-desktop-1440x900.png"
   ],
   "acceptance": {
     "contact_valid_post_status": {
@@ -178,8 +223,8 @@
       "passed": true
     },
     "mail_mode_captured_subject": {
-      "measured": "UTF-8 konu: İletişim testi",
-      "limit": "UTF-8 konu: İletişim testi",
+      "measured": "UTF-8 konu: ─░leti┼şim testi",
+      "limit": "UTF-8 konu: ─░leti┼şim testi",
       "passed": true
     },
     "mail_mode_captured_body": {
@@ -568,27 +613,27 @@
       "passed": true
     },
     "homepage_total_resource_bytes_tr": {
-      "measured": 921173,
+      "measured": 1165444,
       "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_en": {
-      "measured": 920799,
+      "measured": 1165070,
       "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_de": {
-      "measured": 921504,
+      "measured": 1165775,
       "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_ru": {
-      "measured": 925545,
+      "measured": 1169816,
       "limit": "<= 1200000",
       "passed": true
     },
     "homepage_total_resource_bytes_fa": {
-      "measured": 923008,
+      "measured": 1167279,
       "limit": "<= 1200000",
       "passed": true
     },
@@ -614,7 +659,7 @@
     },
     "faz58_hours_frontend_tr": {
       "measured": 1,
-      "limit": "Kapalı",
+      "limit": "Kapal─▒",
       "passed": true
     },
     "faz58_hours_frontend_en": {
@@ -629,12 +674,12 @@
     },
     "faz58_hours_frontend_ru": {
       "measured": 1,
-      "limit": "Закрыто",
+      "limit": "ºùº░º║ªÇªïªéº¥",
       "passed": true
     },
     "faz58_hours_frontend_fa": {
       "measured": 1,
-      "limit": "تعطیل",
+      "limit": "Ï¬Ï╣ÏÀ█î┘ä",
       "passed": true
     },
     "faz58_hours_frontend_console_errors": {
@@ -768,27 +813,27 @@
       "passed": true
     },
     "homepage_total_resource_bytes": {
-      "measured": 921173,
+      "measured": 1165444,
       "limit": "<= 1200000",
       "passed": true
     },
-    "faz61_asset_hero-1920.webp_bytes": {
-      "measured": 19946,
+    "faz61_asset_hero-1536.webp_bytes": {
+      "measured": 27716,
       "limit": "> 0",
       "passed": true
     },
     "faz61_asset_hero-1280.webp_bytes": {
-      "measured": 10464,
+      "measured": 19980,
       "limit": "> 0",
       "passed": true
     },
     "faz61_asset_hero-768.webp_bytes": {
-      "measured": 4618,
+      "measured": 7992,
       "limit": "> 0",
       "passed": true
     },
     "faz61_asset_hero-1280.jpg_bytes": {
-      "measured": 25304,
+      "measured": 47012,
       "limit": "> 0",
       "passed": true
     },
@@ -814,7 +859,7 @@
     },
     "faz61_hero_webp_srcset": {
       "measured": 1,
-      "limit": "768/1280/1920",
+      "limit": "768/1280/1536",
       "passed": true
     },
     "faz61_hero_title_contrast_ratio": {
@@ -845,6 +890,16 @@
     "faz61_hero_watermark_hidden": {
       "measured": "none",
       "limit": "none",
+      "passed": true
+    },
+    "faz61_hero_cls_score": {
+      "measured": 0.0081,
+      "limit": "< 0.05",
+      "passed": true
+    },
+    "faz61_hero_console_errors": {
+      "measured": 0,
+      "limit": "0",
       "passed": true
     },
     "faz61b_hero_visual_card_removed": {
@@ -1138,7 +1193,7 @@
       "passed": true
     },
     "faz62_cls_score": {
-      "measured": 0.0056,
+      "measured": 0.0064,
       "limit": "< 0.05",
       "passed": true
     },
@@ -1187,9 +1242,279 @@
       "limit": "none",
       "passed": true
     },
+    "faz63_sektor_download_count": {
+      "measured": 5,
+      "limit": "5",
+      "passed": true
+    },
+    "faz63_sektor_download_400webp_only": {
+      "measured": 1,
+      "limit": "400webp",
+      "passed": true
+    },
+    "faz63_sektor_no_jpeg_fallback": {
+      "measured": 1,
+      "limit": "no jpg",
+      "passed": true
+    },
+    "faz63_sektor_no_800_variant": {
+      "measured": 1,
+      "limit": "no 800",
+      "passed": true
+    },
+    "faz63_sektor_download_total_bytes": {
+      "measured": 46796,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_sektor_device_pixel_ratio": {
+      "measured": 1.0,
+      "limit": "1.0",
+      "passed": true
+    },
+    "faz63_sektor_downloaded_sektor-enerji-400.webp_bytes": {
+      "measured": 4916,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_sektor_downloaded_sektor-gayrimenkul-400.webp_bytes": {
+      "measured": 17496,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_sektor_downloaded_sektor-insaat-400.webp_bytes": {
+      "measured": 8274,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_sektor_downloaded_sektor-ticaret-400.webp_bytes": {
+      "measured": 7390,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_sektor_downloaded_sektor-yatirim-400.webp_bytes": {
+      "measured": 8720,
+      "limit": "> 0",
+      "passed": true
+    },
+    "faz63_service_items_from_content": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "faz63_service_card_count": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "faz63_service_cards_revealed": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "faz63_service_row1_equal_heights": {
+      "measured": 1,
+      "limit": "equal",
+      "passed": true
+    },
+    "faz63_service_row2_equal_heights": {
+      "measured": 1,
+      "limit": "equal",
+      "passed": true
+    },
+    "faz63_service_accent_width_pct": {
+      "measured": 39.7,
+      "limit": "~40",
+      "passed": true
+    },
+    "faz63_service_stagger_delay_step_ms": {
+      "measured": 70,
+      "limit": "60-80",
+      "passed": true
+    },
+    "faz63_service_hover_translate_y": {
+      "measured": -4.0,
+      "limit": "-4px",
+      "passed": true
+    },
+    "faz63_service_accent_hover_full": {
+      "measured": 99.3,
+      "limit": "~100",
+      "passed": true
+    },
+    "faz63_service_cls_score": {
+      "measured": 0.0081,
+      "limit": "< 0.05",
+      "passed": true
+    },
+    "faz63_overflow_mobile_360": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz63_overflow_tablet_768": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz63_overflow_desktop_1440": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz63_fa_rtl_accent_mirrored": {
+      "measured": "0px",
+      "limit": "0px",
+      "passed": true
+    },
+    "faz63_fa_overflow": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz63_reduced_motion_all_visible": {
+      "measured": 7,
+      "limit": "7",
+      "passed": true
+    },
+    "faz63_nojs_cards_not_hidden": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "faz64_asset_hakkimizda-600.webp_bytes": {
+      "measured": 22854,
+      "limit": "<= 150000",
+      "passed": true
+    },
+    "faz64_asset_hakkimizda-1200.webp_bytes": {
+      "measured": 60904,
+      "limit": "<= 150000",
+      "passed": true
+    },
+    "faz64_asset_hakkimizda-1200.jpg_bytes": {
+      "measured": 112002,
+      "limit": "<= 150000",
+      "passed": true
+    },
+    "faz64_assets_total_bytes": {
+      "measured": 195760,
+      "limit": "<= 300000",
+      "passed": true
+    },
+    "faz64_raw_not_in_web_about_source": {
+      "measured": 1,
+      "limit": "absent",
+      "passed": true
+    },
+    "faz64_about_source_gitignored": {
+      "measured": 1,
+      "limit": "listed",
+      "passed": true
+    },
+    "faz64_about_two_column_desktop": {
+      "measured": 1,
+      "limit": "text|photo",
+      "passed": true
+    },
+    "faz64_about_photo_frame_gold_border": {
+      "measured": "rgb(184, 148, 80)",
+      "limit": "rgb(184, 148, 80)",
+      "passed": true
+    },
+    "faz64_about_img_lazy_async_dims": {
+      "measured": 1,
+      "limit": "lazy+async+1200x800",
+      "passed": true
+    },
+    "faz64_about_no_preload": {
+      "measured": 1,
+      "limit": "no preload",
+      "passed": true
+    },
+    "faz64_about_title_contrast": {
+      "measured": 17.66,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz64_about_body_contrast": {
+      "measured": 4.91,
+      "limit": ">= 4.5",
+      "passed": true
+    },
+    "faz64_vm_stagger_delay_step_ms": {
+      "measured": 70,
+      "limit": "60-80",
+      "passed": true
+    },
+    "faz64_vm_cards_revealed": {
+      "measured": 2,
+      "limit": "2",
+      "passed": true
+    },
+    "faz64_vm_reveal_transform_opacity_only": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
+    "faz64_about_console_errors": {
+      "measured": 0,
+      "limit": "0",
+      "passed": true
+    },
+    "faz64_about_cls_score": {
+      "measured": 0.0081,
+      "limit": "< 0.05",
+      "passed": true
+    },
+    "faz64_mobile_photo_after_text": {
+      "measured": 1,
+      "limit": "stacked",
+      "passed": true
+    },
+    "faz64_overflow_mobile_360": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz64_overflow_tablet_768": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz64_overflow_desktop_1440": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz64_fa_rtl_two_column": {
+      "measured": 1,
+      "limit": "2 cols",
+      "passed": true
+    },
+    "faz64_fa_rtl_mirrored": {
+      "measured": 1,
+      "limit": "text right",
+      "passed": true
+    },
+    "faz64_fa_overflow": {
+      "measured": 1,
+      "limit": "0",
+      "passed": true
+    },
+    "faz64_reduced_motion_all_visible": {
+      "measured": 1,
+      "limit": "2 cards + reveals",
+      "passed": true
+    },
+    "faz64_nojs_about_fully_visible": {
+      "measured": 1,
+      "limit": "visible",
+      "passed": true
+    },
     "team_label_after_sort": {
       "measured": 1,
-      "limit": "starts with Üye",
+      "limit": "starts with ├£ye",
       "passed": true
     },
     "team_reorder_delete_status": {
@@ -1213,7 +1538,7 @@
       "passed": true
     },
     "service_card_hover_translate_y": {
-      "measured": -5.92893,
+      "measured": -4,
       "limit": "<= -2px",
       "passed": true
     },
@@ -1263,7 +1588,7 @@
       "passed": true
     },
     "homepage_reveal_visible": {
-      "measured": "29/29",
+      "measured": "24/24+svc7",
       "limit": "all visible",
       "passed": true
     },
@@ -1558,7 +1883,7 @@
       "passed": true
     }
   },
-  "homepage_total_resource_bytes": 921173,
+  "homepage_total_resource_bytes": 1165444,
   "faz6_hero_screenshots": [
     "docs/faz6/faz6-hero-tr-mobile-360x740.png",
     "docs/faz6/faz6-hero-en-mobile-360x740.png",
@@ -1644,6 +1969,23 @@
     "docs/faz6/faz6-hero-final-ru-desktop-1440x900.png",
     "docs/faz6/faz6-hero-final-fa-desktop-1440x900.png"
   ],
+  "faz6_hero2_screenshots": [
+    "docs/faz6/faz6-hero2-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-en-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-de-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hero2-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hero2-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hero2-fa-desktop-1440x900.png"
+  ],
   "faz62_sektor_screenshots": [
     "docs/faz6/faz6-sektor-tr-mobile-360x740.png",
     "docs/faz6/faz6-sektor-en-mobile-360x740.png",
@@ -1660,6 +2002,40 @@
     "docs/faz6/faz6-sektor-de-desktop-1440x900.png",
     "docs/faz6/faz6-sektor-ru-desktop-1440x900.png",
     "docs/faz6/faz6-sektor-fa-desktop-1440x900.png"
+  ],
+  "faz63_hizmetler_screenshots": [
+    "docs/faz6/faz6-hizmetler-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-en-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-de-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hizmetler-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hizmetler-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hizmetler-fa-desktop-1440x900.png"
+  ],
+  "faz64_hakkimizda_screenshots": [
+    "docs/faz6/faz6-hakkimizda-tr-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-en-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-de-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-ru-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-fa-mobile-360x740.png",
+    "docs/faz6/faz6-hakkimizda-tr-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-en-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-de-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-ru-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-fa-tablet-768x1024.png",
+    "docs/faz6/faz6-hakkimizda-tr-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-en-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-de-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-ru-desktop-1440x900.png",
+    "docs/faz6/faz6-hakkimizda-fa-desktop-1440x900.png"
   ],
   "all_passed": true
 }

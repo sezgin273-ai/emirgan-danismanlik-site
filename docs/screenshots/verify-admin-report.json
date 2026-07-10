@@ -39,7 +39,7 @@
       "passed": true
     },
     "wrong_password_delay_sec": {
-      "measured": 6.28,
+      "measured": 1.35,
       "limit": ">= 1",
       "passed": true
     },
@@ -420,7 +420,7 @@
     },
     "hero_watermark_form_on_frontend": {
       "measured": 1,
-      "limit": "opacity 0.03-0.08",
+      "limit": "display:none",
       "passed": true
     },
     "intro_badges_empty_json": {

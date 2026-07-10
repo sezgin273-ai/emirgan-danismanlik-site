@@ -60,18 +60,23 @@
       "limit": "= 0",
       "passed": true
     },
-    "hero_emblem_in_viewport_desktop-1440": {
+    "hero_stats_strip_in_viewport_desktop-1440": {
       "measured": 1,
       "limit": "not clipped",
       "passed": true
     },
-    "hero_no_rotation_desktop-1440": {
-      "measured": 0,
-      "limit": "no rotation",
+    "hero_stats_strip_nowrap_desktop-1440": {
+      "measured": 1,
+      "limit": "nowrap",
+      "passed": true
+    },
+    "hero_stats_strip_transparent_desktop-1440": {
+      "measured": 1,
+      "limit": "transparent",
       "passed": true
     },
     "about_vertical_center_delta_px": {
-      "measured": 0.0078125,
+      "measured": 0,
       "limit": "<= 8",
       "passed": true
     },
@@ -81,8 +86,13 @@
       "passed": true
     },
     "about_column_ratio": {
-      "measured": 1.6179396237674268,
-      "limit": "~1.618 (±0.08)",
+      "measured": 1.2499700141863919,
+      "limit": "~1.25 (±0.08)",
+      "passed": true
+    },
+    "about_editorial_side_by_side": {
+      "measured": 1,
+      "limit": "text|photo",
       "passed": true
     },
     "contact_top_delta_px": {
@@ -106,7 +116,7 @@
       "passed": true
     },
     "team_card1_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.578125,
       "limit": "<= 1",
       "passed": true
     },
@@ -116,7 +126,7 @@
       "passed": true
     },
     "team_card2_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.578125,
       "limit": "<= 1",
       "passed": true
     },
@@ -126,7 +136,7 @@
       "passed": true
     },
     "team_card3_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.578125,
       "limit": "<= 1",
       "passed": true
     },
@@ -136,7 +146,7 @@
       "passed": true
     },
     "team_card4_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.578125,
       "limit": "<= 1",
       "passed": true
     },
@@ -146,7 +156,7 @@
       "passed": true
     },
     "team_card5_top_delta_px": {
-      "measured": 0.0,
+      "measured": 0.578125,
       "limit": "<= 1",
       "passed": true
     },
@@ -155,14 +165,19 @@
       "limit": "present",
       "passed": true
     },
-    "hero_emblem_in_viewport_mobile-390": {
+    "hero_stats_strip_in_viewport_mobile-390": {
       "measured": 1,
       "limit": "not clipped",
       "passed": true
     },
-    "hero_no_rotation_mobile-390": {
-      "measured": 0,
-      "limit": "no rotation",
+    "hero_stats_strip_nowrap_mobile-390": {
+      "measured": 1,
+      "limit": "nowrap",
+      "passed": true
+    },
+    "hero_stats_strip_transparent_mobile-390": {
+      "measured": 1,
+      "limit": "transparent",
       "passed": true
     },
     "contact_form_id_mobile-390": {
@@ -171,13 +186,13 @@
       "passed": true
     },
     "js_blocked_reveal_visible_count": {
-      "measured": "29/29",
+      "measured": "24/24+svc7",
       "limit": "all visible",
       "passed": true
     },
     "js_blocked_reveal_total": {
-      "measured": 29,
-      "limit": "> 24",
+      "measured": 24,
+      "limit": ">= 15",
       "passed": true
     }
   },
@@ -201,21 +216,24 @@
     "emblem_dark_navy_band_pixels": 0
   },
   "hero_desktop-1440": {
-    "top": 323.140625,
-    "left": 996.046875,
-    "bottom": 507.453125,
-    "right": 1180.359375,
-    "width": 184.3125,
-    "height": 184.3125,
+    "top": 615.71875,
+    "left": 144,
+    "bottom": 679.515625,
+    "right": 752,
+    "width": 608,
+    "height": 63.796875,
     "clipped": false,
-    "hasRotation": false,
-    "aspect": 1
+    "statCount": 2,
+    "dividerWidth": "1px",
+    "nowrap": true,
+    "transparent": true
   },
   "about_desktop": {
-    "vertical_center_delta": 0.0078125,
+    "vertical_center_delta": 0,
     "card_height_delta": 0,
-    "column_ratio": 1.6179396237674268,
-    "alignItems": "center"
+    "column_ratio": 1.2499700141863919,
+    "alignItems": "center",
+    "side_by_side": true
   },
   "contact_desktop": {
     "top_delta": 0
@@ -229,62 +247,66 @@
       {
         "index": 1,
         "left": 144,
-        "top": 121.15625,
+        "top": 120.578125,
         "right": 512,
-        "bottom": 497.78125
+        "bottom": 497.203125
       },
       {
         "index": 2,
         "left": 536,
-        "top": 121.15625,
+        "top": 120.578125,
         "right": 904,
-        "bottom": 497.78125
+        "bottom": 497.203125
       },
       {
         "index": 3,
         "left": 928,
-        "top": 121.15625,
+        "top": 120.578125,
         "right": 1296,
-        "bottom": 497.78125
+        "bottom": 497.203125
       },
       {
         "index": 4,
         "left": 340,
-        "top": 521.78125,
+        "top": 521.203125,
         "right": 708,
-        "bottom": 852.21875
+        "bottom": 851.640625
       },
       {
         "index": 5,
         "left": 732,
-        "top": 521.78125,
+        "top": 521.203125,
         "right": 1100,
-        "bottom": 852.21875
+        "bottom": 851.640625
       }
     ]
   },
   "reveal_desktop-1440": {
-    "total": 29,
-    "visible": 29
+    "total": 24,
+    "visible": 24
   },
   "hero_mobile-390": {
-    "top": 544.828125,
-    "left": 102.84375,
-    "bottom": 729.140625,
-    "right": 287.15625,
-    "width": 184.3125,
-    "height": 184.3125,
+    "top": 613.734375,
+    "left": 16,
+    "bottom": 664.234375,
+    "right": 374,
+    "width": 358,
+    "height": 50.5,
     "clipped": false,
-    "hasRotation": false,
-    "aspect": 1
+    "statCount": 2,
+    "dividerWidth": "1px",
+    "nowrap": true,
+    "transparent": true
   },
   "reveal_mobile-390": {
-    "total": 29,
-    "visible": 29
+    "total": 24,
+    "visible": 24
   },
   "js_resilience": {
-    "total": 29,
-    "visible": 29,
+    "total": 24,
+    "visible": 24,
+    "serviceCount": 7,
+    "serviceVisible": true,
     "hasJsClass": false
   },
   "all_passed": true

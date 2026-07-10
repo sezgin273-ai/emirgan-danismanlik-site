@@ -81,7 +81,7 @@ function sektor_image_slug(string $icon): string
             <picture>
                 <source
                     type="image/webp"
-                    srcset="/assets/img/hero-768.webp 768w, /assets/img/hero-1280.webp 1280w, /assets/img/hero-1920.webp 1920w"
+                    srcset="/assets/img/hero-768.webp 768w, /assets/img/hero-1280.webp 1280w, /assets/img/hero-1536.webp 1536w"
                     sizes="100vw"
                 >
                 <img

@@ -332,7 +332,7 @@ def assert_faz61_hero_photo() -> bool:
     """Faz 6.1: hero arka plan fotoğrafı, LCP önceliği ve kontrast."""
     ok = True
     hero_assets = [
-        ROOT / "public_html/assets/img/hero-1920.webp",
+        ROOT / "public_html/assets/img/hero-1536.webp",
         ROOT / "public_html/assets/img/hero-1280.webp",
         ROOT / "public_html/assets/img/hero-768.webp",
         ROOT / "public_html/assets/img/hero-1280.jpg",
@@ -346,8 +346,23 @@ def assert_faz61_hero_photo() -> bool:
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         page = browser.new_page(viewport={"width": 1440, "height": 900})
+        errors: list[str] = []
+        page.on("console", lambda msg: errors.append(msg.text) if msg.type == "error" else None)
         page.goto(BASE + "/", wait_until="networkidle")
         page.wait_for_timeout(800)
+
+        cls_score = page.evaluate(
+            """() => new Promise((resolve) => {
+              let cls = 0;
+              const obs = new PerformanceObserver((list) => {
+                for (const entry of list.getEntries()) {
+                  if (!entry.hadRecentInput) cls += entry.value;
+                }
+              });
+              obs.observe({ type: 'layout-shift', buffered: true });
+              setTimeout(() => { obs.disconnect(); resolve(cls); }, 1200);
+            })"""
+        )
 
         hero_data = page.evaluate(
             """() => {
@@ -402,7 +417,7 @@ def assert_faz61_hero_photo() -> bool:
         src_ok = "/assets/img/hero-1280.jpg" in hero_data.get("imgSrc", "")
         srcset_ok = all(
             token in hero_data.get("srcset", "")
-            for token in ("hero-768.webp", "hero-1280.webp", "hero-1920.webp")
+            for token in ("hero-768.webp", "hero-1280.webp", "hero-1536.webp")
         )
         title_c = round(float(hero_data.get("titleContrast", 0)), 2)
         desc_c = round(float(hero_data.get("descContrast", 0)), 2)
@@ -419,13 +434,17 @@ def assert_faz61_hero_photo() -> bool:
         assert_metric("faz61_hero_img_fetchpriority", hero_data.get("imgFetchPriority", ""), "high", fetch_ok)
         assert_metric("faz61_hero_img_not_lazy", hero_data.get("imgLoading", ""), "not lazy", lazy_ok)
         assert_metric("faz61_hero_jpeg_fallback_src", 1 if src_ok else 0, "hero-1280.jpg", src_ok)
-        assert_metric("faz61_hero_webp_srcset", 1 if srcset_ok else 0, "768/1280/1920", srcset_ok)
+        assert_metric("faz61_hero_webp_srcset", 1 if srcset_ok else 0, "768/1280/1536", srcset_ok)
         assert_metric("faz61_hero_title_contrast_ratio", title_c, ">= 7.0", title_c >= 7.0)
         assert_metric("faz61_hero_description_contrast_ratio", desc_c, ">= 4.5", desc_c >= 4.5)
         assert_metric("faz61_hero_btn_gold_contrast_ratio", btn_gold_c, ">= 4.5", btn_gold_c >= 4.5)
         assert_metric("faz61_hero_btn_outline_contrast_ratio", btn_outline_c, ">= 4.5", btn_outline_c >= 4.5)
         assert_metric("faz61_hero_eyebrow_contrast_ratio", eyebrow_c, ">= 4.5", eyebrow_c >= 4.5)
         assert_metric("faz61_hero_watermark_hidden", hero_data.get("watermarkDisplay", ""), "none", wm_ok)
+        cls_ok = float(cls_score) < 0.05
+        assert_metric("faz61_hero_cls_score", round(float(cls_score), 4), "< 0.05", cls_ok)
+        console_ok = len(errors) == 0
+        assert_metric("faz61_hero_console_errors", len(errors), "0", console_ok)
         ok = (
             ok
             and photo_ok
@@ -439,6 +458,8 @@ def assert_faz61_hero_photo() -> bool:
             and btn_outline_c >= 4.5
             and eyebrow_c >= 4.5
             and wm_ok
+            and cls_ok
+            and console_ok
         )
 
         page.close()
@@ -1071,6 +1092,31 @@ def capture_faz6_hero_final_screenshots() -> list[str]:
                 page.wait_for_timeout(800)
                 hero = page.locator("#hero")
                 shot_name = f"faz6-hero-final-{lang}-{label}-{width}x{height}.png"
+                shot_path = out_dir / shot_name
+                hero.screenshot(path=str(shot_path))
+                shots.append(f"docs/faz6/{shot_name}")
+                page.close()
+        browser.close()
+
+    return shots
+
+
+def capture_faz6_hero2_screenshots() -> list[str]:
+    """Faz 6.1R: yeni kaynak hero ekran görüntüleri (5 dil × 3 viewport)."""
+    shots: list[str] = []
+    out_dir = ROOT / "docs/faz6"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        for label, width, height in VIEWPORTS:
+            for lang in SITE_LANGS:
+                suffix = "" if lang == "tr" else f"?lang={lang}"
+                page = browser.new_page(viewport={"width": width, "height": height})
+                page.goto(BASE + "/" + suffix, wait_until="networkidle")
+                page.wait_for_timeout(800)
+                hero = page.locator("#hero")
+                shot_name = f"faz6-hero2-{lang}-{label}-{width}x{height}.png"
                 shot_path = out_dir / shot_name
                 hero.screenshot(path=str(shot_path))
                 shots.append(f"docs/faz6/{shot_name}")
@@ -3442,15 +3488,17 @@ def main() -> int:
         faz6_wm_shots = capture_faz6_hero_wm_screenshots()
         faz6_wm2_shots = capture_faz6_hero_wm2_screenshots()
         faz6_final_shots = capture_faz6_hero_final_screenshots()
+        faz6_hero2_shots = capture_faz6_hero2_screenshots()
         faz62_shots = capture_faz62_sektor_screenshots()
         faz63_shots = capture_faz63_hizmetler_screenshots()
         faz64_shots = capture_faz64_hakkimizda_screenshots()
-        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz62_shots + faz63_shots + faz64_shots
+        results["screenshots"] = shots + faz6_shots + faz6_rev_shots + faz6_wm_shots + faz6_wm2_shots + faz6_final_shots + faz6_hero2_shots + faz62_shots + faz63_shots + faz64_shots
         results["faz6_hero_screenshots"] = faz6_shots
         results["faz6_hero_rev_screenshots"] = faz6_rev_shots
         results["faz6_hero_wm_screenshots"] = faz6_wm_shots
         results["faz6_hero_wm2_screenshots"] = faz6_wm2_shots
         results["faz6_hero_final_screenshots"] = faz6_final_shots
+        results["faz6_hero2_screenshots"] = faz6_hero2_shots
         results["faz62_sektor_screenshots"] = faz62_shots
         results["faz63_hizmetler_screenshots"] = faz63_shots
         results["faz64_hakkimizda_screenshots"] = faz64_shots
