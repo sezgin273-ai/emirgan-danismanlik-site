@@ -34,6 +34,13 @@ sektor-ticaret.png
 sektor-insaat.png
 sektor-yatirim.png
 about-source.png
+Stratejik*.png
+Hukuki*.png
+Finansal*.png
+Yatırım*.png
+Gayrimenkul*.png
+Ticaret*.png
+Kurumsal*.png
 
 # Faz 6 kaynak görsel yedekleri (repo'da tutulur; kök ignore istisnası)
 !docs/kaynak-gorseller/

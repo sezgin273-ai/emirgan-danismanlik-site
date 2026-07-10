@@ -12,8 +12,6 @@ $canonical_path = '/';
 $hero = $content['hero'];
 $intro = $content['intro'];
 $about = $content['about'];
-$vision = $content['vision'];
-$mission = $content['mission'];
 $team = $content['team'];
 $services = $content['services'];
 $process = $content['process'] ?? ['title' => '', 'steps' => []];
@@ -66,6 +64,12 @@ function sektor_image_slug(string $icon): string
     ];
 
     return $map[$icon] ?? 'enerji';
+}
+
+/** Hizmet kartı görsel slug (icon anahtarı → assets/img/hizmetler). */
+function service_image_slug(string $icon): string
+{
+    return is_valid_service_icon($icon) ? $icon : 'strategy';
 }
 ?>
 <!DOCTYPE html>
@@ -195,20 +199,39 @@ function sektor_image_slug(string $icon): string
 
     <?php if (section_visible($content, 'services')): ?>
     <section class="services section-cream" id="services" aria-labelledby="services-heading">
-        <div class="container">
-            <div class="section-header reveal">
+        <div class="services-container">
+            <div class="services-header reveal">
                 <div class="gold-divider" aria-hidden="true"></div>
-                <h2 id="services-heading" class="section-title"><?= e($services['title']) ?></h2>
+                <h2 id="services-heading" class="services-title section-title"><?= e($services['title']) ?></h2>
             </div>
             <div class="services-grid">
                 <?php foreach ($services['items'] as $index => $service): ?>
+                    <?php
+                    $serviceSlug = service_image_slug((string) ($service['icon'] ?? ''));
+                    $serviceTitle = (string) ($service['title'] ?? '');
+                    ?>
                     <article class="service-card" data-stagger-index="<?= (int) $index ?>">
-                        <span class="service-accent" aria-hidden="true"></span>
-                        <div class="service-icon-wrap">
-                            <div class="service-icon <?= e(display_size_class($content, 'service_icon')) ?>"><?= service_icon($service['icon']) ?></div>
+                        <div class="service-card__media">
+                            <picture>
+                                <source
+                                    type="image/webp"
+                                    srcset="/assets/img/hizmetler/hizmet-<?= e($serviceSlug) ?>-600.webp 600w, /assets/img/hizmetler/hizmet-<?= e($serviceSlug) ?>-1200.webp 1200w"
+                                    sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 25vw"
+                                >
+                                <img
+                                    src="/assets/img/hizmetler/hizmet-<?= e($serviceSlug) ?>-1200.jpg"
+                                    alt="<?= e($serviceTitle) ?>"
+                                    width="1200"
+                                    height="800"
+                                    loading="lazy"
+                                    decoding="async"
+                                >
+                            </picture>
                         </div>
-                        <h3 class="service-title"><?= e($service['title']) ?></h3>
-                        <p class="service-description"><?= e($service['description']) ?></p>
+                        <div class="service-card__content">
+                            <h3 class="service-card__title"><?= e($serviceTitle) ?></h3>
+                            <p class="service-card__description"><?= e($service['description']) ?></p>
+                        </div>
                     </article>
                 <?php endforeach; ?>
             </div>
@@ -218,47 +241,36 @@ function sektor_image_slug(string $icon): string
 
     <?php if (section_visible($content, 'about')): ?>
     <section class="about section-light" id="about" aria-labelledby="about-heading">
-        <div class="container">
-            <div class="about-editorial">
-                <div class="about-text reveal">
-                    <div class="gold-divider" aria-hidden="true"></div>
-                    <h2 id="about-heading" class="section-title"><?= e($about['title']) ?></h2>
-                    <h3 class="about-heading"><?= e($about['heading']) ?></h3>
-                    <?php foreach ($about['paragraphs'] as $paragraph): ?>
-                        <p><?= e($paragraph) ?></p>
-                    <?php endforeach; ?>
-                </div>
-                <figure class="about-photo reveal" aria-hidden="true">
-                    <div class="about-photo-frame">
-                        <picture>
-                            <source
-                                type="image/webp"
-                                srcset="/assets/img/hakkimizda/hakkimizda-600.webp 600w, /assets/img/hakkimizda/hakkimizda-1200.webp 1200w"
-                                sizes="(min-width: 1024px) 42vw, 100vw"
-                            >
-                            <img
-                                src="/assets/img/hakkimizda/hakkimizda-1200.jpg"
-                                alt=""
-                                aria-hidden="true"
-                                width="1200"
-                                height="800"
-                                loading="lazy"
-                                decoding="async"
-                            >
-                        </picture>
-                    </div>
-                </figure>
+        <div class="about-container">
+            <div class="about-header reveal">
+                <div class="about-accent gold-divider" aria-hidden="true"></div>
+                <h2 id="about-heading" class="about-title"><?= e($about['title']) ?></h2>
             </div>
-            <div class="about-cards">
-                <article class="vision-mission-card reveal" style="--reveal-delay: 0ms">
-                    <h3><?= e($vision['title']) ?></h3>
-                    <p><?= e($vision['text']) ?></p>
-                </article>
-                <article class="vision-mission-card reveal" style="--reveal-delay: 70ms">
-                    <h3><?= e($mission['title']) ?></h3>
-                    <p><?= e($mission['text']) ?></p>
-                </article>
+
+            <div class="about-copy reveal">
+                <h3 class="about-company-name"><?= e($about['heading']) ?></h3>
+                <?php foreach ($about['paragraphs'] as $paragraph): ?>
+                    <p><?= e($paragraph) ?></p>
+                <?php endforeach; ?>
             </div>
+
+            <figure class="about-visual reveal">
+                <picture>
+                    <source
+                        type="image/webp"
+                        srcset="/assets/img/hakkimizda/about-800.webp 800w, /assets/img/hakkimizda/about-1600.webp 1600w"
+                        sizes="(max-width: 767px) 100vw, min(1600px, 100vw)"
+                    >
+                    <img
+                        src="/assets/img/hakkimizda/about-1600.jpg"
+                        alt="Emirgan Danışmanlık vizyon ve misyon görseli"
+                        width="1600"
+                        height="900"
+                        loading="lazy"
+                        decoding="async"
+                    >
+                </picture>
+            </figure>
         </div>
     </section>
     <?php endif; ?>
