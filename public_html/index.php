@@ -160,7 +160,6 @@ function sektor_image_slug(string $icon): string
                                     >
                                 </picture>
                                 <span class="sektor-card-overlay" aria-hidden="true"></span>
-                                <span class="sektor-card-label"><?= e($badge['label']) ?></span>
                             </div>
                         </article>
                     <?php endforeach; ?>
@@ -185,7 +184,6 @@ function sektor_image_slug(string $icon): string
                                     >
                                 </picture>
                                 <span class="sektor-card-overlay" aria-hidden="true"></span>
-                                <span class="sektor-card-label"><?= e($badge['label']) ?></span>
                             </div>
                         </article>
                     <?php endforeach; ?>

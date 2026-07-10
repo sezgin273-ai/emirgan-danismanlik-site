@@ -543,7 +543,7 @@ section {
 
 .hero-photo img {
   object-fit: cover;
-  object-position: center;
+  object-position: 72% center;
 }
 
 .hero-overlay {
@@ -553,10 +553,11 @@ section {
   pointer-events: none;
   background:
     linear-gradient(
-      115deg,
-      rgba(16, 24, 44, 0.92) 0%,
-      rgba(16, 24, 44, 0.82) 42%,
-      rgba(16, 24, 44, 0.68) 100%
+      105deg,
+      rgba(16, 24, 44, 0.90) 0%,
+      rgba(16, 24, 44, 0.78) 28%,
+      rgba(16, 24, 44, 0.52) 58%,
+      rgba(16, 24, 44, 0.28) 100%
     );
 }
 
@@ -571,8 +572,8 @@ section {
   inset: 0;
   z-index: 2;
   background:
-    radial-gradient(ellipse 60% 50% at 80% 40%, rgba(184, 148, 80, 0.08), transparent),
-    radial-gradient(ellipse 40% 40% at 10% 80%, rgba(184, 148, 80, 0.05), transparent);
+    radial-gradient(ellipse 55% 48% at 82% 42%, rgba(184, 148, 80, 0.10), transparent 70%),
+    radial-gradient(ellipse 42% 38% at 12% 78%, rgba(184, 148, 80, 0.05), transparent 70%);
   pointer-events: none;
 }
 
@@ -700,40 +701,61 @@ section {
 }
 
 /* --------------------------------------------------------------------------
-   Intro & Badges
+   Intro & Badges — SPR-002 final estetik (scoped)
    -------------------------------------------------------------------------- */
+
+.intro .gold-divider {
+  width: calc(3rem * var(--phi) + 12px); /* +12px, yalnızca Kısa Tanıtım */
+}
+
+.intro .section-header {
+  margin-bottom: var(--space-xl); /* 3rem → 2rem: başlık–metin ritmi */
+}
 
 .intro-text {
   font-family: var(--font-body);
   font-size: 1.125rem;
   line-height: 1.65;
   color: var(--color-text-muted);
-  max-width: 48rem;
-  margin-bottom: var(--space-xl);
+  max-width: 51rem; /* 43.5rem → +%17 editorial satır */
+  margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 767px) {
+  .intro-text {
+    max-width: none; /* mobilde tam genişlik */
+  }
 }
 
 /* --------------------------------------------------------------------------
-   Sektör foto kart bandı (Faz 6.2)
+   Sektör foto kart bandı (Faz 6.2) — SPR-002 layout / editorial
    -------------------------------------------------------------------------- */
 
 .sektor-band {
-  --sektor-card-width: 240px;
-  --sektor-card-height: 160px;
-  --sektor-band-height: 168px;
+  /* Mobil varsayılan: ~1.2–1.4 kart (+%9) */
+  --sektor-card-width: 305px;
+  --sektor-card-height: 229px;
+  --sektor-band-height: 258px;
+  --sektor-card-gap: 1.5rem;
+  --sektor-card-radius: var(--radius-md);
+  --sektor-card-shadow: 0 0.5rem 1.5rem rgba(16, 24, 44, 0.05);
+  --sektor-card-shadow-hover: 0 0.6rem 1.75rem rgba(16, 24, 44, 0.08);
   position: relative;
   width: 100%;
   height: var(--sektor-band-height);
-  max-height: 240px;
-  margin-top: var(--space-lg);
+  max-height: none;
+  margin-top: calc(var(--space-2xl) + 0.75rem); /* büyüyen kartlara göre ritim */
+  margin-bottom: var(--space-lg);
   overflow: hidden;
 }
 
 .sektor-band-track {
   display: flex;
   flex-wrap: nowrap;
-  align-items: stretch;
-  gap: var(--space-md);
+  align-items: center;
+  gap: var(--sektor-card-gap);
   width: max-content;
+  padding-block: 0.5rem;
   will-change: transform;
 }
 
@@ -747,8 +769,10 @@ section {
   width: var(--sektor-card-width);
   height: var(--sektor-card-height);
   border: 1px solid var(--color-gold);
-  border-radius: var(--radius-sm);
+  border-radius: var(--sektor-card-radius);
   overflow: hidden;
+  box-shadow: var(--sektor-card-shadow);
+  transition: box-shadow var(--transition-slow);
 }
 
 .sektor-card-photo picture,
@@ -757,6 +781,17 @@ section {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+}
+
+.sektor-card-photo img {
+  transform: scale(1);
+  transform-origin: center center;
+  filter: brightness(1.06); /* doğal görünürlük; navy atmosfer korunur */
+  transition:
+    transform var(--transition-slow),
+    filter var(--transition-slow);
+  will-change: transform, filter;
 }
 
 .sektor-card-overlay {
@@ -764,30 +799,47 @@ section {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(16, 24, 44, 0.15) 0%,
-    rgba(16, 24, 44, 0.55) 55%,
-    rgba(16, 24, 44, 0.82) 100%
+    rgba(16, 24, 44, 0.06) 0%,
+    rgba(16, 24, 44, 0.38) 55%,
+    rgba(16, 24, 44, 0.62) 100%
   );
   pointer-events: none;
+  z-index: 1;
 }
 
 .sektor-card-label {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
-  padding: 0.5rem 0.75rem;
-  font-family: var(--font-body);
-  font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: var(--color-cream);
-  text-align: center;
+  display: none; /* sektör isimleri kaldırıldı — editorial sunum */
 }
 
+/* Hover yalnızca gerçek hover cihazlarında */
+@media (hover: hover) and (pointer: fine) {
+  .sektor-card:hover .sektor-card-photo {
+    box-shadow: var(--sektor-card-shadow-hover);
+  }
+
+  .sektor-card:hover .sektor-card-photo img {
+    transform: scale(1.035);
+    filter: brightness(1.09); /* normalden ~%3 */
+  }
+}
+
+/* Tablet: ~2.5–3 kart (+%9) */
+@media (min-width: 768px) {
+  .sektor-band {
+    --sektor-card-width: 327px;
+    --sektor-card-height: 251px;
+    --sektor-band-height: 282px;
+    --sektor-card-gap: 1.75rem;
+  }
+}
+
+/* Desktop: editorial full-bleed, ~3.8–4 kart (+%9) */
 @media (min-width: 1024px) {
   .sektor-band {
+    --sektor-card-width: 370px;
+    --sektor-card-height: 272px;
+    --sektor-band-height: 304px;
+    --sektor-card-gap: 1.75rem;
     width: 100vw;
     max-width: 100vw;
     margin-left: calc(50% - 50vw);
@@ -806,7 +858,6 @@ section {
 @media (max-width: 1023px) {
   .sektor-band {
     height: auto;
-    max-height: 240px;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
@@ -815,7 +866,7 @@ section {
 
   .sektor-band-track {
     animation: none;
-    padding-bottom: 2px;
+    padding-bottom: 0.5rem;
   }
 }
 
@@ -832,6 +883,21 @@ section {
 @media (prefers-reduced-motion: reduce) {
   .sektor-band-track {
     animation: none !important;
+  }
+
+  .sektor-card-photo {
+    transition: none;
+  }
+
+  .sektor-card-photo img,
+  .sektor-card:hover .sektor-card-photo img {
+    transform: none;
+    filter: brightness(1.06);
+    transition: none;
+  }
+
+  .sektor-card:hover .sektor-card-photo {
+    box-shadow: var(--sektor-card-shadow);
   }
 }
 
