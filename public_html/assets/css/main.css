@@ -1126,6 +1126,10 @@ section {
     justify-self: stretch;
   }
 
+  .service-card__media {
+    aspect-ratio: 4 / 3;
+  }
+
   .service-card__content {
     min-height: 7.25rem;
   }
