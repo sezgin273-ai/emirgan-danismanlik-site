@@ -21,6 +21,19 @@ $og_image_url = $og_image_path !== ''
     ? ($site_url !== '' && str_starts_with($og_image_path, '/') ? $site_url . $og_image_path : $og_image_path)
     : '';
 $locale = site_og_locale($current_lang);
+
+/**
+ * Statik asset URL'sine dosya mtime tabanlı ?v= ekler; dosya yoksa paramsız döner.
+ */
+function asset_versioned_url(string $webPath): string
+{
+    $fsPath = dirname(__DIR__) . str_replace('/', DIRECTORY_SEPARATOR, $webPath);
+    if (!is_file($fsPath)) {
+        return $webPath;
+    }
+
+    return $webPath . '?v=' . (string) filemtime($fsPath);
+}
 ?>
 <head>
     <meta charset="UTF-8">
@@ -55,7 +68,7 @@ $locale = site_og_locale($current_lang);
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/assets/css/tokens.css">
-    <link rel="stylesheet" href="/assets/css/main.css">
-    <script src="/assets/js/main.js" defer onerror="document.documentElement.classList.remove('js')"></script>
+    <link rel="stylesheet" href="<?= e(asset_versioned_url('/assets/css/tokens.css')) ?>">
+    <link rel="stylesheet" href="<?= e(asset_versioned_url('/assets/css/main.css')) ?>">
+    <script src="<?= e(asset_versioned_url('/assets/js/main.js')) ?>" defer onerror="document.documentElement.classList.remove('js')"></script>
 </head>

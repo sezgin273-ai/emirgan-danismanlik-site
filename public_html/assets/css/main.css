@@ -2012,3 +2012,15 @@ body.display-hero-emblem-large .hero-medallion {
 [dir="rtl"] .contact-map-iframe {
   unicode-bidi: plaintext;
 }
+
+@media (max-width: 767px) {
+  .hero-title {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow-wrap: break-word;
+  }
+
+  .hero-title-line {
+    max-width: 2rem;
+  }
+}
