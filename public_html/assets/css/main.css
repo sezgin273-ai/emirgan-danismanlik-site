@@ -1159,10 +1159,11 @@ section {
 }
 
 .about-container {
+  /* İçerik ekseni .services-container / .services-grid ile aynı */
   width: 100%;
-  max-width: 1600px;
+  max-width: 1640px;
   margin-inline: auto;
-  padding-inline: clamp(16px, 4vw, 20px);
+  padding-inline: clamp(16px, 4.2vw, 18px);
 }
 
 .about-header {
@@ -1183,7 +1184,8 @@ section {
 }
 
 .about-copy {
-  max-width: min(100%, 78rem);
+  width: 100%;
+  max-width: none;
   margin-bottom: clamp(24px, 2.5vw, 36px);
 }
 
@@ -1210,7 +1212,7 @@ section {
 
 .about-visual {
   width: 100%;
-  max-width: min(100%, 78rem);
+  max-width: none;
   margin: 0;
   border-radius: 16px;
   overflow: hidden;
@@ -1232,13 +1234,13 @@ section {
 
 @media (min-width: 768px) {
   .about-container {
-    padding-inline: clamp(24px, 3vw, 40px);
+    padding-inline: 24px;
   }
 }
 
 @media (min-width: 1024px) {
   .about-container {
-    padding-inline: clamp(24px, 3vw, 48px);
+    padding-inline: clamp(20px, 2.2vw, 40px);
   }
 }
 
@@ -1253,7 +1255,7 @@ section {
   gap: clamp(16px, 2vw, 24px);
   margin-top: clamp(24px, 2.5vw, 36px);
   width: 100%;
-  max-width: min(100%, 78rem);
+  max-width: none;
 }
 
 .vision-mission-card {
