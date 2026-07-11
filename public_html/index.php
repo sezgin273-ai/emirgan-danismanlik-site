@@ -271,6 +271,31 @@ function service_image_slug(string $icon): string
                     >
                 </picture>
             </figure>
+
+            <?php
+            $visionBlock = (isset($content['vision']) && is_array($content['vision'])
+                && !empty($content['vision']['title']) && !empty($content['vision']['text']))
+                ? $content['vision'] : null;
+            $missionBlock = (isset($content['mission']) && is_array($content['mission'])
+                && !empty($content['mission']['title']) && !empty($content['mission']['text']))
+                ? $content['mission'] : null;
+            ?>
+            <?php if ($visionBlock || $missionBlock): ?>
+            <div class="about-values">
+                <?php if ($visionBlock): ?>
+                <article class="vision-mission-card reveal" style="--reveal-delay: 0ms">
+                    <h3><?= e($visionBlock['title']) ?></h3>
+                    <p><?= e($visionBlock['text']) ?></p>
+                </article>
+                <?php endif; ?>
+                <?php if ($missionBlock): ?>
+                <article class="vision-mission-card reveal" style="--reveal-delay: 70ms">
+                    <h3><?= e($missionBlock['title']) ?></h3>
+                    <p><?= e($missionBlock['text']) ?></p>
+                </article>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
         </div>
     </section>
     <?php endif; ?>
